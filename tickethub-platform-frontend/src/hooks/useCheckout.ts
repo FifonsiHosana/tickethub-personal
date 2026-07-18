@@ -3,12 +3,13 @@ import { useNavigate } from "react-router";
 import type { CheckoutFormData } from "@/components/sections/Checkout/CheckoutForm";
 import { buildCheckoutPayload } from "@/utils/checkout/checkout.utils";
 import { useTicketCartStore } from "@/stores/tickets.store";
+import PayStackPop from "@paystack/inline-js";
 import type {
   PurchaseTicketResponse,
   PurchaseTicketRequest,
 } from "@/utils/services/tickets.service";
 import {
-  //   purchaseTicketPayment,
+  type initiatePaystackPaymentResponse,
   type purchaseTicketPaymentInput,
 } from "@/utils/services/finance.service";
 import type { UseMutateAsyncFunction } from "@tanstack/react-query";
@@ -21,17 +22,19 @@ interface CheckoutProps {
     unknown
   >;
   initiatePaymentForPurchaseOrder: UseMutateAsyncFunction<
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    any,
+    initiatePaystackPaymentResponse,
     Error,
     purchaseTicketPaymentInput,
     unknown
   >;
 }
 
-export function useCheckout({ createTicketPurchaseOrder }: CheckoutProps) {
+export function useCheckout({
+  createTicketPurchaseOrder,
+  initiatePaymentForPurchaseOrder,
+}: CheckoutProps) {
   const navigate = useNavigate();
-  const { clearCart, items } = useTicketCartStore();
+  const { clearCart, items, totalTicketAmount } = useTicketCartStore();
   const handleTicketOrderPurchase = async (formData: CheckoutFormData) => {
     if (items.length === 0) {
       toast.error("Cart is empty.");
@@ -46,21 +49,35 @@ export function useCheckout({ createTicketPurchaseOrder }: CheckoutProps) {
 
       // TODO:
       // Initialize payment here when integrated.
-      //   const payment = await initiatePaymentForPurchaseOrder({
-      //     email: response.email,
-      //     orderId: response.orderId,
-      //     phoneNumber: response.phoneNumber,
-      //     amount: response.totalAmount,
-      //   })
+      const payment = await initiatePaymentForPurchaseOrder({
+        email: payload.attendee.email,
+        orderId: response.orderId,
+        phoneNumber: payload.attendee.phoneNumber,
+        totalAmount: totalTicketAmount,
+      });
 
-      navigate(`/`);
+      if (!payment) return;
+
+      const popup = new PayStackPop();
+
+      popup.resumeTransaction(payment.access_code, {
+        onSuccess: (transaction) => {
+          console.log(transaction);
+          toast.success("Payment successful.");
+          navigate("/");
+          clearCart();
+        },
+        onCancel: () => {
+          toast.error("Payment cancelled.");
+        },
+      });
     } catch (error) {
       console.error(error);
 
       toast.error(
         error instanceof Error
           ? error.message
-          : "Unable to create ticket order.",
+          : "Unable to create ticket order."
       );
     }
   };

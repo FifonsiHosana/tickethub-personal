@@ -4,18 +4,21 @@ import { OrderSummary } from "@/components/sections/Checkout/OrderSummary";
 import { PricingSummary } from "@/components/sections/Checkout/PricingSummary";
 import { useTicketCartStore } from "@/stores/tickets.store";
 import { usePurchaseTickets } from "@/hooks/tickets/useTickets";
+import { usePayTicket } from "@/hooks/tickets/usePayTickets";
 import { useCheckout } from "@/hooks/useCheckout";
 import { Loader } from "@/components/ui/loader";
 
 export const Checkout: React.FC = () => {
   const { items, totalTicketAmount: subtotal } = useTicketCartStore();
   const purchaseMutation = usePurchaseTickets();
+  const initiatePaymentFunction = usePayTicket();
 
   const { handleTicketOrderPurchase } = useCheckout({
     createTicketPurchaseOrder: purchaseMutation.mutateAsync,
+    initiatePaymentForPurchaseOrder: initiatePaymentFunction.mutateAsync,
   });
 
-  if (purchaseMutation.isPending)
+  if (purchaseMutation.isPending && initiatePaymentFunction.isPending)
     return <Loader loading={true} fullScreen={true} />;
 
   return (
@@ -55,7 +58,9 @@ export const Checkout: React.FC = () => {
           <div className="lg:col-span-5 xl:col-span-4 relative ">
             <PricingSummary
               subtotal={subtotal}
-              isProcessing={purchaseMutation.isPending}
+              isProcessing={
+                purchaseMutation.isPending || initiatePaymentFunction.isPending
+              }
             />
           </div>
         </div>

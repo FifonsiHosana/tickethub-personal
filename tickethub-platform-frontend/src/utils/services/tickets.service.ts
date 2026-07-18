@@ -27,9 +27,9 @@ export interface PurchaseTicketResponse {
 }
 
 export async function purchaseTickets(
-  payload: PurchaseTicketRequest,
+  payload: PurchaseTicketRequest
 ): Promise<PurchaseTicketResponse> {
   const response = await axiosInstance.post("/api/tickets", payload);
 
-  return response.data;
+  return response.data.data;
 }

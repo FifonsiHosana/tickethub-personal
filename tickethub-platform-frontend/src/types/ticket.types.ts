@@ -1,18 +1,11 @@
 export interface TicketConfiguration {
   id: number;
-
   price: string;
-
   totalCount: number;
-
   totalSold: number;
-
   totalRemaining: number;
-
   salesStartDate: string;
-
   salesEndDate: string;
-
   benefits?: string;
 }
 
