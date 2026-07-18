@@ -18,7 +18,7 @@ export const Checkout: React.FC = () => {
     initiatePaymentForPurchaseOrder: initiatePaymentFunction.mutateAsync,
   });
 
-  if (purchaseMutation.isPending && initiatePaymentFunction.isPending)
+  if (purchaseMutation.isPending || initiatePaymentFunction.isPending)
     return <Loader loading={true} fullScreen={true} />;
 
   return (
