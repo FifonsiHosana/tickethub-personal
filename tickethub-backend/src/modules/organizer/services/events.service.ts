@@ -26,6 +26,15 @@ interface GetOrganizerEventsParams {
 }
 
 /**
+ * Get all event venues
+ */
+export async function getAllEventVenues() {
+  const data = await db.select().from(eventsVenues);
+
+  return data;
+}
+
+/**
  * Get all events created by organizer
  */
 export async function getOrganizerEvents(params: GetOrganizerEventsParams) {
@@ -125,41 +134,6 @@ export async function getOrganizerEventById(
     tickets: eventTicketsData,
   };
 }
-
-/**
- * Get single organizer event
- */
-// export async function getOrganizerEventById(
-//   organizerId: number,
-//   eventId: number,
-//   executor: Executor = db, // defaults to the pool, but a tx can be passed in
-// ) {
-//   const [result] = await executor
-//     .select()
-//     .from(events)
-//     .where(and(eq(events.id, eventId), eq(events.organizerId, organizerId)))
-//     .limit(1);
-
-//   if (!result) {
-//     throw new Error('Event not found');
-//   }
-
-//   const media = await executor
-//     .select()
-//     .from(eventImages)
-//     .where(eq(eventImages.eventId, eventId));
-
-//   const eventTicketsData = await executor
-//     .select({/* ... */})
-//     .from(tickets)
-//     // ...
-//     .where(eq(tickets.eventId, eventId));
-
-//   return {
-//     ...result,
-//     media,
-//     tickets: eventTicketsData,
-//   };
 
 /**
  * Create organizer event

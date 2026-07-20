@@ -30,7 +30,7 @@ export async function getRevenueTrendController(
   res: Response,
   next: NextFunction,
 ) {
-  const { from, to } = req.query.query;
+  const { from, to } = req.query;
   try {
     const data = await getRevenueTrend(req.user.id, {
       from,

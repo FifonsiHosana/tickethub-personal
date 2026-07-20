@@ -10,10 +10,8 @@ import {
 } from './sales.controller.js';
 
 import { authenticate } from '@/middleware/auth/auth.middleware.js';
-
 import { authorize } from '@/middleware/auth/role.middleware.js';
-
-import { validate } from '@/middleware/validate.js';
+import { validateParams, validateQuery } from '@/middleware/validate.js';
 
 import {
   getSalesSchema,
@@ -31,25 +29,7 @@ router.use(authenticate, authorize('organizer'));
  *
  * GET /organizer/sales
  */
-router.get('/', validate(getSalesSchema), getSales);
-
-/**
- * Single transaction details
- *
- * GET /organizer/sales/:orderId
- */
-router.get('/:orderId', validate(getSaleByIdSchema), getSaleDetails);
-
-/**
- * Event specific sales
- *
- * GET /organizer/events/:eventId/sales
- */
-router.get(
-  '/events/:eventId',
-  validate(getEventSalesSchema),
-  getEventSalesController,
-);
+router.get('/', validateQuery(getSalesSchema), getSales);
 
 /**
  * Dashboard summary cards
@@ -59,13 +39,24 @@ router.get(
 router.get('/summary', getSalesSummaryController);
 
 /**
+ * Event specific sales
+ *
+ * GET /organizer/sales/events/:eventId
+ */
+router.get(
+  '/events/:eventId',
+  validateParams(getEventSalesSchema),
+  getEventSalesController,
+);
+
+/**
  * Revenue chart
  *
  * GET /organizer/sales/revenue
  */
 router.get(
   '/revenue',
-  validate(getRevenueBreakdownSchema),
+  validateQuery(getRevenueBreakdownSchema),
   getRevenueController,
 );
 
@@ -75,5 +66,13 @@ router.get(
  * GET /organizer/sales/tickets
  */
 router.get('/tickets', getTicketSalesController);
+
+/**
+ * Single transaction details
+ *
+ * GET /organizer/sales/:orderId
+ * (must stay last — it's a catch-all for anything not matched above)
+ */
+router.get('/:orderId', validateParams(getSaleByIdSchema), getSaleDetails);
 
 export default router;

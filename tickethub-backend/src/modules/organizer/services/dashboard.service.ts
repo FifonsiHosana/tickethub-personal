@@ -40,34 +40,30 @@ async function getOrganizerStatistics(organizerId: number) {
   const eventStats = await db
     .select({
       totalEvents: sql<number>`COUNT(*)`,
-
       publishedEvents: sql<number>`
-            SUM(
-              CASE
-                WHEN ${events.status} = 'Published'
-                THEN 1
-                ELSE 0
-              END
-            )
-          `,
-
+      SUM(
+        CASE
+          WHEN ${events.status} = 'Published' THEN 1
+          ELSE 0
+        END
+      )
+    `,
       draftEvents: sql<number>`
-            SUM(
-              CASE
-                WHEN ${events.status} = 'Draft'
-                THEN 1
-                ELSE 0
-              END
-            `,
-
+      SUM(
+        CASE
+          WHEN ${events.status} = 'Draft' THEN 1
+          ELSE 0
+        END
+      )
+    `,
       completedEvents: sql<number>`
-            SUM(
-              CASE
-                WHEN ${events.status} = 'Completed'
-                THEN 1
-                ELSE 0
-              END
-            `,
+      SUM(
+        CASE
+          WHEN ${events.status} = 'Completed' THEN 1
+          ELSE 0
+        END
+      )
+    `,
     })
     .from(events)
     .where(eq(events.organizerId, organizerId));

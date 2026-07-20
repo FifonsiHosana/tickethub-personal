@@ -7,14 +7,15 @@ import {
   createOrganizerEvent,
   updateOrganizerEvent,
   deleteOrganizerEvent,
+  getAllEventVenues,
 } from './services/events.service.js';
 
 import {
   type CreateOrganizerEventType,
-  type OrganizerEventsQueryType,
   type UpdateOrganizerEventType,
 } from './organizer.schema.js';
 import logger from '@/utils/logger/index.js';
+
 
 /**
  * GET /organizer/dashboard
@@ -187,5 +188,26 @@ export async function deleteEvent(
     });
   } catch (error) {
     next(error);
+  }
+}
+
+/**
+ * GET /organizer/event-venues/
+ */
+
+export async function getAllVenues(
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const result = await getAllEventVenues();
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (err) {
+    next(err);
   }
 }

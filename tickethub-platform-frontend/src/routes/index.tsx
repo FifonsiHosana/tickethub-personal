@@ -1,6 +1,5 @@
 import { Routes, Route, BrowserRouter as Router } from "react-router";
 import { motion } from "motion/react";
-
 import Home from "@/pages/Home";
 import Login from "@/pages/Auth/Login";
 import ScrollToTop from "@/components/shared/ScrollToTop";
@@ -13,10 +12,15 @@ import PublicRoute from "./PublicRoute";
 import Dashboard from "@/pages/Dashboard/Dashboard";
 import Events from "@/pages/Event/Event";
 import { Checkout } from "@/pages/Checkout/Checkout";
-import CreateEvent from "@/pages/Dashboard/Organizer/CreateEvent";
+import CreateEventPage from "@/pages/Dashboard/Organizer/CreateEvent";
 import EventsList from "@/pages/Dashboard/Organizer/EventsList";
 import EventsListPage from "@/pages/Events/Events";
 import OrganizerAd from "@/pages/SellTickets/OrganizerAd";
+import TicketSalesPage from "@/pages/Dashboard/Organizer/TicketSales";
+import SalesAnalyticsPage from "@/pages/Dashboard/Organizer/SalesAnalytics";
+import TicketPerformancePage from "@/pages/Dashboard/Organizer/TicketPerformance";
+import EventPerformancePage from "@/pages/Dashboard/Organizer/EventPerformance";
+import RevenueAndPayoutsPage from "@/pages/Dashboard/Organizer/RevenueAndPayouts";
 
 export default function RouterLayout() {
   return (
@@ -65,8 +69,27 @@ export default function RouterLayout() {
             }
           >
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/organizer/events/new" element={<CreateEvent />} />
+            <Route path="/organizer/events/new" element={<CreateEventPage />} />
             <Route path="/organizer/events" element={<EventsList />} />
+            <Route path="/organizer/sales" element={<TicketSalesPage />} />
+            <Route
+              path="/organizer/sales/analytics"
+              element={<SalesAnalyticsPage />}
+            />
+
+            <Route
+              path="/organizer/analytics"
+              element={<EventPerformancePage />}
+            />
+            <Route
+              path="/organizer/analytics/revenue"
+              element={<RevenueAndPayoutsPage />}
+            />
+
+            <Route
+              path="/organizer/analytics/tickets"
+              element={<TicketPerformancePage />}
+            />
           </Route>
         </Routes>
         <Toaster position="bottom-right" />

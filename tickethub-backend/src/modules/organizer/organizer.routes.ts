@@ -7,6 +7,7 @@ import {
   createEvent,
   updateEvent,
   deleteEvent,
+  getAllVenues,
 } from './organizer.controller.js';
 
 import { authenticate } from '@/middleware/auth/auth.middleware.js';
@@ -16,6 +17,7 @@ import { validate, validateQuery } from '@/middleware/validate.js';
 import organizerTicketsRoutes from './tickets/tickets.routes.js';
 import organizerSalesRoutes from './sales/sales.routes.js';
 import organizerReportsRoutes from './reports/reports.routes.js';
+import organizerAnalyticsRoutes from './analytics/analytics.routes.js';
 
 import {
   organizerEventsQuerySchema,
@@ -43,6 +45,13 @@ router.use(
   authorize('organizer'),
   organizerReportsRoutes,
 );
+router.use(
+  '/analytics',
+  authenticate,
+  authorize('organizer'),
+  organizerAnalyticsRoutes,
+);
+
 /**
  * Organizer Dashboard
  */
@@ -82,6 +91,8 @@ router.patch(
   validate(updateOrganizerEventSchema),
   updateEvent,
 );
+
+router.get('/event-venues', getAllVenues);
 
 router.delete('/events/:id', authenticate, authorize('organizer'), deleteEvent);
 

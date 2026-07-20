@@ -12,10 +12,6 @@ import {
 
 import { and, between, count, desc, eq, like, sql } from 'drizzle-orm';
 
-/* -----------------------------------------------------------------------------
- * Types
- * -------------------------------------------------------------------------- */
-
 export interface GetOrganizerSalesOptions {
   organizerId: number;
 
@@ -332,72 +328,56 @@ export async function getSalesSummary(organizerId: number) {
   const result = await db
     .select({
       totalRevenue: sql<string>`
-            COALESCE(
-              SUM(
-                ${payments.amount}
-              ),
-              0
-            )
-          `,
-
+        COALESCE(
+          SUM(${payments.amount}),
+          0
+        )
+      `,
       completedOrders: sql<number>`
-            COUNT(
-              DISTINCT ${ticketOrders.id}
-            )
-          `,
-
+        COUNT(DISTINCT ${ticketOrders.id})
+      `,
       ticketsSold: sql<number>`
-            COUNT(
-              ${ticketOrderItems.id}
-            )
-          `,
-
+        COUNT(${ticketOrderItems.id})
+      `,
       successfulPayments: sql<number>`
-            SUM(
-              CASE
-                WHEN ${payments.status} = 'Completed'
-                THEN 1
-                ELSE 0
-              END
-            )
-          `,
-
+        COALESCE(
+          SUM(
+            CASE
+              WHEN ${payments.status} = 'Completed' THEN 1
+              ELSE 0
+            END
+          ),
+          0
+        )
+      `,
       failedPayments: sql<number>`
-            SUM(
-              CASE
-                WHEN ${payments.status} = 'Failed'
-                THEN 1
-                ELSE 0
-              END
-            `,
+        COALESCE(
+          SUM(
+            CASE
+              WHEN ${payments.status} = 'Failed' THEN 1
+              ELSE 0
+            END
+          ),
+          0
+        )
+      `,
     })
-
     .from(payments)
-
     .innerJoin(ticketOrders, eq(payments.orderId, ticketOrders.id))
-
     .innerJoin(ticketOrderItems, eq(ticketOrders.id, ticketOrderItems.orderId))
-
     .innerJoin(
       eventTickets,
       eq(ticketOrderItems.eventTicketId, eventTickets.id),
     )
-
     .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
-
     .innerJoin(events, eq(tickets.eventId, events.id))
-
     .where(eq(events.organizerId, organizerId));
 
   return {
     totalRevenue: Number(result[0]?.totalRevenue ?? 0),
-
     completedOrders: Number(result[0]?.completedOrders ?? 0),
-
     ticketsSold: Number(result[0]?.ticketsSold ?? 0),
-
     successfulPayments: Number(result[0]?.successfulPayments ?? 0),
-
     failedPayments: Number(result[0]?.failedPayments ?? 0),
   };
 }

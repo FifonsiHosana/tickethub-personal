@@ -65,7 +65,6 @@ const organizerNav: NavItem[] = [
     items: [
       { title: "Revenue & Payouts", url: "/organizer/analytics/revenue" },
       { title: "Ticket Performance", url: "/organizer/analytics/tickets" },
-      { title: "Event Overview", url: "/organizer/analytics/events" },
     ],
   },
   {

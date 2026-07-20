@@ -10,7 +10,7 @@ import {
 
 import { payments } from '@/db/schema/finance.js';
 
-import { and, eq, sql, between, desc } from 'drizzle-orm';
+import { and, eq, sql, between } from 'drizzle-orm';
 
 export interface AnalyticsDateRange {
   from?: string | undefined;

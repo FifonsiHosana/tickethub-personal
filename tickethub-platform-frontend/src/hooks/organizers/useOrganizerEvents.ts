@@ -6,9 +6,17 @@ import {
   createOrganizerEvent,
   updateOrganizerEvent,
   deleteOrganizerEvent,
+  getEventVenues,
   type CreateEventPayload,
   type UpdateEventPayload,
 } from "@/utils/services/organizers/events.service";
+
+export function useEventVenues() {
+  return useQuery({
+    queryKey: ["organizer-event-venues"],
+    queryFn: getEventVenues,
+  });
+}
 
 export function useOrganizerEvents() {
   return useQuery({
