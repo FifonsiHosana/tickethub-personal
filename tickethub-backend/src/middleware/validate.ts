@@ -11,3 +11,14 @@ export const validate =
       next(error);
     }
   };
+
+// addded a query variant, I'll use this later 
+export const validateQuery =
+  (schema: ZodType) => (req: Request, _res: Response, next: NextFunction) => {
+    try {
+      req.query = schema.parse(req.query) as any; // coerced values written back
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };

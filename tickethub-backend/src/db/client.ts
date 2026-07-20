@@ -10,3 +10,6 @@ const poolConnection = mysql.createPool({
 });
 
 export const db = drizzle({ client: poolConnection });
+export type DbClient = typeof db;
+export type Transaction = Parameters<Parameters<DbClient['transaction']>[0]>[0];
+export type Executor = DbClient | Transaction;

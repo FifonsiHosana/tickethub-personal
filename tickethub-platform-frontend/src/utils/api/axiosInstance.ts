@@ -4,7 +4,7 @@ import { getItem } from "../storage/localStorage";
 import { toast } from "sonner";
 
 export const axiosInstance = axios.create({
-  baseURL: env.apiBaseUrl,
+  baseURL: `${env.apiBaseUrl}/api`,
 });
 
 axiosInstance.interceptors.request.use(

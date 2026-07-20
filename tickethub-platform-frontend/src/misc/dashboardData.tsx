@@ -30,12 +30,6 @@ export type NavItem = {
 
 const organizerNav: NavItem[] = [
   {
-    title: "Dashboard",
-    url: "/organizer",
-    icon: <LayoutDashboardIcon />,
-    isActive: true,
-  },
-  {
     title: "Events",
     url: "/organizer/events",
     icon: <CalendarIcon />,

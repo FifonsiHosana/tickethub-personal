@@ -1,9 +1,9 @@
-import { EventDetails } from "@/components/sections/Events/EventDetails";
+import { EventsLists } from "@/components/sections/Events/EventsLists";
 
-export default function Events() {
+export default function EventsListPage() {
   return (
     <>
-      <EventDetails />
+      <EventsLists />
     </>
   );
 }

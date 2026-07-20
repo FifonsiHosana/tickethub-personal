@@ -11,8 +11,12 @@ import DashboardLayout from "@/layout/DashboardLayout";
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
 import Dashboard from "@/pages/Dashboard/Dashboard";
-import Events from "@/pages/Events/Events";
+import Events from "@/pages/Event/Event";
 import { Checkout } from "@/pages/Checkout/Checkout";
+import CreateEvent from "@/pages/Dashboard/Organizer/CreateEvent";
+import EventsList from "@/pages/Dashboard/Organizer/EventsList";
+import EventsListPage from "@/pages/Events/Events";
+import OrganizerAd from "@/pages/SellTickets/OrganizerAd";
 
 export default function RouterLayout() {
   return (
@@ -35,6 +39,8 @@ export default function RouterLayout() {
             <Route path="/" element={<Home />} />
             <Route path="*" element={<Home />} />
             <Route path="/events/:id" element={<Events />} />
+            <Route path="/events" element={<EventsListPage />} />
+            <Route path="/sell-event-tickets" element={<OrganizerAd />} />
             <Route path="/checkout" element={<Checkout />} />
           </Route>
 
@@ -49,15 +55,18 @@ export default function RouterLayout() {
             {/* <Route path="/signup" element={<SignUp />} /> */}
           </Route>
 
-          {/* Dashboard route */}
           <Route
             element={
-              <ProtectedRoute allowedRoles={["admin", "organizer"]}>
+              <ProtectedRoute
+                allowedRoles={["admin", "organizer", "event_staff"]}
+              >
                 <DashboardLayout />
               </ProtectedRoute>
             }
           >
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/organizer/events/new" element={<CreateEvent />} />
+            <Route path="/organizer/events" element={<EventsList />} />
           </Route>
         </Routes>
         <Toaster position="bottom-right" />

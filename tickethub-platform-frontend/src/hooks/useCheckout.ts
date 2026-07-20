@@ -7,11 +7,11 @@ import PayStackPop from "@paystack/inline-js";
 import type {
   PurchaseTicketResponse,
   PurchaseTicketRequest,
-} from "@/utils/services/tickets.service";
+} from "@/utils/services/attendees/tickets.service";
 import {
   type initiatePaystackPaymentResponse,
   type purchaseTicketPaymentInput,
-} from "@/utils/services/finance.service";
+} from "@/utils/services/attendees/finance.service";
 import type { UseMutateAsyncFunction } from "@tanstack/react-query";
 
 interface CheckoutProps {

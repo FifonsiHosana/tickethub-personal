@@ -3,9 +3,7 @@ import * as React from "react";
 const MOBILE_BREAKPOINT = 768;
 
 export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(
-    undefined,
-  );
+  const [isMobile, setIsMobile] = React.useState<boolean>(false);
   const [isScrolled, setIsScrolled] = React.useState<boolean>(false);
 
   React.useEffect(() => {
@@ -23,7 +21,7 @@ export function useIsMobile() {
     window.addEventListener("resize", onChange);
     window.addEventListener("scroll", onScroll);
     mql.addEventListener("change", onChange);
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    onChange(); // Call onChange initially to set the correct mobile state
 
     return () => {
       window.removeEventListener("resize", onChange);

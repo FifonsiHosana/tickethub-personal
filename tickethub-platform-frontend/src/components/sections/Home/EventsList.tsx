@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router";
-import { useEvents } from "@/hooks/events/useEvent";
+import { useEvents } from "@/hooks/attendees/events/useEvent";
 import { Loader } from "@/components/ui/loader";
 import type { Event } from "@/types/event.types";
 

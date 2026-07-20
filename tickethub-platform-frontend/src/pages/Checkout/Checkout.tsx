@@ -3,8 +3,8 @@ import { CheckoutForm } from "@/components/sections/Checkout/CheckoutForm";
 import { OrderSummary } from "@/components/sections/Checkout/OrderSummary";
 import { PricingSummary } from "@/components/sections/Checkout/PricingSummary";
 import { useTicketCartStore } from "@/stores/tickets.store";
-import { usePurchaseTickets } from "@/hooks/tickets/useTickets";
-import { usePayTicket } from "@/hooks/tickets/usePayTickets";
+import { usePurchaseTickets } from "@/hooks/attendees/tickets/useTickets";
+import { usePayTicket } from "@/hooks/attendees/tickets/usePayTickets";
 import { useCheckout } from "@/hooks/useCheckout";
 import { Loader } from "@/components/ui/loader";
 

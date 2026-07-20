@@ -13,7 +13,7 @@ export type AuthLoginPayload = {
 };
 
 export const signInWithEmailAndPassword = async (payload: AuthLoginPayload) => {
-  const response = await axiosInstance.post("api/auth/login", payload);
+  const response = await axiosInstance.post("/auth/login", payload);
   return response;
 };
 

@@ -22,6 +22,11 @@ interface Config {
   payment: {
     paystack_api_key: string;
   };
+  cloudinary: {
+    cloud_name: string;
+    api_key: string;
+    api_secret: string;
+  };
 }
 
 const config: Config = {
@@ -46,6 +51,11 @@ const config: Config = {
       process.env.NODE_ENV === 'development'
         ? (process.env.PAYSTACK_API_TEST_KEY as string)
         : (process.env.PAYSTACK_API_PROD_KEY as string),
+  },
+  cloudinary: {
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME as string,
+    api_key: process.env.CLOUDINARY_API_KEY as string,
+    api_secret: process.env.CLOUDINARY_API_SECRET as string,
   },
 };
 

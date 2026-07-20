@@ -1,5 +1,5 @@
 import type { CheckoutFormData } from "@/components/sections/Checkout/CheckoutForm";
-import type { PurchaseTicketRequest } from "@/utils/services/tickets.service";
+import type { PurchaseTicketRequest } from "@/utils/services/attendees/tickets.service";
 import { useTicketCartStore } from "@/stores/tickets.store";
 
 export function buildCheckoutPayload(

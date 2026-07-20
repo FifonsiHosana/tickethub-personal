@@ -1,4 +1,4 @@
-function formatDateForMySQL(date: Date) {
+export function formatDateForMySQL(date: Date) {
   return date.toISOString().replace('T', ' ').replace('Z', '');
 }
 

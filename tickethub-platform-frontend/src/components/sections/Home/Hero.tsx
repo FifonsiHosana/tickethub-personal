@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import { slides } from "@/misc/heroData";
+import { useNavigate } from "react-router";
 
 export const Hero: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -38,12 +40,6 @@ export const Hero: React.FC = () => {
       {/* Ma Centered Hero Section */}
       <main className="relative z-20 grow flex flex-col items-center justify-center px-6 mt-20">
         <div className="flex flex-col items-center text-center max-w-4xl">
-          {/* <div className="flex items-center gap-4 mb-6">
-            <span className="text-xs md:text-sm font-medium text-white/80 tracking-wide uppercase">
-              Over 50,000 moments created
-            </span>
-          </div> */}
-
           <div className="space-y-2 mb-10">
             <h1 className="text-4xl md:text-5xl xl:text-7xl 2xl:text-8xl font-sans font-medium text-white leading-[1.05]">
               Experience the <br />
@@ -61,11 +57,17 @@ export const Hero: React.FC = () => {
           </div>
 
           <div className="flex flex-col md:flex-row gap-4 items-center md:justify-center w-full">
-            <button className="flex items-center justify-center gap-3 px-8 py-3 bg-primary/80 text-white rounded-xl md:rounded-full text-base font-medium hover:bg-primary hover:scale-105 w-full md:w-auto">
+            <button
+              onClick={() => navigate("/login")}
+              className="flex items-center justify-center gap-3 px-8 py-3 bg-primary/80 text-white rounded-xl md:rounded-full text-base font-medium hover:bg-primary hover:scale-105 w-full md:w-auto"
+            >
               Start Selling
               <ArrowRight />
             </button>
-            <button className="flex items-center justify-center gap-3 px-11 py-3 border border-white text-white rounded-xl md:rounded-full text-base font-medium hover:scale-105 w-full md:w-auto">
+            <button
+              onClick={() => navigate("/events")}
+              className="flex items-center justify-center gap-3 px-11 py-3 border border-white text-white rounded-xl md:rounded-full text-base font-medium hover:scale-105 w-full md:w-auto"
+            >
               Browse Events
             </button>
           </div>

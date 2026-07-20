@@ -149,11 +149,10 @@ export class AuthService {
       .select()
       .from(userRoles)
       .innerJoin(roles, eq(userRoles.roleId, roles.id))
-      .where(eq(userRoles.userId, user.id))
-
+      .where(eq(userRoles.userId, user.id));
 
     const token = generateAccessToken({
-      sub: user.id,
+      id: user.id,
       role: userRole?.Roles.name,
     });
 

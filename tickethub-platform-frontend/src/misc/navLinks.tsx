@@ -1,16 +1,10 @@
-
-
 type NavLink = {
   name: string;
   path: string;
 };
 
-
-
 export const navLinks: NavLink[] = [
+  { name: "Home", path: "/" },
   { name: "The Events", path: "/events" },
-  { name: "The Venues", path: "/venues" },
-  { name: "Our Story", path: "/story" },
+  { name: "Sell Tickets", path: "/sell-event-tickets" },
 ];
-
-
