@@ -8,14 +8,14 @@ import { useTicketCartStore } from "@/stores/tickets.store";
 
 interface EventTicketingSidebarProps {
   status: "Draft" | "Published" | "Completed" | "Cancelled";
-  capacity: number;
+  // capacity: number;
   banner: string;
   eventName: string;
 }
 
 export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
   status,
-  capacity,
+  // capacity,
   banner,
   eventName,
 }) => {
@@ -57,19 +57,19 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
   }
 
   return (
-    <div className="sticky top-32 p-6 md:p-8 rounded-3xl border border-neutral-200 shadow-xl shadow-neutral-200/50 flex flex-col gap-8 bg-white">
+    <div className="sticky top-32 p-3 md:p-4 rounded-3xl border border-neutral-200 shadow-xl shadow-neutral-200/50 flex flex-col gap-4 bg-white">
       {/* Sidebar Header */}
-      <div>
+      {/* <div>
         <p className="text-sm font-medium text-black mb-1">
           Event Capacity
         </p>
         <p className="text-2xl font-bold text-foreground">{capacity} </p>
-      </div>
+      </div> */}
 
       {/* Ticket List */}
       <div className="flex flex-col gap-4">
         {tickets.map((ticket: EventTicket) => {
-          // Find if this specific ticket is already in the Zustand cart
+          
           const cartItem = items.find(
             (item) => item.eventTicketId === ticket.eventTicketId,
           );
@@ -87,27 +87,45 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
                   : "border-neutral-200 bg-white"
               } ${isSoldOut ? "opacity-50" : ""}`}
             >
-              <div className="flex justify-between items-start mb-4">
+              {/* <div className="flex justify-between items-start mb-2">
                 <div>
                   <h4 className="font-sans font-semibold text-foreground text-lg">
                     {ticket.ticketName}
                   </h4>
-                  <p className="text-sm text-neutral-500">
+                  <p className="text-sm text-neutral-800">
                     {Number(ticket.price) === 0
                       ? "Free"
                       : `GH₵ ${Number(ticket.price).toFixed(2)}`}
                   </p>
                   {ticket.description && (
-                    <p className="text-xs text-neutral-400 mt-1">
+                    <p className="text-xs text-neutral-600 mt-1">
                       {ticket.description}
                     </p>
                   )}
                 </div>
-              </div>
+              </div> */}
 
+              {/*  */}
+              <div className="flex flex-col w-full">
+                <div className="flex flex-row items-center justify-between">
+                  <h4 className="font-sans font-semibold text-foreground text-lg">
+                    {ticket.ticketName}
+                  </h4>
+                  <p className="text-sm text-neutral-800">
+                    {Number(ticket.price) === 0
+                      ? "Free"
+                      : `GH₵ ${Number(ticket.price).toFixed(2)}`}
+                  </p>
+
+                </div>
+
+                <div></div>
+
+                
+              </div>
               {/* Quantity Controls */}
               <div className="flex items-center justify-between mt-2">
-                <span className="text-xs font-medium text-neutral-400">
+                <span className="text-xs font-medium text-neutral-600">
                   {isSoldOut
                     ? "Sold Out"
                     : `${ticket.totalRemaining} available`}

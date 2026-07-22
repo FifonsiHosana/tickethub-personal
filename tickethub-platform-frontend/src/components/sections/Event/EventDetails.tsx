@@ -2,6 +2,7 @@ import React from "react";
 import { useEvent } from "@/hooks/attendees/events/useEvent";
 import { Loader } from "@/components/ui/loader";
 import { format } from "date-fns";
+import { CalendarDays, MapPin, User } from "lucide-react";
 import { EventTicketingSidebar } from "./EventTicketingSidebar";
 
 export const EventDetails: React.FC = () => {
@@ -59,30 +60,63 @@ export const EventDetails: React.FC = () => {
         {/* Right Column: Details & Ticketing */}
         <div className="lg:col-span-7 flex flex-col gap-6">
           {/* Main Event Header & Summary Card */}
-          <div className="bg-white rounded-4xl p-6 sm:p-8 border border-neutral-300 shadow-sm flex flex-col gap-8">
+          <div className="bg-white rounded-4xl p-5 sm:p-6 border border-neutral-300 shadow-sm flex flex-col gap-3">
             {/* Title Section */}
             <div>
-              <h1 className="text-3xl lg:text-4xl font-bold text-foreground uppercase tracking-tight leading-none">
+              <h1 className="text-3xl font-bold text-foreground uppercase tracking-tight leading-none">
                 {event.title}
               </h1>
             </div>
 
-            {/* Ticketing Component (Drop-in) */}
-            <div className="mt-2">
-              <EventTicketingSidebar
-                status={"Published"}
-                capacity={event.capacity}
-                eventName={event.title}
-                banner={bannerImage as string}
-              />
-            </div>
-          </div>
+            {/* When, Where, By Summary Box 2 */}
+            <div className="flex flex-col gap-1 text-sm mb-2">
+              <div className="flex items-center gap-1">
+                <CalendarDays className="w-4 h-4 text-primary" />
+                <p className="text-neutral-700">
+                  {formattedDateStr} &bull; {formattedTimeStr}
+                </p>
+              </div>
 
-          {/* About Section Card */}
-          <div className="bg-white rounded-4xl p-6 sm:p-8 border border-neutral-300 shadow-sm">
+              <div className="flex items-center gap-1">
+                <MapPin className="w-4 h-4 text-primary" />
+                <p className="text-neutral-700">
+                  {event.venueName || `${event.city}, ${event.country}`}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <User className="w-4 h-4 text-primary" />
+                <p className="text-neutral-700">
+                  {`${event.organizerFirstName} ${event.organizerLastName}`}
+                </p>
+              </div>
+
+              {/* {event.categoryNames && event.categoryNames.length > 0 && (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-2 gap-2 border-t border-neutral-100 mt-4">
+                  <span
+                    className="text-neutral-400 uppercase tracking-widest font-medium text-xs"
+                    aria-label="Categories"
+                    title="Categories"
+                  >
+                    Categories
+                  </span>
+                  <span className="font-medium text-foreground sm:text-right flex flex-wrap gap-1.5 justify-end">
+                    {event.categoryNames.map((name) => (
+                      <span
+                        key={name}
+                        className="inline-block px-2.5 py-0.5 text-xs font-medium bg-neutral-100 rounded-full"
+                      >
+                        {name}
+                      </span>
+                    ))}
+                  </span>
+                </div>
+              )} */}
+            </div>
+
             {/* When, Where, By Summary Box */}
-            <div className="flex flex-col border border-neutral-200 rounded-2xl overflow-hidden text-sm mb-2">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 border-b border-neutral-100 gap-2">
+            {/* <div className="flex flex-col border border-neutral-200 rounded-2xl overflow-hidden text-sm mb-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between p-1 border-b border-neutral-100 gap-2">
                 <span className="text-neutral-400 uppercase tracking-widest font-medium text-xs">
                   When
                 </span>
@@ -90,7 +124,7 @@ export const EventDetails: React.FC = () => {
                   {formattedDateStr} &bull; {formattedTimeStr}
                 </span>
               </div>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 border-b border-neutral-100 gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between p-2 border-b border-neutral-100 gap-2">
                 <span className="text-neutral-400 uppercase tracking-widest font-medium text-xs">
                   Where
                 </span>
@@ -98,7 +132,7 @@ export const EventDetails: React.FC = () => {
                   {event.venueName || `${event.city}, ${event.country}`}
                 </span>
               </div>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 border-b border-neutral-100 gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between p-2 border-b border-neutral-100 gap-2">
                 <span className="text-neutral-400 uppercase tracking-widest font-medium text-xs">
                   By
                 </span>
@@ -107,7 +141,7 @@ export const EventDetails: React.FC = () => {
                 </span>
               </div>
               {event.categoryNames && event.categoryNames.length > 0 && (
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-2 gap-2">
                   <span className="text-neutral-400 uppercase tracking-widest font-medium text-xs">
                     Categories
                   </span>
@@ -123,7 +157,21 @@ export const EventDetails: React.FC = () => {
                   </span>
                 </div>
               )}
+            </div> */}
+
+            {/* Ticketing Component (Drop-in) */}
+            <div className="mt-1">
+              <EventTicketingSidebar
+                status={"Published"}
+                // capacity={event.capacity}
+                eventName={event.title}
+                banner={bannerImage as string}
+              />
             </div>
+          </div>
+
+          {/* About Section Card */}
+          <div className="bg-white rounded-4xl p-6 sm:p-8 border border-neutral-300 shadow-sm">
             <h3 className="text-xl font-bold text-foreground mb-4">
               About this event
             </h3>
