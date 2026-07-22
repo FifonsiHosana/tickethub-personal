@@ -7,15 +7,111 @@ import {
   tickets,
   ticketTypes,
   ticketConfigurations,
+  category,
+  categorizedEvents,
 } from '@/db/schema/index.js';
 
 import { users } from '@/db/schema/index.js';
 
-import { and, asc, eq, gt, lte, gte, sql } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gt,
+  lte,
+  gte,
+  inArray,
+  count,
+  sql,
+} from 'drizzle-orm';
+import type { GetPublishedEventsQuery } from './events.schema.js';
+import type { PublishedEventResponse, PaginationMeta } from './events.types.js';
 
 class EventsService {
-  async getPublishedEvents() {
-    const result = await db
+  async getPublishedEvents(params: GetPublishedEventsQuery): Promise<{
+    data: PublishedEventResponse[];
+    pagination: PaginationMeta;
+  }> {
+    const { page, pageSize, search, categoryId, sortBy, sortOrder } = params;
+    const offset = (page - 1) * pageSize;
+
+    const conditions: ReturnType<typeof and>[] = [
+      eq(events.status, 'Published'),
+      eq(events.approvalStatus, 'Approved'),
+    ];
+
+    if (search) {
+      const pattern = `%${search}%`;
+      conditions.push(
+        sql`(${events.title} LIKE ${pattern} OR ${eventsVenues.venue_name} LIKE ${pattern} OR ${eventsVenues.city_or_town} LIKE ${pattern})`,
+      );
+    }
+
+    if (categoryId) {
+      const eventIdsWithCategory = await db
+        .select({ eventId: categorizedEvents.event_id })
+        .from(categorizedEvents)
+        .where(eq(categorizedEvents.category_id, categoryId));
+
+      const validEventIds = eventIdsWithCategory
+        .map((r) => r.eventId)
+        .filter((id): id is number => id !== null);
+
+      if (validEventIds.length === 0) {
+        return {
+          data: [],
+          pagination: { page, pageSize, total: 0, totalPages: 0 },
+        };
+      }
+
+      conditions.push(inArray(events.id, validEventIds));
+    }
+
+    const whereClause = and(...conditions);
+
+    // Total count
+    const [totalResult] = await db
+      .select({ count: count() })
+      .from(events)
+      .leftJoin(eventsVenues, eq(events.eventVenueId, eventsVenues.id))
+      .where(whereClause);
+
+    const total = Number(totalResult?.count ?? 0);
+
+    if (total === 0) {
+      return {
+        data: [],
+        pagination: { page, pageSize, total: 0, totalPages: 0 },
+      };
+    }
+
+    // Order
+    const orderColumn = sortBy === 'title' ? events.title : events.dateAndTime;
+    const orderDirection =
+      sortOrder === 'desc' ? desc(orderColumn) : asc(orderColumn);
+
+    // Get paginated IDs (avoids join multiplication)
+    const eventRows = await db
+      .select({ id: events.id })
+      .from(events)
+      .leftJoin(eventsVenues, eq(events.eventVenueId, eventsVenues.id))
+      .where(whereClause)
+      .orderBy(orderDirection)
+      .limit(pageSize)
+      .offset(offset);
+
+    const eventIds = eventRows.map((r) => r.id);
+
+    if (eventIds.length === 0) {
+      return {
+        data: [],
+        pagination: { page, pageSize, total, totalPages: 1 },
+      };
+    }
+
+    // Full data for these IDs
+    const data = await db
       .select({
         id: events.id,
         title: events.title,
@@ -36,15 +132,55 @@ class EventsService {
         eventImages,
         and(eq(eventImages.eventId, events.id), eq(eventImages.type, 'Banner')),
       )
-      .where(
-        and(
-          eq(events.status, 'Published'),
-          eq(events.approvalStatus, 'Approved'),
-        ),
-      )
-      .orderBy(asc(events.dateAndTime));
+      .where(inArray(events.id, eventIds));
 
-    return result;
+    // Categories for these events
+    const categoryRows = await db
+      .select({
+        eventId: categorizedEvents.event_id,
+        categoryId: category.id,
+        categoryName: category.name,
+      })
+      .from(categorizedEvents)
+      .innerJoin(category, eq(categorizedEvents.category_id, category.id))
+      .where(inArray(categorizedEvents.event_id, eventIds));
+
+    const categoryMap = new Map<number, { ids: number[]; names: string[] }>();
+    for (const row of categoryRows) {
+      if (!row.eventId) continue;
+      if (!categoryMap.has(row.eventId)) {
+        categoryMap.set(row.eventId, { ids: [], names: [] });
+      }
+      const entry = categoryMap.get(row.eventId)!;
+      entry.ids.push(row.categoryId);
+      entry.names.push(row.categoryName);
+    }
+
+    // Preserve paginated order
+    const eventOrderMap = new Map(eventIds.map((id, idx) => [id, idx]));
+    const sortedData = data
+      .sort(
+        (a, b) =>
+          (eventOrderMap.get(a.id) ?? 0) - (eventOrderMap.get(b.id) ?? 0),
+      )
+      .map((event) => {
+        const cats = categoryMap.get(event.id);
+        return {
+          ...event,
+          categoryIds: cats?.ids ?? [],
+          categoryNames: cats?.names ?? [],
+        };
+      });
+
+    return {
+      data: sortedData,
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    };
   }
 
   async getEventById(eventId: number) {
@@ -77,6 +213,8 @@ class EventsService {
       )
       .limit(1);
 
+    if (!event) return null;
+
     const images = await db
       .select({
         imageUrl: eventImages.imageUrl,
@@ -85,9 +223,21 @@ class EventsService {
       .from(eventImages)
       .where(eq(eventImages.eventId, eventId));
 
+    // Categories for this event
+    const categoryRows = await db
+      .select({
+        id: category.id,
+        name: category.name,
+      })
+      .from(categorizedEvents)
+      .innerJoin(category, eq(categorizedEvents.category_id, category.id))
+      .where(eq(categorizedEvents.event_id, eventId));
+
     return {
       ...event,
       images,
+      categoryIds: categoryRows.map((c) => c.id),
+      categoryNames: categoryRows.map((c) => c.name),
     };
   }
 

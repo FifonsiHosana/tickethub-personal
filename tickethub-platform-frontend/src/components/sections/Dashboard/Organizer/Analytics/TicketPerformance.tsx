@@ -1,10 +1,19 @@
+import { useState } from "react";
 import { TicketIcon } from "lucide-react";
-import { useOverviewAnalytics } from "@/hooks/organizers/useOrganizerAnalytics";
+import { useOverviewAnalytics, useTicketPerformance } from "@/hooks/organizers/useOrganizerAnalytics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TicketPerformanceTable } from "./TicketPerformanceTable";
 
 export default function TicketPerformance() {
   const { data: overview } = useOverviewAnalytics();
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+
+  const { data: response, isLoading } = useTicketPerformance({
+    page,
+    pageSize: 10,
+    search: search || undefined,
+  });
 
   return (
     <div className="flex-1 space-y-6 p-8 pt-6 bg-neutral-50/30 min-h-screen">
@@ -36,7 +45,15 @@ export default function TicketPerformance() {
         </Card>
       </div>
 
-      <TicketPerformanceTable />
+      <TicketPerformanceTable
+        data={response?.data}
+        isLoading={isLoading}
+        search={search}
+        onSearchChange={(val) => { setSearch(val); setPage(1); }}
+        page={page}
+        onPageChange={setPage}
+        pagination={response?.pagination}
+      />
     </div>
   );
 }

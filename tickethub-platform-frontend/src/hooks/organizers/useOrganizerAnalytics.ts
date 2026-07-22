@@ -5,6 +5,7 @@ import {
   getEventPerformance,
   getTicketPerformance,
   type RevenueTrendParams,
+  type AnalyticsSearchParams,
 } from "@/utils/services/organizers/analytics.service";
 
 export const analyticsKeys = {
@@ -12,8 +13,10 @@ export const analyticsKeys = {
   overview: () => [...analyticsKeys.all, "overview"] as const,
   revenueTrend: (params: RevenueTrendParams) =>
     [...analyticsKeys.all, "revenue-trend", params] as const,
-  events: () => [...analyticsKeys.all, "events"] as const,
-  tickets: () => [...analyticsKeys.all, "tickets"] as const,
+  events: (params?: AnalyticsSearchParams) =>
+    [...analyticsKeys.all, "events", params] as const,
+  tickets: (params?: AnalyticsSearchParams) =>
+    [...analyticsKeys.all, "tickets", params] as const,
 };
 
 export function useOverviewAnalytics() {
@@ -31,16 +34,18 @@ export function useRevenueTrend(params: RevenueTrendParams) {
   });
 }
 
-export function useEventPerformance() {
+export function useEventPerformance(params?: AnalyticsSearchParams) {
   return useQuery({
-    queryKey: analyticsKeys.events(),
-    queryFn: getEventPerformance,
+    queryKey: analyticsKeys.events(params),
+    queryFn: () => getEventPerformance(params),
+    placeholderData: (previousData) => previousData,
   });
 }
 
-export function useTicketPerformance() {
+export function useTicketPerformance(params?: AnalyticsSearchParams) {
   return useQuery({
-    queryKey: analyticsKeys.tickets(),
-    queryFn: getTicketPerformance,
+    queryKey: analyticsKeys.tickets(params),
+    queryFn: () => getTicketPerformance(params),
+    placeholderData: (previousData) => previousData,
   });
 }

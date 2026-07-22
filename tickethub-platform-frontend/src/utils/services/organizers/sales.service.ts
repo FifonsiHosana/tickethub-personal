@@ -27,7 +27,7 @@ export type GetOrganizerSalesResponse = {
     phoneNumber: string;
     eventId: number;
     eventTitle: string;
-    ticketName: string;
+    ticketSummary: string;
     quantity: number;
     amount: string;
     currency: string;

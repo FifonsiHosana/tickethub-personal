@@ -251,7 +251,20 @@ export async function cancelOrganizerEvent(
 }
 
 /*Delete Organizer Event*/
-export async function deleteOrganizerEvent(eventId: number) {
+export async function deleteOrganizerEvent(
+  organizerId: number,
+  eventId: number,
+) {
+  const [event] = await db
+    .select()
+    .from(events)
+    .where(and(eq(events.id, eventId), eq(events.organizerId, organizerId)))
+    .limit(1);
+
+  if (!event) {
+    throw new AppError(404, 'Event not found or unauthorized');
+  }
+
   return await db.transaction(async (tx) => {
     await tx
       .delete(eventImages)

@@ -7,6 +7,7 @@ import {
   createOrganizerEvent,
   updateOrganizerEvent,
   deleteOrganizerEvent,
+  cancelOrganizerEvent,
   getAllEventVenues,
 } from './services/events.service.js';
 
@@ -15,7 +16,6 @@ import {
   type UpdateOrganizerEventType,
 } from './organizer.schema.js';
 import logger from '@/utils/logger/index.js';
-
 
 /**
  * GET /organizer/dashboard
@@ -51,7 +51,7 @@ export async function organizerEvents(
   try {
     const organizerId = req.user.id;
 
-    const { page, pageSize, search, status } = req.params;
+    const { page, pageSize, search, status } = req.query;
 
     const result = await getOrganizerEvents({
       organizerId,
@@ -175,15 +175,39 @@ export async function deleteEvent(
   next: NextFunction,
 ) {
   try {
-    // const organizerId = req.user.id;
+    const organizerId = req.user.id;
 
     const eventId = Number(req.params.id);
 
-    const result = await deleteOrganizerEvent(eventId);
+    const result = await deleteOrganizerEvent(organizerId, eventId);
 
     res.status(200).json({
       success: true,
 
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * PATCH /organizer/events/:id/cancel
+ */
+export async function cancelEvent(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const organizerId = req.user.id;
+
+    const eventId = Number(req.params.id);
+
+    const result = await cancelOrganizerEvent(organizerId, eventId);
+
+    res.status(200).json({
+      success: true,
       ...result,
     });
   } catch (error) {

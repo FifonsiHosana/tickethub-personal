@@ -6,9 +6,14 @@ export type DashboardDataResponse = {
     publishedEvents: number;
     draftEvents: number;
     completedEvents: number;
+    cancelledEvents: number;
     totalTicketsSold: number;
-    totalOrders: number;
+    totalTicketsRemaining: number;
+    totalCheckIns: number;
     totalRevenue: number;
+    totalOrders: number;
+    completedOrders: number;
+    conversionRate: number;
   };
   upcomingEvents: {
     id: number;

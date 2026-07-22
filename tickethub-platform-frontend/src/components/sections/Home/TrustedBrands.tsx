@@ -1,8 +1,7 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
-// Placeholders for your trusted brands.
-// You can replace the 'name' with an 'imgSrc' later when you have the actual SVG logos.
+// Guyyyy, you for replace the name with imgSrc later when you have the actual SVG logos.
 const trustedBrands = [
   { id: 1, name: "Spotify" },
   { id: 2, name: "Live Nation" },
@@ -15,7 +14,6 @@ const trustedBrands = [
 ];
 
 export const TrustedBrands: React.FC = () => {
-  // Duplicating the array ensures the infinite scroll has no gaps
   const duplicatedBrands = [...trustedBrands, ...trustedBrands];
 
   return (
@@ -42,7 +40,7 @@ export const TrustedBrands: React.FC = () => {
             transition={{
               repeat: Infinity,
               ease: "linear",
-              duration: 30, // Adjust this to make it faster or slower
+              duration: 30,
             }}
           >
             {duplicatedBrands.map((brand, index) => (

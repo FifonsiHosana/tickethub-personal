@@ -10,7 +10,13 @@ import {
   events,
 } from '@/db/schema/index.js';
 
-import { and, between, count, desc, eq, like, sql } from 'drizzle-orm';
+import { and, between, desc, eq, like, sql } from 'drizzle-orm';
+
+import {
+  getSalesSummary as getSharedSalesSummary,
+  getRevenueTrend,
+  getTicketSalesBreakdown as getSharedTicketSalesBreakdown,
+} from '../queries/index.js';
 
 export interface GetOrganizerSalesOptions {
   organizerId: number;
@@ -92,7 +98,7 @@ export async function getOrganizerSales(options: GetOrganizerSalesOptions) {
 
       eventTitle: events.title,
 
-      ticketName: tickets.name,
+      ticketSummary: sql<string>`GROUP_CONCAT(DISTINCT ${tickets.name} SEPARATOR ', ')`,
 
       quantity: ticketOrders.quantity,
 
@@ -124,12 +130,13 @@ export async function getOrganizerSales(options: GetOrganizerSalesOptions) {
       eventTickets,
       eq(ticketOrderItems.eventTicketId, eventTickets.id),
     )
-
     .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
 
     .innerJoin(events, eq(tickets.eventId, events.id))
 
     .where(and(...filters))
+
+    .groupBy(ticketOrders.id, payments.id, ticketOrderUserDetails.id, events.id)
 
     .orderBy(desc(payments.paidAt))
 
@@ -139,7 +146,7 @@ export async function getOrganizerSales(options: GetOrganizerSalesOptions) {
 
   const total = await db
     .select({
-      total: count(),
+      total: sql<number>`COUNT(DISTINCT ${ticketOrders.id})`,
     })
 
     .from(payments)
@@ -325,202 +332,23 @@ export async function getEventSales(organizerId: number, eventId: number) {
  * - tickets sold
  */
 export async function getSalesSummary(organizerId: number) {
-  const result = await db
-    .select({
-      totalRevenue: sql<string>`
-        COALESCE(
-          SUM(${payments.amount}),
-          0
-        )
-      `,
-      completedOrders: sql<number>`
-        COUNT(DISTINCT ${ticketOrders.id})
-      `,
-      ticketsSold: sql<number>`
-        COUNT(${ticketOrderItems.id})
-      `,
-      successfulPayments: sql<number>`
-        COALESCE(
-          SUM(
-            CASE
-              WHEN ${payments.status} = 'Completed' THEN 1
-              ELSE 0
-            END
-          ),
-          0
-        )
-      `,
-      failedPayments: sql<number>`
-        COALESCE(
-          SUM(
-            CASE
-              WHEN ${payments.status} = 'Failed' THEN 1
-              ELSE 0
-            END
-          ),
-          0
-        )
-      `,
-    })
-    .from(payments)
-    .innerJoin(ticketOrders, eq(payments.orderId, ticketOrders.id))
-    .innerJoin(ticketOrderItems, eq(ticketOrders.id, ticketOrderItems.orderId))
-    .innerJoin(
-      eventTickets,
-      eq(ticketOrderItems.eventTicketId, eventTickets.id),
-    )
-    .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
-    .innerJoin(events, eq(tickets.eventId, events.id))
-    .where(eq(events.organizerId, organizerId));
-
-  return {
-    totalRevenue: Number(result[0]?.totalRevenue ?? 0),
-    completedOrders: Number(result[0]?.completedOrders ?? 0),
-    ticketsSold: Number(result[0]?.ticketsSold ?? 0),
-    successfulPayments: Number(result[0]?.successfulPayments ?? 0),
-    failedPayments: Number(result[0]?.failedPayments ?? 0),
-  };
+  return getSharedSalesSummary(organizerId);
 }
 
 /**
- * Revenue breakdown over time
- *
- * Used for:
- * - line charts
- * - bar charts
- *
- * Example:
- *
- * [
- *   {
- *      date:"2026-07-01",
- *      revenue:5000
- *   }
- * ]
+ * Revenue breakdown over time — delegates to shared query
  */
 export async function getRevenueBreakdown(
   organizerId: number,
   from: string,
   to: string,
 ) {
-  return await db
-    .select({
-      date: sql<string>`
-          DATE(
-            ${payments.paidAt}
-          )
-        `,
-
-      revenue: sql<string>`
-          COALESCE(
-            SUM(
-              ${payments.amount}
-            ),
-            0
-          )
-        `,
-
-      transactions: sql<number>`
-          COUNT(
-            ${payments.id}
-          )
-        `,
-    })
-
-    .from(payments)
-
-    .innerJoin(ticketOrders, eq(payments.orderId, ticketOrders.id))
-
-    .innerJoin(ticketOrderItems, eq(ticketOrders.id, ticketOrderItems.orderId))
-
-    .innerJoin(
-      eventTickets,
-      eq(ticketOrderItems.eventTicketId, eventTickets.id),
-    )
-
-    .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
-
-    .innerJoin(events, eq(tickets.eventId, events.id))
-
-    .where(
-      and(
-        eq(events.organizerId, organizerId),
-
-        eq(payments.status, 'Completed'),
-
-        between(payments.paidAt, from, to),
-      ),
-    )
-
-    .groupBy(
-      sql`
-        DATE(
-          ${payments.paidAt}
-        )
-      `,
-    )
-
-    .orderBy(
-      sql`
-        DATE(
-          ${payments.paidAt}
-        )
-      `,
-    );
+  return getRevenueTrend(organizerId, { from, to });
 }
 
 /**
- * Sales by ticket type
- *
- * Example:
- *
- * VIP        200 sold
- * Regular    450 sold
+ * Sales by ticket type — delegates to shared query
  */
 export async function getTicketSalesBreakdown(organizerId: number) {
-  return await db
-
-    .select({
-      ticketName: tickets.name,
-
-      sold: sql<number>`
-          COUNT(
-            ${ticketOrderItems.id}
-          )
-        `,
-
-      revenue: sql<string>`
-          COALESCE(
-            SUM(
-              ${payments.amount}
-            ),
-            0
-          )
-        `,
-    })
-
-    .from(ticketOrderItems)
-
-    .innerJoin(
-      eventTickets,
-      eq(ticketOrderItems.eventTicketId, eventTickets.id),
-    )
-
-    .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
-
-    .innerJoin(events, eq(tickets.eventId, events.id))
-
-    .innerJoin(ticketOrders, eq(ticketOrderItems.orderId, ticketOrders.id))
-
-    .innerJoin(payments, eq(ticketOrders.id, payments.orderId))
-
-    .where(
-      and(
-        eq(events.organizerId, organizerId),
-
-        eq(payments.status, 'Completed'),
-      ),
-    )
-
-    .groupBy(tickets.id);
+  return getSharedTicketSalesBreakdown(organizerId);
 }

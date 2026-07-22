@@ -54,7 +54,7 @@ export const SalesTable = ({ sales, isLoading, isError }: SalesTableProps) => {
   }
 
   return (
-    <div className="rounded-xl border bg-white overflow-hidden shadow-sm">
+    <div className="rounded-xl border border-gray-300 bg-white overflow-hidden">
       <Table className="border border-gray-300">
         <TableHeader className="bg-neutral-50/80 border-b border-gray-200">
           <TableRow className="border-b border-gray-200">
@@ -83,11 +83,11 @@ export const SalesTable = ({ sales, isLoading, isError }: SalesTableProps) => {
               </TableCell>
               <TableCell>
                 <div className="flex flex-col">
-                  <span className="font-medium text-[#1a201c] line-clamp-1">
+                  <span className="font-medium text-foreground line-clamp-1">
                     {sale.eventTitle}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {sale.quantity}x {sale.ticketName}
+                    {sale.quantity} tickets — {sale.ticketSummary}
                   </span>
                 </div>
               </TableCell>

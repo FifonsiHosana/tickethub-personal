@@ -10,7 +10,9 @@
     "dev": "tsx watch src/server.ts",
     "lint": "eslint 'src/**/*.ts'",
     "seed-auth": "tsx scripts/seed-auth.ts",
-    "seed-events": "tsx scripts/seed-events.ts"
+    "seed-events": "tsx scripts/seed-events.ts",
+    "seed-organizer": "tsx scripts/seed-organizer.ts",
+    "seed-organizer-events": "tsx scripts/seed-organizer-events.ts"
   },
   "keywords": [],
   "author": "",

@@ -1,36 +1,47 @@
 import React from "react";
 import { SearchIcon } from "lucide-react";
+import type { Category } from "@/types/event.types";
 
 interface EventsFilterBarProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
-  activeFilter: string;
-  setActiveFilter: (filter: string) => void;
+  activeCategoryId: number | null;
+  setActiveCategoryId: (id: number | null) => void;
+  categories: Category[];
 }
-// would load categories from the backend
-const CATEGORIES = ["All", "Music", "Tech", "Arts", "Business", "Sports"];
 
 export const EventsFilterBar: React.FC<EventsFilterBarProps> = ({
   searchQuery,
   setSearchQuery,
-  activeFilter,
-  setActiveFilter,
+  activeCategoryId,
+  setActiveCategoryId,
+  categories,
 }) => {
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 w-full">
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6 w-full">
       {/* Category Chips */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar w-full md:w-auto">
-        {CATEGORIES.map((category) => (
+        <button
+          onClick={() => setActiveCategoryId(null)}
+          className={`whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
+            activeCategoryId === null
+              ? "bg-primary text-white shadow-md"
+              : "bg-white text-neutral-500 border border-neutral-200 hover:border-neutral-300 hover:text-foreground"
+          }`}
+        >
+          All
+        </button>
+        {categories.map((category) => (
           <button
-            key={category}
-            onClick={() => setActiveFilter(category)}
+            key={category.id}
+            onClick={() => setActiveCategoryId(category.id)}
             className={`whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
-              activeFilter === category
+              activeCategoryId === category.id
                 ? "bg-primary text-white shadow-md"
                 : "bg-white text-neutral-500 border border-neutral-200 hover:border-neutral-300 hover:text-foreground"
             }`}
           >
-            {category}
+            {category.name}
           </button>
         ))}
       </div>

@@ -24,10 +24,10 @@ const steps = [
 
 export const HowItWorks: React.FC = () => {
   return (
-    <section className="py-24 md:py-32 bg-neutral-50/50">
+    <section className="py-16 md:py-32 bg-neutral-50/50">
       <div className="max-w-7xl mx-auto px-6">
         <div className="mb-16 md:mb-24 text-center">
-          <h2 className="text-3xl md:text-5xl font-bold text-[#1a201c] tracking-tight">
+          <h2 className="text-3xl md:text-5xl font-bold text-foreground tracking-tight">
             How it works
           </h2>
         </div>
@@ -42,11 +42,6 @@ export const HowItWorks: React.FC = () => {
               transition={{ duration: 0.5, delay: index * 0.15 }}
               className="flex flex-col gap-4 relative"
             >
-              {/* Connecting line for desktop */}
-              {index !== 2 && (
-                <div className="hidden md:block absolute top-12 left-[60%] w-full h-px bg-neutral-200" />
-              )}
-
               <span className="text-6xl lg:text-7xl text-primary italic mb-2">
                 {step.number}.
               </span>

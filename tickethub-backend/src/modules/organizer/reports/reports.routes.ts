@@ -6,9 +6,9 @@ import { authenticate } from '@/middleware/auth/auth.middleware.js';
 
 import { authorize } from '@/middleware/auth/role.middleware.js';
 
-// import { validateQuery } from '@/middleware/validate.js';
+import { validateQuery } from '@/middleware/validate.js';
 
-// import { salesReportQuerySchema } from './reports.schema.js';
+import { salesReportQuerySchema } from './reports.schema.js';
 
 const router = Router();
 
@@ -32,6 +32,6 @@ router.use(authenticate, authorize('organizer'));
  *
  * ?to=2026-12-31T23:59:59Z
  */
-router.get('/sales', exportSalesReport);
+router.get('/sales', validateQuery(salesReportQuerySchema), exportSalesReport);
 
 export default router;

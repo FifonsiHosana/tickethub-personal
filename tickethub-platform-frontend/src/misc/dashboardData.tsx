@@ -2,10 +2,8 @@ import * as React from "react";
 import {
   CalendarIcon,
   TicketIcon,
-  UsersIcon,
   ScanLineIcon,
   BarChart3Icon,
-  FileTextIcon,
   ClipboardCheckIcon,
   ListChecksIcon,
   ShieldCheckIcon,
@@ -13,6 +11,7 @@ import {
   PercentIcon,
   WalletIcon,
   LayoutDashboardIcon,
+  UserCheckIcon,
 } from "lucide-react";
 
 export type Role = "organizer" | "event_staff" | "admin";
@@ -30,47 +29,47 @@ export type NavItem = {
 
 const organizerNav: NavItem[] = [
   {
+    title: "Dashboard",
+    url: "/organizer/dashboard",
+    icon: <LayoutDashboardIcon />,
+  },
+  {
     title: "Events",
     url: "/organizer/events",
     icon: <CalendarIcon />,
     items: [
       { title: "All Events", url: "/organizer/events" },
       { title: "Create Event", url: "/organizer/events/new" },
-      { title: "Tickets", url: "/organizer/events/tickets" },
     ],
   },
   {
-    title: "Event Staff",
-    url: "/organizer/staff",
-    icon: <UsersIcon />,
-  },
-  {
-    title: "Scan Tickets",
-    url: "/organizer/scan",
-    icon: <ScanLineIcon />,
-  },
-  {
-    title: "Sales",
-    url: "/organizer/sales",
+    title: "Tickets",
+    url: "/organizer/tickets",
     icon: <TicketIcon />,
     items: [
+      { title: "Ticket Types", url: "/organizer/tickets" },
       { title: "Ticket Sales", url: "/organizer/sales" },
-      { title: "Sales Analytics", url: "/organizer/sales/analytics" },
+    ],
+  },
+  {
+    title: "Attendees",
+    url: "/organizer/attendees",
+    icon: <UserCheckIcon />,
+    items: [
+      { title: "All Attendees", url: "/organizer/attendees" },
+      { title: "Check-In", url: "/organizer/attendees/check-in" },
+      { title: "Event Staff", url: "/organizer/attendees/staff" },
     ],
   },
   {
     title: "Analytics",
-    url: "/organizer/analytics",
+    url: "/organizer/analytics/events",
     icon: <BarChart3Icon />,
     items: [
+      { title: "Event Performance", url: "/organizer/analytics/events" },
       { title: "Revenue & Payouts", url: "/organizer/analytics/revenue" },
       { title: "Ticket Performance", url: "/organizer/analytics/tickets" },
     ],
-  },
-  {
-    title: "Reports",
-    url: "/organizer/reports",
-    icon: <FileTextIcon />,
   },
 ];
 

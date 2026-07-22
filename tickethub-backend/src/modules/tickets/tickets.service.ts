@@ -9,13 +9,13 @@ import {
   ticketOrderUserDetails,
   eventTickets,
   ticketConfigurations,
-  ticketTypes,
   events,
 } from '@/db/schema/index.js';
 
 import { eq, inArray } from 'drizzle-orm';
 import { AppError } from '@/middleware/errorHandler.js';
 import type { PurchaseTicketType } from './tickets.schema.js';
+import { generateTicketIdentifier } from './tickets.utils.js';
 
 class TicketsService {
   async purchaseTickets(payload: PurchaseTicketType) {
@@ -34,6 +34,7 @@ class TicketsService {
           ticketId: eventTickets.ticketId,
           configurationId: eventTickets.ticketConfigurationId,
           ticketName: tickets.name,
+          eventName: events.title,
           price: ticketConfigurations.price,
           totalSold: ticketConfigurations.totalSold,
           remaining: ticketConfigurations.totalRemaining,
@@ -42,6 +43,7 @@ class TicketsService {
         })
         .from(eventTickets)
         .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
+        .innerJoin(events, eq(tickets.eventId, events.id))
         .innerJoin(
           ticketConfigurations,
           eq(eventTickets.ticketConfigurationId, ticketConfigurations.id),
@@ -96,8 +98,6 @@ class TicketsService {
       const userId = payload.userId ? payload.userId : null;
 
       /**
-
-      /**
        * Create order
        */
       const [order] = await tx
@@ -133,7 +133,7 @@ class TicketsService {
         if (!ticket) continue;
 
         for (let i = 0; i < item.quantity; i++) {
-          const identifier = `TKT-${randomUUID()}`;
+          const identifier = `${generateTicketIdentifier(ticket.eventName)}`;
 
           generatedTickets.push({
             orderId: order?.id,
@@ -145,17 +145,6 @@ class TicketsService {
             qrCodeUrl: identifier,
           });
         }
-
-        /**
-         * Update inventory
-         */
-        await tx
-          .update(ticketConfigurations)
-          .set({
-            totalSold: ticket.totalSold + item.quantity,
-            totalRemaining: ticket.remaining - item.quantity,
-          })
-          .where(eq(ticketConfigurations.id, ticket.configurationId!));
       }
 
       /**

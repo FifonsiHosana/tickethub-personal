@@ -5,13 +5,15 @@ import {
   createTicket,
   updateTicket,
   deleteTicket,
+  listTicketTypes,
+  createTicketType,
 } from './tickets.controller.js';
 
 import { authenticate } from '@/middleware/auth/auth.middleware.js';
 import { authorize } from '@/middleware/auth/role.middleware.js';
 import { validate } from '@/middleware/validate.js';
 
-import { createTicketSchema, updateTicketSchema } from './tickets.schema.js';
+import { createTicketSchema, updateTicketSchema, createTicketTypeSchema } from './tickets.schema.js';
 
 const router = Router();
 
@@ -43,6 +45,21 @@ router.delete(
   authenticate,
   authorize('organizer'),
   deleteTicket,
+);
+
+router.get(
+  '/ticket-types',
+  authenticate,
+  authorize('organizer'),
+  listTicketTypes,
+);
+
+router.post(
+  '/ticket-types',
+  authenticate,
+  authorize('organizer'),
+  validate(createTicketTypeSchema),
+  createTicketType,
 );
 
 export default router;

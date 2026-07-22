@@ -1,4 +1,5 @@
 import { axiosInstance } from "@/utils/api/axiosInstance";
+import type { PaginationMeta } from "./events.service";
 
 export type AnalyticsOverviewResponse = {
   totalRevenue: number;
@@ -18,27 +19,42 @@ export type RevenueTrendResponse = {
   transactions: number;
 }[];
 
-export type EventPerformanceResponse = {
+export type EventPerformanceItem = {
   eventId: number;
   eventName: string;
   capacity: number;
   ticketsSold: number;
   revenue: number;
   occupancyRate: number;
-}[];
+};
 
-export type TicketPerformanceResponse = {
+export type TicketPerformanceItem = {
   ticketId: number;
   ticketName: string;
   eventName: string;
   ticketsSold: number;
   revenue: number;
-}[];
+};
+
+export type PaginatedResponse<T> = {
+  data: T[];
+  pagination: PaginationMeta;
+};
+
+export type EventPerformanceResponse = EventPerformanceItem[];
+export type TicketPerformanceResponse = TicketPerformanceItem[];
+
+export type AnalyticsSearchParams = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+};
 
 // Standard API Response Wrapper
 export type ApiResponse<T> = {
   success: boolean;
   data: T;
+  pagination?: PaginationMeta;
 };
 
 export async function getOverviewAnalytics(): Promise<AnalyticsOverviewResponse> {
@@ -58,16 +74,26 @@ export async function getRevenueTrend(
   return response.data.data;
 }
 
-export async function getEventPerformance(): Promise<EventPerformanceResponse> {
+export async function getEventPerformance(
+  params?: AnalyticsSearchParams,
+): Promise<PaginatedResponse<EventPerformanceItem>> {
   const response = await axiosInstance.get<
-    ApiResponse<EventPerformanceResponse>
-  >("/organizer/analytics/events");
-  return response.data.data;
+    ApiResponse<EventPerformanceItem[]>
+  >("/organizer/analytics/events", { params });
+  return {
+    data: response.data.data,
+    pagination: response.data.pagination ?? { page: 1, pageSize: 10, total: 0, totalPages: 0 },
+  };
 }
 
-export async function getTicketPerformance(): Promise<TicketPerformanceResponse> {
+export async function getTicketPerformance(
+  params?: AnalyticsSearchParams,
+): Promise<PaginatedResponse<TicketPerformanceItem>> {
   const response = await axiosInstance.get<
-    ApiResponse<TicketPerformanceResponse>
-  >("/organizer/analytics/tickets");
-  return response.data.data;
+    ApiResponse<TicketPerformanceItem[]>
+  >("/organizer/analytics/tickets", { params });
+  return {
+    data: response.data.data,
+    pagination: response.data.pagination ?? { page: 1, pageSize: 10, total: 0, totalPages: 0 },
+  };
 }

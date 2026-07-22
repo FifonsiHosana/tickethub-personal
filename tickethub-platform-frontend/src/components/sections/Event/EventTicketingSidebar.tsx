@@ -57,18 +57,13 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
   }
 
   return (
-    <div className="sticky top-32 p-6 md:p-8 rounded-3xl border border-neutral-100 shadow-xl shadow-neutral-200/50 flex flex-col gap-8 bg-white">
+    <div className="sticky top-32 p-6 md:p-8 rounded-3xl border border-neutral-200 shadow-xl shadow-neutral-200/50 flex flex-col gap-8 bg-white">
       {/* Sidebar Header */}
       <div>
-        <p className="text-sm font-medium text-neutral-500 mb-1">
-          Select Tickets
+        <p className="text-sm font-medium text-black mb-1">
+          Event Capacity
         </p>
-        <p className="text-2xl font-bold text-[#1a201c]">
-          {capacity}{" "}
-          <span className="text-base font-normal text-neutral-400">
-            total spots
-          </span>
-        </p>
+        <p className="text-2xl font-bold text-foreground">{capacity} </p>
       </div>
 
       {/* Ticket List */}
@@ -88,13 +83,13 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
               key={ticket.eventTicketId}
               className={`p-4 rounded-2xl border transition-all duration-300 ${
                 isSelected
-                  ? "border-[#1a201c] bg-[#1a201c]/5"
+                  ? "border-foreground bg-foreground/5"
                   : "border-neutral-200 bg-white"
               } ${isSoldOut ? "opacity-50" : ""}`}
             >
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h4 className="font-sans font-semibold text-[#1a201c] text-lg">
+                  <h4 className="font-sans font-semibold text-foreground text-lg">
                     {ticket.ticketName}
                   </h4>
                   <p className="text-sm text-neutral-500">
@@ -145,7 +140,7 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
                       </svg>
                     </button>
 
-                    <span className="w-4 text-center font-semibold text-[#1a201c]">
+                    <span className="w-4 text-center font-semibold text-foreground">
                       {qty}
                     </span>
 
@@ -209,7 +204,7 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
             >
               <div className="flex items-center justify-between pt-4 border-t border-neutral-100">
                 <span className="font-sans text-neutral-500">Total</span>
-                <span className="text-2xl font-bold text-[#1a201c]">
+                <span className="text-2xl font-bold text-foreground">
                   GH₵ {totalTicketAmount}
                 </span>
               </div>

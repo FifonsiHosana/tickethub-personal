@@ -15,9 +15,42 @@ export interface CreateEventPayload {
 
 export type UpdateEventPayload = Partial<CreateEventPayload>;
 
-export async function getOrganizerEvents() {
-  const response = await axiosInstance.get("/organizer/events");
-  return response.data.data;
+export interface GetOrganizerEventsParams {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  status?: "Draft" | "Published" | "Completed" | "Cancelled";
+}
+
+export interface PaginationMeta {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
+export type GetOrganizerEventsResponse = {
+  data: OrganizerEventResponse[];
+  pagination: PaginationMeta;
+};
+
+export interface OrganizerEventResponse {
+  id: number;
+  title: string;
+  description?: string;
+  status: "Draft" | "Published" | "Completed" | "Cancelled";
+  approvalStatus: "Pending" | "Approved" | "Rejected";
+  capacity: number;
+  dateAndTime: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function getOrganizerEvents(
+  params?: GetOrganizerEventsParams,
+): Promise<GetOrganizerEventsResponse> {
+  const response = await axiosInstance.get("/organizer/events", { params });
+  return response.data;
 }
 
 export async function getOrganizerEventById(eventId: number) {

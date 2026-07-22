@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useOrganizerEvents } from "@/hooks/organizers/useOrganizerEvents";
 import { useOrganizerDashboardData } from "@/hooks/organizers/useDashboardData";
 
@@ -5,11 +6,17 @@ import { DashboardStatistics } from "./DashboardStatistics";
 import { EventsTable } from "./EventsTable";
 
 export default function EventsDashboard() {
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+
   const {
-    data: events,
+    data: response,
     isLoading: isEventsLoading,
     isError: isEventsError,
-  } = useOrganizerEvents();
+  } = useOrganizerEvents({ page, pageSize: 10, search: search || undefined });
+
+  const events = response?.data;
+  const pagination = response?.pagination;
 
   const { data: dashboardData } = useOrganizerDashboardData();
 
@@ -36,6 +43,11 @@ export default function EventsDashboard() {
         events={events}
         isLoading={isEventsLoading}
         isError={isEventsError}
+        search={search}
+        onSearchChange={(val) => { setSearch(val); setPage(1); }}
+        page={page}
+        onPageChange={setPage}
+        pagination={pagination}
       />
     </div>
   );

@@ -2,13 +2,15 @@ import type { NextFunction, Request, Response } from 'express';
 
 import eventsService from './events.service.js';
 import { AppError } from '@/middleware/errorHandler.js';
+import type { GetPublishedEventsQuery } from './events.schema.js';
 
 class EventsController {
-  async getPublishedEvents(_: Request, res: Response, next: NextFunction) {
+  async getPublishedEvents(req: Request, res: Response, next: NextFunction) {
     try {
-      const events = await eventsService.getPublishedEvents();
+      const query = req.query as unknown as GetPublishedEventsQuery;
+      const result = await eventsService.getPublishedEvents(query);
 
-      return res.json(events);
+      return res.json({ success: true, ...result });
     } catch (error) {
       next(error);
     }
@@ -21,7 +23,7 @@ class EventsController {
       if (!event) {
         throw new AppError(404, 'Event not found');
       }
-      return res.json(event);
+      return res.json({ success: true, data: event });
     } catch (error) {
       next(error);
     }
@@ -33,7 +35,7 @@ class EventsController {
         Number(req.params.id),
       );
 
-      return res.json(tickets);
+      return res.json({ success: true, data: tickets });
     } catch (error) {
       next(error);
     }

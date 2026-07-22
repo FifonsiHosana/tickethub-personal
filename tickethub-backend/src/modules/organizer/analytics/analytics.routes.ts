@@ -13,7 +13,7 @@ import { authorize } from '@/middleware/auth/role.middleware.js';
 
 import { validateQuery } from '@/middleware/validate.js';
 
-import { revenueTrendSchema } from './analytics.schema.js';
+import { revenueTrendSchema, paginatedQuerySchema } from './analytics.schema.js';
 
 const router = Router();
 
@@ -59,6 +59,8 @@ router.get(
 router.get(
   '/events',
 
+  validateQuery(paginatedQuerySchema),
+
   getEventPerformanceController,
 );
 
@@ -70,6 +72,8 @@ router.get(
  */
 router.get(
   '/tickets',
+
+  validateQuery(paginatedQuerySchema),
 
   getTicketPerformanceController,
 );

@@ -27,5 +27,33 @@ export interface Event {
   termsAndConditions?: string;
   banner: string;
   images: EventImage[];
+  categoryIds: number[];
+  categoryNames: string[];
 }
 
+export interface PaginationMeta {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface GetPublishedEventsParams {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  categoryId?: number;
+  sortBy?: "date" | "title";
+  sortOrder?: "asc" | "desc";
+}
+
+export interface GetPublishedEventsResponse {
+  success: boolean;
+  data: Event[];
+  pagination: PaginationMeta;
+}
+
+export interface Category {
+  id: number;
+  name: string;
+}

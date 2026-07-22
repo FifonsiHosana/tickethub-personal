@@ -55,7 +55,7 @@ export const Checkout: React.FC = () => {
           </div>
 
           {/* Right Column: Sticky Pricing Summary */}
-          <div className="lg:col-span-5 xl:col-span-4 relative ">
+          <div className="lg:col-span-5 xl:col-span-4 sticky top-24 h-fit">
             <PricingSummary
               subtotal={subtotal}
               isProcessing={

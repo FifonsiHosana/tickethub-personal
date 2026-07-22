@@ -15,13 +15,13 @@ export const SellTickets: React.FC = () => {
       {/* <Testimonials /> */}
 
       {/* Final Bottom CTA */}
-      <section className="py-24 text-center bg-white">
-        <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-8 tracking-tighter">
+      <section className="py-16 text-center bg-white px-6">
+        <h2 className="text-xl md:text-4xl font-bold text-foreground mb-8 tracking-tighter">
           Ready to host your next big event?
         </h2>
         <button
           onClick={() => navigate("/login")}
-          className="px-10 py-5 rounded-full bg-primary text-white text-lg font-semibold hover:bg-primary/60 hover:scale-105 active:scale-95 transition-all"
+          className="px-6 py-2 lg:px-8 lg:py-3 rounded-full bg-primary text-white font-semibold hover:bg-primary/60 hover:scale-105 active:scale-95 transition-all"
         >
           Create an Organizer Account
         </button>

@@ -72,7 +72,7 @@ export const TicketPerformanceChart = () => {
                 />
                 <Bar
                   dataKey="sold"
-                  fill="#1a201c"
+                  fill="var(--primary)"
                   radius={[0, 4, 4, 0]}
                   barSize={32}
                 />

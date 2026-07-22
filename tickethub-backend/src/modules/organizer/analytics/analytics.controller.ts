@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import { type RevenueTrendQuery } from './analytics.schema.js';
+import { type RevenueTrendQuery, type PaginatedQuery } from './analytics.schema.js';
 import {
   getOverviewAnalytics,
   getRevenueTrend,
@@ -48,17 +48,24 @@ export async function getRevenueTrendController(
 }
 
 export async function getEventPerformanceController(
-  req: Request,
+  req: Request<{}, {}, {}, PaginatedQuery>,
   res: Response,
   next: NextFunction,
 ) {
   try {
-    const data = await getEventPerformance(req.user.id);
+    const { page, pageSize, search } = req.query;
+
+    const result = await getEventPerformance({
+      organizerId: req.user.id,
+      page,
+      pageSize,
+      search,
+    });
 
     res.status(200).json({
       success: true,
-
-      data,
+      data: result.data,
+      pagination: result.pagination,
     });
   } catch (error) {
     next(error);
@@ -66,17 +73,24 @@ export async function getEventPerformanceController(
 }
 
 export async function getTicketPerformanceController(
-  req: Request,
+  req: Request<{}, {}, {}, PaginatedQuery>,
   res: Response,
   next: NextFunction,
 ) {
   try {
-    const data = await getTicketPerformance(req.user.id);
+    const { page, pageSize, search } = req.query;
+
+    const result = await getTicketPerformance({
+      organizerId: req.user.id,
+      page,
+      pageSize,
+      search,
+    });
 
     res.status(200).json({
       success: true,
-
-      data,
+      data: result.data,
+      pagination: result.pagination,
     });
   } catch (error) {
     next(error);

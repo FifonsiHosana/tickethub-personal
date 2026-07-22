@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 import { Link } from "react-router"; // Use "react-router-dom" if that's your package
 
@@ -17,7 +15,7 @@ import {
 } from "@/components/ui/sidebar";
 
 import { useAuthStorage } from "@/hooks/useAuthStorage";
-import { navByRole, type Role } from "@/misc/dashboardData"; // Adjust import path if needed
+import { navByRole, type Role } from "@/misc/dashboardData";
 import { assets } from "@/assets/assets";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

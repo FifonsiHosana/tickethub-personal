@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import type { CreateTicketType, UpdateTicketType } from './tickets.schema.js';
+import type { CreateTicketType, UpdateTicketType, CreateTicketTypeType } from './tickets.schema.js';
 import * as TicketService from './tickets.service.js';
 
 export async function getEventTickets(
@@ -52,11 +52,11 @@ export async function updateTicket(
   res: Response,
   next: NextFunction,
 ) {
-  const { eventId } = req.params;
+  const { ticketId } = req.params;
   try {
     const ticket = await TicketService.updateOrganizerTicket(
       req.user.id,
-      Number(eventId),
+      Number(ticketId),
       req.body,
     );
 
@@ -84,6 +84,41 @@ export async function deleteTicket(
     res.status(200).json({
       success: true,
       ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function listTicketTypes(
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const data = await TicketService.getTicketTypes();
+
+    res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function createTicketType(
+  req: Request<any, {}, CreateTicketTypeType>,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const type = await TicketService.createTicketType(req.body);
+
+    res.status(201).json({
+      success: true,
+      message: 'Ticket type created successfully.',
+      data: type,
     });
   } catch (error) {
     next(error);

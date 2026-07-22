@@ -21,6 +21,12 @@ import SalesAnalyticsPage from "@/pages/Dashboard/Organizer/SalesAnalytics";
 import TicketPerformancePage from "@/pages/Dashboard/Organizer/TicketPerformance";
 import EventPerformancePage from "@/pages/Dashboard/Organizer/EventPerformance";
 import RevenueAndPayoutsPage from "@/pages/Dashboard/Organizer/RevenueAndPayouts";
+import DashboardOverview from "@/pages/Dashboard/Organizer/DashboardOverview/DashboardOverview";
+import TicketTypes from "@/pages/Dashboard/Organizer/Tickets/TicketTypes";
+import Attendees from "@/pages/Dashboard/Organizer/Attendees/Attendees";
+import CheckIn from "@/pages/Dashboard/Organizer/Attendees/CheckIn";
+import EventStaff from "@/pages/Dashboard/Organizer/Attendees/EventStaff";
+// import AnalyticsOverview from "@/pages/Dashboard/Organizer/AnalyticsOverview";
 
 export default function RouterLayout() {
   return (
@@ -56,7 +62,6 @@ export default function RouterLayout() {
             }
           >
             <Route path="/login" element={<Login />} />
-            {/* <Route path="/signup" element={<SignUp />} /> */}
           </Route>
 
           <Route
@@ -68,28 +73,47 @@ export default function RouterLayout() {
               </ProtectedRoute>
             }
           >
+            {/* Redirect /dashboard to first nav item */}
             <Route path="/dashboard" element={<Dashboard />} />
+
+            {/* Dashboard Overview */}
+            <Route
+              path="/organizer/dashboard"
+              element={<DashboardOverview />}
+            />
+
+            {/* Events */}
             <Route path="/organizer/events/new" element={<CreateEventPage />} />
             <Route path="/organizer/events" element={<EventsList />} />
+
+            {/* Tickets */}
+            <Route path="/organizer/tickets" element={<TicketTypes />} />
             <Route path="/organizer/sales" element={<TicketSalesPage />} />
             <Route
               path="/organizer/sales/analytics"
               element={<SalesAnalyticsPage />}
             />
 
+            {/* Attendees */}
+            <Route path="/organizer/attendees" element={<Attendees />} />
+            <Route path="/organizer/attendees/check-in" element={<CheckIn />} />
+            <Route path="/organizer/attendees/staff" element={<EventStaff />} />
+
+            {/* Analytics */}
+  
             <Route
-              path="/organizer/analytics"
+              path="/organizer/analytics/events"
               element={<EventPerformancePage />}
             />
             <Route
               path="/organizer/analytics/revenue"
               element={<RevenueAndPayoutsPage />}
             />
-
             <Route
               path="/organizer/analytics/tickets"
               element={<TicketPerformancePage />}
             />
+
           </Route>
         </Routes>
         <Toaster position="bottom-right" />

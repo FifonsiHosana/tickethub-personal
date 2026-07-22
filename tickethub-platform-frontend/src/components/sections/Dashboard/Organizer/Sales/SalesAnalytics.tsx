@@ -3,9 +3,9 @@ import { subDays, format } from "date-fns";
 import { AnalyticsSummaryCards } from "./AnalyticsSummaryCards";
 import { RevenueChart } from "./RevenueChart";
 import { TicketPerformanceChart } from "./TicketPerformance";
+import { TicketSalesOverTime } from "./TicketSalesOverTime";
 
 export default function SalesAnalytics() {
-  // Default to showing the last 30 days of analytics
   const { from, to } = useMemo(() => {
     const endDate = new Date();
     const startDate = subDays(endDate, 30);
@@ -34,6 +34,8 @@ export default function SalesAnalytics() {
         <RevenueChart from={from} to={to} />
         <TicketPerformanceChart />
       </div>
+
+      <TicketSalesOverTime from={from} to={to} />
     </div>
   );
 }

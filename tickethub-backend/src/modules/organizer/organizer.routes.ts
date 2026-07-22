@@ -7,6 +7,7 @@ import {
   createEvent,
   updateEvent,
   deleteEvent,
+  cancelEvent,
   getAllVenues,
 } from './organizer.controller.js';
 
@@ -64,7 +65,7 @@ router.get(
   '/events',
   authenticate,
   authorize('organizer'),
-  // validateQuery(organizerEventsQuerySchema),
+  validateQuery(organizerEventsQuerySchema),
   organizerEvents,
 );
 
@@ -72,7 +73,6 @@ router.get(
   '/events/:id',
   authenticate,
   authorize('organizer'),
-  validateQuery(organizerEventsQuerySchema),
   organizerEventById,
 );
 
@@ -90,6 +90,13 @@ router.patch(
   authorize('organizer'),
   validate(updateOrganizerEventSchema),
   updateEvent,
+);
+
+router.patch(
+  '/events/:id/cancel',
+  authenticate,
+  authorize('organizer'),
+  cancelEvent,
 );
 
 router.get('/event-venues', getAllVenues);

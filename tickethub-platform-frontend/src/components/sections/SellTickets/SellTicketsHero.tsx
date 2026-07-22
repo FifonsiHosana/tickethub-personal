@@ -40,7 +40,7 @@ export const SellTicketsHero: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          <button className="px-10 py-5 rounded-full bg-primary text-white text-lg font-semibold hover:scale-105 active:scale-95 transition-all">
+          <button className="px-6 py-2 lg:px-8 lg:py-3 rounded-full bg-primary text-white font-semibold hover:scale-105 active:scale-95 transition-all">
             Get Started for Free
           </button>
         </motion.div>

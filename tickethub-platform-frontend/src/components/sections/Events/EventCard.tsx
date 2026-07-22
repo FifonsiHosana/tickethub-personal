@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router";
 import { motion } from "framer-motion";
 import { type Event } from "@/types/event.types";
-
+import { format } from "date-fns";
 interface EventCardProps {
   event: Event;
 }
@@ -10,13 +10,13 @@ interface EventCardProps {
 export const EventCard: React.FC<EventCardProps> = ({ event }) => {
   const bannerImage = event.banner;
 
-  const formattedDate = new Date(event.dateAndTime).toLocaleDateString(
-    "en-US",
-    {
-      month: "short",
-      day: "numeric",
-    }
+  // date formattings
+  const formattedDate = format(new Date(event.dateAndTime), "MMM dd");
+  const formattedDateTime = format(
+    new Date(event.dateAndTime),
+    "MMMM dd, yyyy",
   );
+  const formattedTime = format(new Date(event.dateAndTime), "h:mm a");
 
   return (
     <motion.div
@@ -41,7 +41,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
           />
           {/* Date Badge */}
-          <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm text-[#1a201c] text-xs font-bold px-4 py-2 rounded-full uppercase tracking-wider shadow-sm">
+          <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm text-foreground text-xs font-bold px-4 py-2 rounded-full uppercase tracking-wider shadow-sm">
             {formattedDate}
           </div>
         </div>
@@ -51,10 +51,13 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
           <h3 className="text-xl font-sans font-bold text-foreground line-clamp-1 mb-1 group-hover:text-neutral-500 transition-colors">
             {event.title}
           </h3>
-          <p className="text-sm text-neutral-500 font-medium line-clamp-1 uppercase tracking-widest mt-1">
+          <p className="text-sm text-neutral-800 font-medium line-clamp-1 tracking-tight mt-1">
             {event.venueName
               ? `${event.venueName}, ${event.city}`
               : "Location TBA"}
+          </p>
+          <p className="text-xs text-neutral-500 mt-1">
+            {formattedDateTime} at {formattedTime}
           </p>
         </div>
       </Link>

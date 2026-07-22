@@ -2,9 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { type DashboardDataResponse } from "@/utils/services/organizers/dashboard.service";
 import {
   CalendarDaysIcon,
-  TicketIcon,
-  BanknoteIcon,
-  ShoppingCartIcon,
+  FileTextIcon,
+  CheckCircleIcon,
+  XCircleIcon,
 } from "lucide-react";
 
 interface DashboardStatisticsProps {
@@ -14,41 +14,45 @@ interface DashboardStatisticsProps {
 export const DashboardStatistics = ({
   statistics,
 }: DashboardStatisticsProps) => {
-  // Safe fallbacks in case data isn't loaded yet
   const stats = statistics || {
     totalEvents: 0,
     publishedEvents: 0,
     draftEvents: 0,
     completedEvents: 0,
+    cancelledEvents: 0,
     totalTicketsSold: 0,
     totalOrders: 0,
     totalRevenue: 0,
+    totalTicketsRemaining: 0,
+    totalCheckIns: 0,
+    completedOrders: 0,
+    conversionRate: 0,
   };
 
   const statCards = [
     {
-      title: "Total Revenue",
-      value: `GH₵ ${stats.totalRevenue.toLocaleString()}`,
-      icon: BanknoteIcon,
-      subtext: "All time earnings",
-    },
-    {
-      title: "Tickets Sold",
-      value: stats.totalTicketsSold.toLocaleString(),
-      icon: TicketIcon,
-      subtext: "Across all events",
-    },
-    {
-      title: "Total Orders",
-      value: stats.totalOrders.toLocaleString(),
-      icon: ShoppingCartIcon,
-      subtext: "Completed transactions",
-    },
-    {
-      title: "Active Events",
-      value: stats.publishedEvents.toLocaleString(),
+      title: "Total Events",
+      value: stats.totalEvents.toLocaleString(),
       icon: CalendarDaysIcon,
-      subtext: `Out of ${stats.totalEvents} total`,
+      subtext: "All events created",
+    },
+    {
+      title: "Published",
+      value: stats.publishedEvents.toLocaleString(),
+      icon: CheckCircleIcon,
+      subtext: "Active & live",
+    },
+    {
+      title: "Drafts",
+      value: stats.draftEvents.toLocaleString(),
+      icon: FileTextIcon,
+      subtext: "Not yet published",
+    },
+    {
+      title: "Completed",
+      value: stats.completedEvents.toLocaleString(),
+      icon: XCircleIcon,
+      subtext: "Past events",
     },
   ];
 

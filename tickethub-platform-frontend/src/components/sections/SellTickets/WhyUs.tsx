@@ -1,6 +1,11 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { DollarSignIcon, BarChart2Icon, SmartphoneIcon, LifeBuoyIcon } from "lucide-react";
+import {
+  DollarSignIcon,
+  BarChart2Icon,
+  LifeBuoyIcon,
+  QrCodeIcon,
+} from "lucide-react";
 
 const benefits = [
   {
@@ -16,10 +21,10 @@ const benefits = [
     icon: <BarChart2Icon className="w-8 h-8 text-primary" />,
   },
   {
-    title: "Seamless Check-in App",
+    title: "Seamless Check-in",
     description:
-      "Scan QR codes at the door effortlessly with our dedicated organizer mobile app.",
-    icon: <SmartphoneIcon className="w-8 h-8 text-primary" />,
+      "Scan QR codes at the door effortlessly and get feedback from your dashboard",
+    icon: <QrCodeIcon className="w-8 h-8 text-primary" />,
   },
   {
     title: "24/7 Organizer Support",
@@ -31,7 +36,7 @@ const benefits = [
 
 export const WhyUs: React.FC = () => {
   return (
-    <section className="py-24 bg-white">
+    <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
         {/* Left text block */}
         <div className="lg:col-span-5 flex flex-col gap-6">
@@ -55,7 +60,7 @@ export const WhyUs: React.FC = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.1 }}
               className="p-8 rounded-3xl bg-neutral-50/50 border border-neutral-100 hover:-translate-y-1 transition-all duration-300"
-            > 
+            >
               <div className="mb-6">{benefit.icon}</div>
               <h3 className="text-xl font-bold text-[#1a201c] mb-2">
                 {benefit.title}
