@@ -69,7 +69,7 @@ import {
 } from "@/hooks/organizers/useOrganizerEventTickets";
 import { TicketConfigSheet } from "@/components/sections/Dashboard/Organizer/Tickets/TicketConfigSheet";
 import type { TicketResponse } from "@/utils/services/organizers/tickets.service";
-import type { OrganizerEventResponse } from "@/utils/services/organizers/events.service";
+// import type { OrganizerEventResponse } from "@/utils/services/organizers/events.service";
 
 const PAGE_SIZE = 10;
 
@@ -92,7 +92,9 @@ export default function TicketTypes() {
   // Sheet state
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetMode, setSheetMode] = useState<"create" | "edit">("create");
-  const [editingTicket, setEditingTicket] = useState<TicketResponse | null>(null);
+  const [editingTicket, setEditingTicket] = useState<TicketResponse | null>(
+    null,
+  );
   const [deleteTarget, setDeleteTarget] = useState<TicketResponse | null>(null);
 
   // Filter and paginate
@@ -126,10 +128,12 @@ export default function TicketTypes() {
 
   const handleSave = async (data: Record<string, unknown>) => {
     if (sheetMode === "create") {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await createMutation.mutateAsync(data as any);
     } else if (editingTicket) {
       await updateMutation.mutateAsync({
         ticketId: editingTicket.id,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         payload: data as any,
       });
     }
@@ -178,7 +182,7 @@ export default function TicketTypes() {
           <Select
             value={selectedEventId}
             onValueChange={(val) => {
-              setSelectedEventId(val);
+              setSelectedEventId(val as string);
               setPage(1);
               setSearch("");
             }}
@@ -246,7 +250,11 @@ export default function TicketTypes() {
                     className="h-8 text-sm bg-white pl-3"
                   />
                 </div>
-                <Button className="h-8 px-3" size="sm" onClick={openCreateSheet}>
+                <Button
+                  className="h-8 px-3"
+                  size="sm"
+                  onClick={openCreateSheet}
+                >
                   <PlusIcon className="mr-2 h-4 w-4" />
                   Add Ticket
                 </Button>
@@ -289,7 +297,9 @@ export default function TicketTypes() {
                         <TableHead className="text-right">Total</TableHead>
                         <TableHead className="text-right">Sold</TableHead>
                         <TableHead className="text-right">Remaining</TableHead>
-                        <TableHead className="text-right pr-6">Actions</TableHead>
+                        <TableHead className="text-right pr-6">
+                          Actions
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -339,7 +349,10 @@ export default function TicketTypes() {
                                   </Button>
                                 }
                               />
-                              <DropdownMenuContent className="bg-white" align="end">
+                              <DropdownMenuContent
+                                className="bg-white"
+                                align="end"
+                              >
                                 <DropdownMenuItem
                                   className="gap-2 cursor-pointer"
                                   onClick={() => openEditSheet(ticket)}
@@ -365,30 +378,40 @@ export default function TicketTypes() {
                     <div className="flex items-center justify-between px-6 py-3 border-t border-gray-300">
                       <p className="text-sm text-muted-foreground">
                         Page {currentPage} of {totalPages}
-                        {" ("}{filtered.length} ticket{filtered.length !== 1 ? "s" : ""}{")"}
+                        {" ("}
+                        {filtered.length} ticket
+                        {filtered.length !== 1 ? "s" : ""}
+                        {")"}
                       </p>
                       <Pagination>
                         <PaginationContent>
                           <PaginationItem>
                             <PaginationPrevious
                               onClick={() => setPage(Math.max(1, page - 1))}
-                              className={page <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                              className={
+                                page <= 1
+                                  ? "pointer-events-none opacity-50"
+                                  : "cursor-pointer"
+                              }
                             />
                           </PaginationItem>
-                          {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                            (p) => (
-                              <PaginationItem key={p}>
-                                <Button
-                                  variant={p === currentPage ? "outline" : "ghost"}
-                                  size="icon"
-                                  className="h-8 w-8 text-sm"
-                                  onClick={() => setPage(p)}
-                                >
-                                  {p}
-                                </Button>
-                              </PaginationItem>
-                            ),
-                          )}
+                          {Array.from(
+                            { length: totalPages },
+                            (_, i) => i + 1,
+                          ).map((p) => (
+                            <PaginationItem key={p}>
+                              <Button
+                                variant={
+                                  p === currentPage ? "outline" : "ghost"
+                                }
+                                size="icon"
+                                className="h-8 w-8 text-sm"
+                                onClick={() => setPage(p)}
+                              >
+                                {p}
+                              </Button>
+                            </PaginationItem>
+                          ))}
                           <PaginationItem>
                             <PaginationNext
                               onClick={() => setPage(page + 1)}
@@ -456,7 +479,6 @@ export default function TicketTypes() {
         ticket={editingTicket}
         onSave={handleSave}
       />
-
     </div>
   );
 }

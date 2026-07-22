@@ -22,7 +22,7 @@ import TicketPerformancePage from "@/pages/Dashboard/Organizer/TicketPerformance
 import EventPerformancePage from "@/pages/Dashboard/Organizer/EventPerformance";
 import RevenueAndPayoutsPage from "@/pages/Dashboard/Organizer/RevenueAndPayouts";
 import DashboardOverview from "@/pages/Dashboard/Organizer/DashboardOverview/DashboardOverview";
-import TicketTypes from "@/pages/Dashboard/Organizer/Tickets/TicketTypes";
+// import TicketTypes from "@/pages/Dashboard/Organizer/Tickets/TicketTypes";
 import Attendees from "@/pages/Dashboard/Organizer/Attendees/Attendees";
 import CheckIn from "@/pages/Dashboard/Organizer/Attendees/CheckIn";
 import EventStaff from "@/pages/Dashboard/Organizer/Attendees/EventStaff";
@@ -87,7 +87,7 @@ export default function RouterLayout() {
             <Route path="/organizer/events" element={<EventsList />} />
 
             {/* Tickets */}
-            <Route path="/organizer/tickets" element={<TicketTypes />} />
+            {/* <Route path="/organizer/tickets" element={<TicketTypes />} /> */}
             <Route path="/organizer/sales" element={<TicketSalesPage />} />
             <Route
               path="/organizer/sales/analytics"
@@ -100,7 +100,7 @@ export default function RouterLayout() {
             <Route path="/organizer/attendees/staff" element={<EventStaff />} />
 
             {/* Analytics */}
-  
+
             <Route
               path="/organizer/analytics/events"
               element={<EventPerformancePage />}
@@ -113,7 +113,6 @@ export default function RouterLayout() {
               path="/organizer/analytics/tickets"
               element={<TicketPerformancePage />}
             />
-
           </Route>
         </Routes>
         <Toaster position="bottom-right" />
