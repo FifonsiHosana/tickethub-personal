@@ -9,6 +9,7 @@ import {
   deleteEvent,
   cancelEvent,
   getAllVenues,
+  eventAttendees,
 } from './organizer.controller.js';
 
 import { authenticate } from '@/middleware/auth/auth.middleware.js';
@@ -97,6 +98,13 @@ router.patch(
   authenticate,
   authorize('organizer'),
   cancelEvent,
+);
+
+router.get(
+  '/events/:eventId/attendees',
+  authenticate,
+  authorize('organizer'),
+  eventAttendees,
 );
 
 router.get('/event-venues', getAllVenues);

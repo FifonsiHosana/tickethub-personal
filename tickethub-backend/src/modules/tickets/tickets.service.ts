@@ -1,5 +1,3 @@
-import { randomUUID } from 'crypto';
-
 import { db } from '@/db/client.js';
 
 import {
@@ -10,24 +8,21 @@ import {
   eventTickets,
   ticketConfigurations,
   events,
+  eventsVenues,
+  ticketTypes,
 } from '@/db/schema/index.js';
 
 import { eq, inArray } from 'drizzle-orm';
 import { AppError } from '@/middleware/errorHandler.js';
 import type { PurchaseTicketType } from './tickets.schema.js';
 import { generateTicketIdentifier } from './tickets.utils.js';
+import config from '@/config/config.js';
 
 class TicketsService {
   async purchaseTickets(payload: PurchaseTicketType) {
     return await db.transaction(async (tx) => {
-      /**
-       * Collect ticket IDs
-       */
       const ticketIds = payload.items.map((item) => item.eventTicketId);
 
-      /**
-       * Fetch requested tickets
-       */
       const availableTickets = await tx
         .select({
           id: eventTickets.id,
@@ -54,9 +49,6 @@ class TicketsService {
         throw new AppError(400, 'One or more tickets are unavailable.');
       }
 
-      /**
-       * Validate inventory
-       */
       for (const item of payload.items) {
         const ticket = availableTickets.find(
           (t) => t.id === item.eventTicketId,
@@ -87,9 +79,6 @@ class TicketsService {
         }
       }
 
-      /**
-       * Calculate total quantity
-       */
       const totalQuantity = payload.items.reduce(
         (sum, item) => sum + item.quantity,
         0,
@@ -97,9 +86,6 @@ class TicketsService {
 
       const userId = payload.userId ? payload.userId : null;
 
-      /**
-       * Create order
-       */
       const [order] = await tx
         .insert(ticketOrders)
         .values({
@@ -109,9 +95,6 @@ class TicketsService {
         })
         .$returningId();
 
-      /**
-       * Save purchaser details
-       */
       await tx.insert(ticketOrderUserDetails).values({
         orderId: order?.id,
         firstName: payload.attendee.firstName,
@@ -120,11 +103,13 @@ class TicketsService {
         phoneNumber: payload.attendee.phoneNumber,
       });
 
-      const generatedTickets = [];
+      const generatedTickets: {
+        orderId: number;
+        eventTicketId: number;
+        ticketIdentifier: string;
+        qrCodeUrl: string;
+      }[] = [];
 
-      /**
-       * Generate individual tickets
-       */
       for (const item of payload.items) {
         const ticket = availableTickets.find(
           (t) => t.id === item.eventTicketId,
@@ -136,20 +121,14 @@ class TicketsService {
           const identifier = `${generateTicketIdentifier(ticket.eventName)}`;
 
           generatedTickets.push({
-            orderId: order?.id,
-
+            orderId: order!.id,
             eventTicketId: item.eventTicketId,
-
             ticketIdentifier: identifier,
-
-            qrCodeUrl: identifier,
+            qrCodeUrl: `${config.appUrl}/t/${identifier}`,
           });
         }
       }
 
-      /**
-       * Insert generated tickets
-       */
       await tx.insert(ticketOrderItems).values(generatedTickets);
       return {
         orderId: order?.id,
@@ -157,6 +136,51 @@ class TicketsService {
         quantity: totalQuantity,
       };
     });
+  }
+
+  async getTicketByIdentifier(identifier: string) {
+    const [ticket] = await db
+      .select({
+        id: ticketOrderItems.id,
+        ticketIdentifier: ticketOrderItems.ticketIdentifier,
+        qrCodeUrl: ticketOrderItems.qrCodeUrl,
+        checkedIn: ticketOrderItems.checkedIn,
+        checkedInAt: ticketOrderItems.checkedInAt,
+        ticketName: tickets.name,
+        ticketType: ticketTypes.name,
+        price: ticketConfigurations.price,
+        eventName: events.title,
+        eventDate: events.dateAndTime,
+        venueName: eventsVenues.venue_name,
+        venueCity: eventsVenues.city_or_town,
+        venueCountry: eventsVenues.country,
+        orderStatus: ticketOrders.status,
+        purchaserFirstName: ticketOrderUserDetails.firstName,
+        purchaserLastName: ticketOrderUserDetails.lastName,
+        purchaserEmail: ticketOrderUserDetails.email,
+      })
+      .from(ticketOrderItems)
+      .innerJoin(ticketOrders, eq(ticketOrderItems.orderId, ticketOrders.id))
+      .innerJoin(
+        ticketOrderUserDetails,
+        eq(ticketOrders.id, ticketOrderUserDetails.orderId),
+      )
+      .innerJoin(
+        eventTickets,
+        eq(ticketOrderItems.eventTicketId, eventTickets.id),
+      )
+      .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
+      .innerJoin(events, eq(tickets.eventId, events.id))
+      .innerJoin(eventsVenues, eq(events.eventVenueId, eventsVenues.id))
+      .innerJoin(ticketTypes, eq(eventTickets.ticketTypeId, ticketTypes.id))
+      .innerJoin(
+        ticketConfigurations,
+        eq(eventTickets.ticketConfigurationId, ticketConfigurations.id),
+      )
+      .where(eq(ticketOrderItems.ticketIdentifier, identifier))
+      .limit(1);
+
+    return ticket ?? null;
   }
 
   async checkInTicket(ticketIdentifier: string, checkedInBy: number) {
@@ -181,7 +205,6 @@ class TicketsService {
         checkedInAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
         checkedInBy,
       })
-
       .where(eq(ticketOrderItems.id, ticket.id));
 
     return {

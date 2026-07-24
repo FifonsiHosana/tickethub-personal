@@ -6,6 +6,7 @@ import {
   deleteTicket,
   getTicketTypes,
   createTicketType,
+  checkInTicket,
   type CreateTicketPayload,
   type UpdateTicketPayload,
   type CreateTicketTypePayload,
@@ -26,7 +27,9 @@ export function useCreateEventTicket(eventId: number) {
     mutationFn: (payload: CreateTicketPayload) =>
       createEventTicket(eventId, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["organizer-tickets", eventId] });
+      queryClient.invalidateQueries({
+        queryKey: ["organizer-tickets", eventId],
+      });
     },
   });
 }
@@ -71,10 +74,15 @@ export function useCreateTicketType() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: CreateTicketTypePayload) =>
-      createTicketType(payload),
+    mutationFn: (payload: CreateTicketTypePayload) => createTicketType(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["organizer-ticket-types"] });
     },
+  });
+}
+
+export function useCheckInTicket() {
+  return useMutation({
+    mutationFn: (ticketIdentifier: string) => checkInTicket(ticketIdentifier),
   });
 }

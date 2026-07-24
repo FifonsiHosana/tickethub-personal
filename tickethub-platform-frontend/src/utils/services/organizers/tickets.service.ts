@@ -53,7 +53,9 @@ type ApiResponse<T> = {
   message?: string;
 };
 
-export async function getEventTickets(eventId: number): Promise<TicketResponse[]> {
+export async function getEventTickets(
+  eventId: number,
+): Promise<TicketResponse[]> {
   const response = await axiosInstance.get<ApiResponse<TicketResponse[]>>(
     `/organizer/tickets/events/${eventId}/tickets`,
   );
@@ -99,5 +101,14 @@ export async function createTicketType(
     "/organizer/tickets/ticket-types",
     payload,
   );
+  return response.data.data;
+}
+
+export async function checkInTicket(
+  ticketIdentifier: string,
+): Promise<{ message: string; ticketIdentifier: string }> {
+  const response = await axiosInstance.post<
+    ApiResponse<{ message: string; ticketIdentifier: string }>
+  >("/tickets/check-in", { ticketIdentifier });
   return response.data.data;
 }

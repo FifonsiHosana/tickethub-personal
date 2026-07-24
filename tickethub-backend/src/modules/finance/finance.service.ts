@@ -9,6 +9,7 @@ import {
   eventTickets,
   tickets,
   events,
+  eventsVenues,
   ticketTypes,
 } from '@/db/schema/index.js';
 import { sendMail } from '@/modules/emails/emails.service.js';
@@ -87,7 +88,7 @@ export class FinanceService {
     const amountToString = amount.toString();
     await db.transaction(async (tx) => {
       /**
-       * Ensure order exists
+       * ensure order exists
        */
       const [order] = await tx
         .select()
@@ -100,7 +101,7 @@ export class FinanceService {
       }
 
       /**
-       * Create payment record
+       * create payment record
        */
       await tx.insert(payments).values({
         orderId: orderId,
@@ -113,7 +114,7 @@ export class FinanceService {
       } as typeof payments.$inferInsert);
 
       /**
-       * Mark order completed
+       * mark order completed
        */
       await tx
         .update(ticketOrders)
@@ -123,7 +124,7 @@ export class FinanceService {
         .where(eq(ticketOrders.id, orderId));
 
       /**
-       * Get purchased tickets
+       * get purchased tickets
        */
       const purchasedTickets = await tx
         .select({
@@ -133,7 +134,7 @@ export class FinanceService {
         .where(eq(ticketOrderItems.orderId, orderId));
 
       /**
-       * Reduce inventory
+       * reduce inventory
        */
       for (const ticket of purchasedTickets) {
         const [configuration] = await tx
@@ -163,7 +164,7 @@ export class FinanceService {
       }
 
       /**
-       * Fetch complete order details
+       * fetch complete order details
        * (for email)
        */
       const orderItems = await tx
@@ -173,6 +174,8 @@ export class FinanceService {
           price: ticketConfigurations.price,
           eventName: events.title,
           eventDate: events.dateAndTime,
+          venueName: eventsVenues.venue_name,
+          qrCodeUrl: ticketOrderItems.qrCodeUrl,
         })
         .from(ticketOrderItems)
         .innerJoin(
@@ -181,6 +184,7 @@ export class FinanceService {
         )
         .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
         .innerJoin(events, eq(tickets.eventId, events.id))
+        .innerJoin(eventsVenues, eq(events.eventVenueId, eventsVenues.id))
         .innerJoin(ticketTypes, eq(eventTickets.ticketTypeId, ticketTypes.id))
         .innerJoin(
           ticketConfigurations,
@@ -189,17 +193,21 @@ export class FinanceService {
         .where(eq(ticketOrderItems.orderId, orderId));
 
       /**
-       * Send email
+       * send email
        */
+      const { html: emailHtml, attachments } =
+        await buildPurchaseConfirmationEmail({
+          orderId,
+          items: orderItems,
+          total: amount,
+        });
       await sendMail(
         customerEmail,
         'Your TicketHub Tickets',
         'Your ticket purchase has been confirmed',
-        buildPurchaseConfirmationEmail({
-          orderId,
-          items: orderItems,
-          total: amount,
-        }),
+        emailHtml,
+        undefined,
+        attachments,
       );
     });
   }

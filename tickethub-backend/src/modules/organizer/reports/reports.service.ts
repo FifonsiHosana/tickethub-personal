@@ -1,6 +1,5 @@
 import ExcelJS from 'exceljs';
 import PDFDocument from 'pdfkit';
-import { PassThrough } from 'stream';
 
 import {
   payments,
@@ -26,7 +25,7 @@ type SalesReportOptions = {
   from?: string | undefined;
 
   to?: string | undefined;
-}
+};
 
 async function getSalesReportData(options: SalesReportOptions) {
   const filters = [

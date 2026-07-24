@@ -32,7 +32,7 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
+  // CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -44,7 +44,10 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
-import type { OrganizerEventResponse, PaginationMeta } from "@/utils/services/organizers/events.service";
+import type {
+  OrganizerEventResponse,
+  PaginationMeta,
+} from "@/utils/services/organizers/events.service";
 
 interface EventsTableProps {
   events: OrganizerEventResponse[] | undefined;
@@ -100,14 +103,14 @@ export const EventsTable = ({
   return (
     <Card>
       <CardHeader className="px-6 py-4 border-b border-gray-300">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between items-start justify-start">
           <div>
             <CardTitle className="text-lg">All Events</CardTitle>
-            <CardDescription>
+            {/* <CardDescription>
               A list of all your events across the platform.
-            </CardDescription>
+            </CardDescription> */}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-3">
             <div className="relative w-56">
               <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
@@ -117,24 +120,26 @@ export const EventsTable = ({
                 className="pl-8 h-8 text-sm bg-white"
               />
             </div>
-            <ExportDropdown
-              data={(events ?? []) as unknown as Record<string, unknown>[]}
-              columns={[
-                { key: "title", label: "Event Name" },
-                { key: "dateAndTime", label: "Date & Time" },
-                { key: "capacity", label: "Capacity" },
-                { key: "status", label: "Status" },
-                { key: "approvalStatus", label: "Approval" },
-              ]}
-              filename="events"
-              title="All Events"
-            />
-            <Button className="h-8 px-3" size="sm">
-              <Link to="/organizer/events/new" className="flex items-center">
-                <PlusIcon className="mr-2 h-4 w-4" />
-                New
-              </Link>
-            </Button>
+            <div className="space-x-1">
+              <ExportDropdown
+                data={(events ?? []) as unknown as Record<string, unknown>[]}
+                columns={[
+                  { key: "title", label: "Event Name" },
+                  { key: "dateAndTime", label: "Date & Time" },
+                  { key: "capacity", label: "Capacity" },
+                  { key: "status", label: "Status" },
+                  { key: "approvalStatus", label: "Approval" },
+                ]}
+                filename="events"
+                title="All Events"
+              />
+              <Button className="h-8 px-3" size="sm">
+                <Link to="/organizer/events/new" className="flex items-center">
+                  <PlusIcon className="mr-2 h-4 w-4" />
+                  New
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </CardHeader>
@@ -275,14 +280,20 @@ export const EventsTable = ({
               <div className="flex items-center justify-between px-6 py-3 border-t border-gray-300">
                 <p className="text-sm text-muted-foreground">
                   Page {pagination.page} of {pagination.totalPages}
-                  {" ("}{pagination.total} event{pagination.total !== 1 ? "s" : ""}{")"}
+                  {" ("}
+                  {pagination.total} event{pagination.total !== 1 ? "s" : ""}
+                  {")"}
                 </p>
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
                       <PaginationPrevious
                         onClick={() => onPageChange(Math.max(1, page - 1))}
-                        className={page <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        className={
+                          page <= 1
+                            ? "pointer-events-none opacity-50"
+                            : "cursor-pointer"
+                        }
                       />
                     </PaginationItem>
                     {Array.from(

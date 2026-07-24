@@ -26,10 +26,37 @@ export interface PurchaseTicketResponse {
   }[];
 }
 
+export interface TicketDetailResponse {
+  id: number;
+  ticketIdentifier: string;
+  qrCodeUrl: string;
+  checkedIn: boolean;
+  checkedInAt: string | null;
+  ticketName: string;
+  ticketType: string;
+  price: string;
+  eventName: string;
+  eventDate: string;
+  venueName: string | null;
+  venueCity: string;
+  venueCountry: string;
+  orderStatus: string;
+  purchaserFirstName: string;
+  purchaserLastName: string;
+  purchaserEmail: string;
+}
+
 export async function purchaseTickets(
   payload: PurchaseTicketRequest
 ): Promise<PurchaseTicketResponse> {
   const response = await axiosInstance.post("/tickets", payload);
 
+  return response.data.data;
+}
+
+export async function getTicketByIdentifier(
+  identifier: string
+): Promise<TicketDetailResponse> {
+  const response = await axiosInstance.get(`/tickets/${identifier}`);
   return response.data.data;
 }

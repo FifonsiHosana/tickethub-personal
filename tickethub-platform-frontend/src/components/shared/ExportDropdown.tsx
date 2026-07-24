@@ -40,9 +40,9 @@ export function ExportDropdown<T extends Record<string, unknown>>({
           </Button>
         }
       />
-      <DropdownMenuContent className="bg-white" align="end">
+      <DropdownMenuContent className="bg-white space-y-2" align="end">
         <DropdownMenuItem
-          className="gap-2 cursor-pointer"
+          className="gap-2 cursor-pointer "
           onClick={() =>
             exportToCsv(
               data as Record<string, unknown>[],
@@ -51,7 +51,8 @@ export function ExportDropdown<T extends Record<string, unknown>>({
             )
           }
         >
-          <TableIcon className="h-4 w-4" /> Export as CSV
+          <TableIcon className="h-4 w-4" />{" "}
+          <span className="text-xs">Export as CSV</span>
         </DropdownMenuItem>
         <DropdownMenuItem
           className="gap-2 cursor-pointer"
@@ -63,7 +64,8 @@ export function ExportDropdown<T extends Record<string, unknown>>({
             )
           }
         >
-          <FileTextIcon className="h-4 w-4" /> Export as PDF
+          <FileTextIcon className="h-4 w-4" />{" "}
+          <span className="text-xs">Export as PDF</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

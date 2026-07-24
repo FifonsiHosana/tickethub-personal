@@ -57,19 +57,19 @@ export const DashboardStatistics = ({
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+    <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4 mb-3">
       {statCards.map((card, index) => {
         const Icon = card.icon;
         return (
           <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-medium">
                 {card.title}
               </CardTitle>
               <Icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-[#1a201c]">
+              <div className="text-2xl font-bold text-foreground">
                 {card.value}
               </div>
               <p className="text-xs text-muted-foreground mt-1">

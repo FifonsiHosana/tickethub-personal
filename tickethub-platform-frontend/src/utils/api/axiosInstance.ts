@@ -1,12 +1,23 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { env } from "@/config/env";
 import { getItem } from "../storage/localStorage";
 import { toast } from "sonner";
+import type { ApiErrorResponse } from "@/types/apiError";
 
 export const axiosInstance = axios.create({
   baseURL: `${env.apiBaseUrl}/api`,
 });
 
+export class ApiError extends Error {
+  statusCode: number;
+  constructor(message: string, statusCode: number) {
+    super(message);
+    this.name = "ApiError";
+    this.statusCode = statusCode;
+  }
+}
+
+// Auth Token attachment interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = getItem("auth_token") as string | null;
@@ -20,6 +31,7 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
+// Auth token removal interceptor
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -35,6 +47,7 @@ axiosInstance.interceptors.response.use(
   },
 );
 
+// server unreachable interceptor, a.k.a network error
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -44,5 +57,17 @@ axiosInstance.interceptors.response.use(
     }
 
     return Promise.reject(error);
+  },
+);
+
+// Error handling Interceptor
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError<ApiErrorResponse>) => {
+    const statusCode = error.response?.status ?? 500;
+    const message =
+      error.response?.data?.message ?? error.message ?? "Something went wrong";
+
+    return Promise.reject(new ApiError(message, statusCode));
   },
 );

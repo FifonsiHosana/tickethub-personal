@@ -10,6 +10,7 @@ import {
   cancelOrganizerEvent,
   getAllEventVenues,
 } from './services/events.service.js';
+import { getEventAttendees } from './services/attendees.service.js';
 
 import {
   type CreateOrganizerEventType,
@@ -186,6 +187,27 @@ export async function deleteEvent(
 
       ...result,
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * GET /organizer/events/:eventId/attendees
+ */
+export async function eventAttendees(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const eventId = Number(req.params.eventId);
+    const page = Number(req.query.page) || 1;
+    const pageSize = Number(req.query.pageSize) || 10;
+
+    const result = await getEventAttendees({ eventId, page, pageSize });
+
+    res.status(200).json({ success: true, ...result });
   } catch (error) {
     next(error);
   }

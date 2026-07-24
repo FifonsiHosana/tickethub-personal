@@ -5,7 +5,7 @@ import { NavLink } from "react-router";
 
 export default function Footer() {
   return (
-    <footer className="bg-foreground w-full py-20 md:py-32">
+    <footer className="bg-foreground w-full py-20">
       <div className="mx-auto container px-6 lg:px-12">
         <div className="flex flex-col gap-16 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-8 items-start">

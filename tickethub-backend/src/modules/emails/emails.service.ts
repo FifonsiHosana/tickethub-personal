@@ -7,8 +7,8 @@ export async function sendMail(
   subject: string,
   text: string,
   html: string,
-//   from?: string,
   cc?: string | string[],
+  attachments?: nodemailer.SendMailOptions['attachments'],
 ) {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -18,15 +18,18 @@ export async function sendMail(
     },
   });
 
-  const mailOptions = {
+  const mailOptions: nodemailer.SendMailOptions = {
     from: config.email.from_email,
     to,
     subject,
     text,
     html,
-    // replyTo: from,
     cc,
   };
+
+  if (attachments && attachments.length > 0) {
+    mailOptions.attachments = attachments;
+  }
 
   try {
     const info = await transporter.sendMail(mailOptions);

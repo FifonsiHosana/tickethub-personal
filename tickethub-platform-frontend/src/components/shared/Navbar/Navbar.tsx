@@ -56,7 +56,7 @@ export const Navbar: React.FC = () => {
               onClick={() => navigate("/login")}
               className="hidden md:block px-6 py-2 text-sm font-medium text-white bg-primary/80 rounded-full hover:cursor-pointer"
             >
-              Register
+              Sign In
             </button>
             <button
               className="md:hidden p-2 text-white"
@@ -96,7 +96,7 @@ export const Navbar: React.FC = () => {
                 onClick={() => navigate("/login")}
                 className="mt-2 px-8 py-3 text-sm font-medium text-white bg-primary/80 rounded-full hover:bg-white/20 transition-colors"
               >
-                Register
+                Sign In
               </button>
             </motion.div>
           )}

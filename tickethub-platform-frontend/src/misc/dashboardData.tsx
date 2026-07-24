@@ -56,8 +56,6 @@ const organizerNav: NavItem[] = [
     url: "/organizer/attendees",
     icon: <UserCheckIcon />,
     items: [
-      { title: "All Attendees", url: "/organizer/attendees" },
-      { title: "Check-In", url: "/organizer/attendees/check-in" },
       { title: "Event Staff", url: "/organizer/attendees/staff" },
     ],
   },

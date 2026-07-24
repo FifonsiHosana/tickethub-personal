@@ -21,19 +21,19 @@ export default function EventsDashboard() {
   const { data: dashboardData } = useOrganizerDashboardData();
 
   return (
-    <div className="flex-1 space-y-6 p-2 md:p-3 pt-6 bg-neutral-50/30 min-h-screen">
+    <div className="flex-1 space-y-3 p-1 bg-neutral-50/30 min-h-screen">
       {/* HEADER */}
-      <div className="flex items-center justify-between ">
+      {/* <div className="flex items-center justify-between ">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-[#1a201c]">
-            Dashboard
+          <h2 className="text-3xl font-bold tracking-tight text-foreground">
+            Events
           </h2>
           <p className="text-muted-foreground mt-1 font-sans">
             Manage your created events, track statuses, and view revenue
             details.
           </p>
         </div>
-      </div>
+      </div> */}
 
       {/* STATISTICS CARDS */}
       <DashboardStatistics statistics={dashboardData?.statistics} />
@@ -44,7 +44,10 @@ export default function EventsDashboard() {
         isLoading={isEventsLoading}
         isError={isEventsError}
         search={search}
-        onSearchChange={(val) => { setSearch(val); setPage(1); }}
+        onSearchChange={(val) => {
+          setSearch(val);
+          setPage(1);
+        }}
         page={page}
         onPageChange={setPage}
         pagination={pagination}

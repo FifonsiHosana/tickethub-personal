@@ -1,64 +1,163 @@
+import { generateQrCodeBuffer } from '@/modules/tickets/tickets.utils.js';
+import type { SendMailOptions } from 'nodemailer';
+
+interface TicketItem {
+  ticketIdentifier: string;
+  ticketType: string;
+  price: string;
+  eventName: string;
+  eventDate: string;
+  venueName: string | null;
+  qrCodeUrl: string;
+}
+
 interface TicketPurchaseEmailData {
   orderId: number;
   total: number;
-  items: {
-    ticketIdentifier: string;
-    ticketType: string;
-    price: string;
-    eventName: string;
-    eventDate: string;
-  }[];
+  items: TicketItem[];
 }
 
-export function buildPurchaseConfirmationEmail({
+interface BuildResult {
+  html: string;
+  attachments: NonNullable<SendMailOptions['attachments']>;
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+function formatTime(dateStr: string): string {
+  return new Date(dateStr).toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+export async function buildPurchaseConfirmationEmail({
   orderId,
   total,
   items,
-}: TicketPurchaseEmailData) {
-  const rows = items
-    .map(
-      (item) => `
-      <tr>
-        <td style="padding:12px;border:1px solid #e5e7eb;">
-          ${item.eventName}
-        </td>
+}: TicketPurchaseEmailData): Promise<BuildResult> {
+  const attachments: NonNullable<SendMailOptions['attachments']> = [];
+  const ticketBlocks = await Promise.all(
+    items.map(async (item) => {
+      const { buffer, cid } = await generateQrCodeBuffer(item.ticketIdentifier);
+      attachments.push({
+        filename: `${item.ticketIdentifier}.png`,
+        content: buffer,
+        cid,
+      });
 
-        <td style="padding:12px;border:1px solid #e5e7eb;">
-          ${item.ticketType}
-        </td>
+      const dateStr = `${formatDate(item.eventDate)} at ${formatTime(item.eventDate)}`;
 
-        <td style="padding:12px;border:1px solid #e5e7eb;">
-          ${new Date(item.eventDate).toLocaleString()}
-        </td>
+      return `
+        <div style="
+          border: 2px solid #e5e7eb;
+          border-radius: 16px;
+          overflow: hidden;
+          margin-bottom: 20px;
+          background: #ffffff;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        ">
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="padding: 24px;" width="70%">
+                <table cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="padding-bottom: 12px;">
+                      <h3 style="margin: 0 0 4px 0; font-size: 20px; color: #111827;">
+                        ${item.eventName}
+                      </h3>
+                      <span style="
+                        display: inline-block;
+                        padding: 4px 12px;
+                        background: #f3f4f6;
+                        border-radius: 20px;
+                        font-size: 12px;
+                        color: #374151;
+                        font-weight: 600;
+                      ">
+                        ${item.ticketType}
+                      </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding-top: 12px; border-top: 1px dashed #e5e7eb;">
+                      <table cellpadding="0" cellspacing="0" style="font-size: 13px; color: #6b7280;">
+                        <tr>
+                          <td style="padding: 4px 16px 4px 0; white-space: nowrap; color: #9ca3af; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            Date
+                          </td>
+                          <td style="padding: 4px 0; color: #111827; font-weight: 500;">
+                            ${dateStr}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding: 4px 16px 4px 0; white-space: nowrap; color: #9ca3af; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            Venue
+                          </td>
+                          <td style="padding: 4px 0; color: #111827; font-weight: 500;">
+                            ${item.venueName ?? 'TBA'}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding: 4px 16px 4px 0; white-space: nowrap; color: #9ca3af; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            Ticket ID
+                          </td>
+                          <td style="padding: 4px 0; color: #6b7280; font-family: monospace; font-size: 12px;">
+                            ${item.ticketIdentifier}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding: 4px 16px 4px 0; white-space: nowrap; color: #9ca3af; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            Price
+                          </td>
+                          <td style="padding: 4px 0; color: #059669; font-weight: 700; font-size: 15px;">
+                            GH₵ ${Number(item.price).toFixed(2)}
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+              <td style="
+                padding: 24px;
+                background: #f9fafb;
+                text-align: center;
+                vertical-align: middle;
+                border-left: 2px dashed #e5e7eb;
+              " width="30%">
+                <img src="cid:${cid}" alt="QR Code" style="width: 130px; height: 130px; display: block; margin: 0 auto;" />
+                <p style="margin: 8px 0 0; font-size: 10px; color: #9ca3af; letter-spacing: 0.5px;">
+                  Scan for check-in
+                </p>
+              </td>
+            </tr>
+          </table>
+        </div>
+      `;
+    }),
+  );
 
-        <td style="padding:12px;border:1px solid #e5e7eb;text-align:center;">
-          ${item.ticketIdentifier}
-        </td>
-
-        <td style="padding:12px;border:1px solid #e5e7eb;text-align:right;">
-          GH₵ ${Number(item.price).toFixed(2)}
-        </td>
-      </tr>
-    `,
-    )
-    .join('');
-
-  return `
+  const html = `
 <!DOCTYPE html>
 <html>
-
 <head>
 <meta charset="utf-8" />
 <title>Ticket Purchase Confirmation</title>
 </head>
-
 <body style="
     margin:0;
     padding:40px;
     background:#f5f7fb;
     font-family:Arial, Helvetica, sans-serif;
 ">
-
 <table
     width="700"
     align="center"
@@ -71,148 +170,64 @@ export function buildPurchaseConfirmationEmail({
         box-shadow:0 4px 18px rgba(0,0,0,.08);
 ">
 <tr>
-
 <td style="padding:40px;">
 
 <h1 style="margin:0;color:#16a34a;">
-🎉 Payment Successful
+ Order Successful
 </h1>
 
 <p style="margin-top:18px;font-size:16px;color:#555;">
-Thank you for purchasing your ticket(s)!
-</p>
-
-<p style="color:#555;">
-Your order has been confirmed and your tickets are now reserved.
+  Thank you for your purchase! Your tickets are attached below.
 </p>
 
 <hr style="margin:32px 0;border:none;border-top:1px solid #eee;" />
 
-<h2 style="margin-bottom:20px;">
-Order Summary
+<h2 style="margin-bottom:24px;font-size:18px;color:#111827;">
+  Your Tickets
 </h2>
 
-<p>
-<strong>Order ID:</strong>
-#${orderId}
-</p>
+${ticketBlocks.join('')}
 
-<p>
-<strong>Total Paid:</strong>
-GH₵ ${total.toFixed(2)}
-</p>
+<hr style="margin:32px 0;border:none;border-top:1px solid #eee;" />
 
-<table
-    width="100%"
-    cellpadding="0"
-    cellspacing="0"
-    style="
-        border-collapse:collapse;
-        margin-top:25px;
-        font-size:14px;
-    "
->
-
-<thead>
-
-<tr style="background:#f3f4f6;">
-
-<th style="padding:14px;border:1px solid #e5e7eb;">
-Event
-</th>
-
-<th style="padding:14px;border:1px solid #e5e7eb;">
-Ticket
-</th>
-
-<th style="padding:14px;border:1px solid #e5e7eb;">
-Date
-</th>
-
-<th style="padding:14px;border:1px solid #e5e7eb;">
-Ticket ID
-</th>
-
-<th style="padding:14px;border:1px solid #e5e7eb;">
-Price
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-${rows}
-
-</tbody>
-
-</table>
-
-<div
-style="
-margin-top:40px;
-padding:20px;
-background:#f9fafb;
-border-radius:8px;
-">
-
-<h3 style="margin-top:0;">
-Important Information
-</h3>
-
-<ul
-style="
-padding-left:18px;
-line-height:1.8;
-color:#555;
-">
-
-<li>Please bring a valid ID to the venue.</li>
-
-<li>Your ticket QR Code will be scanned at check-in.</li>
-
-<li>Each Ticket ID can only be used once.</li>
-
-<li>Do not share your Ticket ID with anyone.</li>
-
-</ul>
-
+<div style="text-align:right;font-size:16px;color:#111827;">
+  <strong>Order #${orderId}</strong>
+  &mdash;
+  <span style="color:#059669;font-size:20px;font-weight:700;">
+    GH₵ ${total.toFixed(2)}
+  </span>
 </div>
 
-<p
-style="
-margin-top:40px;
-font-size:13px;
-color:#777;
+<div style="
+  margin-top:40px;
+  padding:20px;
+  background:#f9fafb;
+  border-radius:8px;
 ">
+<h3 style="margin-top:0;font-size:14px;color:#111827;">
+  Important Information
+</h3>
+<ul style="padding-left:18px;line-height:1.8;color:#555;font-size:13px;">
+  <li>Present the QR code at the venue for check-in.</li>
+  <li>Each ticket can only be scanned once.</li>
+  <li>Bring a valid ID matching the purchaser name.</li>
+  <li>Do not share your QR code with others.</li>
+</ul>
+</div>
 
-Need help?
-
-Contact our support team if you have any questions regarding your booking.
-
+<p style="margin-top:40px;font-size:13px;color:#777;">
+  Need help? Contact our support team.
 </p>
 
-<p
-style="
-margin-top:30px;
-font-size:12px;
-color:#aaa;
-text-align:center;
-">
-
-© ${new Date().getFullYear()} TicketHub
-
+<p style="margin-top:30px;font-size:12px;color:#aaa;text-align:center;">
+  &copy; ${new Date().getFullYear()} TicketHub
 </p>
 
 </td>
-
 </tr>
-
 </table>
-
 </body>
+</html>`;
 
-</html>
-`;
+  return { html, attachments };
 }

@@ -24,8 +24,8 @@ import RevenueAndPayoutsPage from "@/pages/Dashboard/Organizer/RevenueAndPayouts
 import DashboardOverview from "@/pages/Dashboard/Organizer/DashboardOverview/DashboardOverview";
 // import TicketTypes from "@/pages/Dashboard/Organizer/Tickets/TicketTypes";
 import Attendees from "@/pages/Dashboard/Organizer/Attendees/Attendees";
-import CheckIn from "@/pages/Dashboard/Organizer/Attendees/CheckIn";
 import EventStaff from "@/pages/Dashboard/Organizer/Attendees/EventStaff";
+import PublicTicket from "@/pages/PublicTicket/PublicTicket";
 // import AnalyticsOverview from "@/pages/Dashboard/Organizer/AnalyticsOverview";
 
 export default function RouterLayout() {
@@ -52,6 +52,7 @@ export default function RouterLayout() {
             <Route path="/events" element={<EventsListPage />} />
             <Route path="/sell-event-tickets" element={<OrganizerAd />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/t/:ticketIdentifier" element={<PublicTicket />} />
           </Route>
 
           <Route
@@ -96,7 +97,6 @@ export default function RouterLayout() {
 
             {/* Attendees */}
             <Route path="/organizer/attendees" element={<Attendees />} />
-            <Route path="/organizer/attendees/check-in" element={<CheckIn />} />
             <Route path="/organizer/attendees/staff" element={<EventStaff />} />
 
             {/* Analytics */}

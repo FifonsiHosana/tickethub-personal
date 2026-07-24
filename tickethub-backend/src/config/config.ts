@@ -27,6 +27,7 @@ interface Config {
     api_key: string;
     api_secret: string;
   };
+  appUrl: string;
 }
 
 const config: Config = {
@@ -57,6 +58,7 @@ const config: Config = {
     api_key: process.env.CLOUDINARY_API_KEY as string,
     api_secret: process.env.CLOUDINARY_API_SECRET as string,
   },
+  appUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
 };
 
 export default config;
