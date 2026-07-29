@@ -1,8 +1,8 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-
 import config from '@/config/config.js';
+import { formatDateForMySQL } from '@/utils/timeDatehelpers.js';
 
 export async function hashPassword(password: string) {
   return bcrypt.hash(password, 12);
@@ -39,5 +39,11 @@ export function verifyAccessToken(token: string) {
 }
 
 export function getOtpExpiry(minutes = 10) {
-  return new Date(Date.now() + minutes * 60 * 1000).toISOString();
+  return formatDateForMySQL(new Date(Date.now() + minutes * 60 * 1000));
+}
+
+export function generateStaffInviteToken(organizerId: number, eventId: number) {
+  return jwt.sign({ organizerId, eventId }, config.auth.jwt_secret, {
+    expiresIn: '7d',
+  });
 }

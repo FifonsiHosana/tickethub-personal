@@ -4,6 +4,7 @@ import {
   roles,
   userRoles,
   otpVerifications,
+  eventStaff,
 } from '@/db/schema/index.js';
 import { eq, and, ne } from 'drizzle-orm';
 
@@ -13,7 +14,9 @@ import {
   generateOTP,
   generateAccessToken,
   getOtpExpiry,
+  verifyAccessToken,
 } from './auth.utils.js';
+import { now } from '@/utils/timeDatehelpers.js';
 
 import { sendMail } from '@/modules/emails/emails.service.js';
 import type { CreateLoginInput, CreateRegisterInput } from './auth.schema.js';
@@ -47,7 +50,22 @@ export class AuthService {
       throw new AppError(400, 'Invalid role selected.');
     }
 
-    if (!['organizer', 'attendee'].includes(role.name)) {
+    // If inviteToken is present, verify it and allow event_staff registration
+    let inviteData: { organizerId: number; eventId: number } | null = null;
+
+    if (payload.inviteToken) {
+      try {
+        const decoded = verifyAccessToken(payload.inviteToken) as {
+          organizerId: number;
+          eventId: number;
+        };
+        inviteData = decoded;
+      } catch {
+        throw new AppError(400, 'Invalid or expired invite link.');
+      }
+    }
+
+    if (!['organizer', 'attendee', 'event_staff'].includes(role.name)) {
       throw new AppError(400, 'You cannot register with this role.');
     }
 
@@ -59,6 +77,7 @@ export class AuthService {
         firstName: payload.firstName,
         lastName: payload.lastName,
         email: payload.email,
+        phoneNumber: payload.phoneNumber,
         passwordHash,
         isVerified: false,
         isActive: true,
@@ -69,6 +88,16 @@ export class AuthService {
       userId: createdUser?.id,
       roleId: role.id,
     });
+
+    // If this is an event_staff registration via invite, add to EventStaff
+    if (inviteData && role.name === 'event_staff') {
+      await db.insert(eventStaff).values({
+        event_id: inviteData.eventId,
+        staff_id: createdUser?.id,
+        assigned_by: inviteData.organizerId,
+        assigned_at: now(),
+      });
+    }
 
     await db
       .delete(otpVerifications)
@@ -221,9 +250,6 @@ export class AuthService {
   }
 
   async resendOtp(email: string) {
-    // const user = await db.query.users.findFirst({
-    //   where: eq(users.email, email),
-    // });
     const [user] = await db
       .select()
       .from(users)

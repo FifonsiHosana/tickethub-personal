@@ -2,9 +2,7 @@ import * as React from "react";
 import {
   CalendarIcon,
   TicketIcon,
-  ScanLineIcon,
   BarChart3Icon,
-  ClipboardCheckIcon,
   ListChecksIcon,
   ShieldCheckIcon,
   SettingsIcon,
@@ -73,20 +71,10 @@ const organizerNav: NavItem[] = [
 
 const eventStaffNav: NavItem[] = [
   {
-    title: "Scan Ticket",
-    url: "/staff/scan",
-    icon: <ScanLineIcon />,
-    isActive: true,
-  },
-  {
-    title: "Check-In",
-    url: "/staff/checkin",
-    icon: <ClipboardCheckIcon />,
-  },
-  {
-    title: "Attendee List",
-    url: "/staff/attendees",
+    title: "All Attendees",
+    url: "/event-staff/attendees",
     icon: <ListChecksIcon />,
+    isActive: true,
   },
 ];
 

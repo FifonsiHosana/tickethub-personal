@@ -12,12 +12,10 @@ import { sql } from 'drizzle-orm';
 
 export const payments = mysqlTable('Payments', {
   id: int().autoincrement().primaryKey(),
-  orderId: int()
-    .references(() => ticketOrders.id, {
-      onDelete: 'set null',
-      onUpdate: 'cascade',
-    })
-    .notNull(),
+  orderId: int().references(() => ticketOrders.id, {
+    onDelete: 'set null',
+    onUpdate: 'cascade',
+  }),
   provider: mysqlEnum('provider', ['hubtel', 'paystack']).notNull(),
   amount: decimal({
     precision: 10,
@@ -73,7 +71,8 @@ export const refunds = mysqlTable('Refunds', {
   reason: varchar({
     length: 255,
   }).notNull(),
-  status: mysqlEnum('status', ['Completed', 'Failed']).notNull(),
+  status: mysqlEnum('status', ['Pending', 'Completed', 'Failed', 'Rejected']).notNull(),
+  rejectionReason: varchar({ length: 500 }),
   requestedAt: datetime({ mode: 'string', fsp: 3 })
     .default(sql`(now())`)
     .notNull(),

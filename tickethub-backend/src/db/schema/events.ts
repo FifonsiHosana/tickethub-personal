@@ -9,7 +9,7 @@ import { sql } from 'drizzle-orm';
 import { users } from './auth.js';
 
 export const eventsVenues = mysqlTable('EventsVenues', {
-  id: int('id').notNull().primaryKey(),
+  id: int('id').autoincrement().notNull().primaryKey(),
   venue_name: varchar({ length: 255 }).notNull(),
   address: varchar({ length: 255 }),
   city_or_town: varchar({ length: 255 }).notNull(),

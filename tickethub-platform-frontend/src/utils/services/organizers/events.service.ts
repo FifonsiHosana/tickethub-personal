@@ -63,6 +63,39 @@ export async function createOrganizerEvent(payload: CreateEventPayload) {
   return response.data;
 }
 
+export interface TicketPayload {
+  name: string;
+  ticketTypeId?: number;
+  ticketTypeName?: string;
+  ticketTypeDescription?: string;
+  price: number;
+  totalCount?: number;
+  salesStartDate?: string;
+  salesEndDate?: string;
+  benefits?: string;
+}
+
+export interface CreateEventWithTicketsPayload {
+  title: string;
+  description?: string;
+  eventVenueId: number;
+  capacity: number;
+  dateAndTime: string;
+  termsAndConditions?: string;
+  media?: { imageUrl: string; type: "Banner" | "Gallery" | "Sponsor" }[];
+  tickets: TicketPayload[];
+}
+
+export async function createOrganizerEventWithTickets(
+  payload: CreateEventWithTicketsPayload,
+) {
+  const response = await axiosInstance.post(
+    "/organizer/events/with-tickets",
+    payload,
+  );
+  return response.data;
+}
+
 export async function updateOrganizerEvent(
   eventId: number,
   payload: UpdateEventPayload,
@@ -84,5 +117,18 @@ export async function deleteOrganizerEvent(eventId: number) {
 export async function getEventVenues() {
   const response = await axiosInstance.get("/organizer/event-venues");
 
+  return response.data.data;
+}
+
+export interface CreateVenuePayload {
+  venue_name: string;
+  address?: string;
+  city_or_town: string;
+  country: string;
+  googleMapLink?: string;
+}
+
+export async function createEventVenue(payload: CreateVenuePayload) {
+  const response = await axiosInstance.post("/organizer/event-venues", payload);
   return response.data.data;
 }

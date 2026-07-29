@@ -1,7 +1,9 @@
-import { Routes, Route, BrowserRouter as Router } from "react-router";
+import { Routes, Route, BrowserRouter as Router, Navigate } from "react-router";
 import { motion } from "motion/react";
 import Home from "@/pages/Home";
 import Login from "@/pages/Auth/Login";
+import SignUp from "@/pages/Auth/SignUp";
+import VerifyEmail from "@/pages/Auth/VerifyEmail";
 import ScrollToTop from "@/components/shared/ScrollToTop";
 import HomeLayout from "@/layout/HomeLayout";
 import AuthLayout from "@/layout/AuthLayout";
@@ -26,6 +28,12 @@ import DashboardOverview from "@/pages/Dashboard/Organizer/DashboardOverview/Das
 import Attendees from "@/pages/Dashboard/Organizer/Attendees/Attendees";
 import EventStaff from "@/pages/Dashboard/Organizer/Attendees/EventStaff";
 import PublicTicket from "@/pages/PublicTicket/PublicTicket";
+import AdminDashboard from "@/pages/Dashboard/Admin/AdminDashboard";
+import AdminOrganizers from "@/pages/Dashboard/Admin/AdminOrganizers";
+import AdminEvents from "@/pages/Dashboard/Admin/AdminEvents";
+import AdminAnalytics from "@/pages/Dashboard/Admin/AdminAnalytics";
+import AdminPayouts from "@/pages/Dashboard/Admin/AdminPayouts";
+import AdminSettings from "@/pages/Dashboard/Admin/AdminSettings";
 // import AnalyticsOverview from "@/pages/Dashboard/Organizer/AnalyticsOverview";
 
 export default function RouterLayout() {
@@ -63,6 +71,8 @@ export default function RouterLayout() {
             }
           >
             <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
           </Route>
 
           <Route
@@ -98,6 +108,7 @@ export default function RouterLayout() {
             {/* Attendees */}
             <Route path="/organizer/attendees" element={<Attendees />} />
             <Route path="/organizer/attendees/staff" element={<EventStaff />} />
+            <Route path="/event-staff/attendees" element={<Attendees />} />
 
             {/* Analytics */}
 
@@ -113,6 +124,15 @@ export default function RouterLayout() {
               path="/organizer/analytics/tickets"
               element={<TicketPerformancePage />}
             />
+
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/organizers" element={<AdminOrganizers />} />
+            <Route path="/admin/events" element={<AdminEvents />} />
+            <Route path="/admin/analytics" element={<AdminAnalytics />} />
+            <Route path="/admin/payouts" element={<AdminPayouts />} />
+            <Route path="/admin/commissions" element={<Navigate to="/admin/settings" replace />} />
+            <Route path="/admin/settings" element={<AdminSettings />} />
           </Route>
         </Routes>
         <Toaster position="bottom-right" />

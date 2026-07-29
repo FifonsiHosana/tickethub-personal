@@ -11,6 +11,7 @@ import eventsRoutes from '@/modules/events/events.routes.js';
 import ticketsRoutes from '@/modules/tickets/tickets.routes.js';
 import financeRoutes from '@/modules/finance/finance.routes.js';
 import organizerRoutes from '@/modules/organizer/organizer.routes.js';
+import adminRoutes from '@/modules/admin/admin.routes.js';
 import mediaRoutes from '@/modules/media/media.routes.js';
 
 const app = express();
@@ -37,6 +38,7 @@ app.use('/api/events', eventsRoutes);
 app.use('/api/tickets', ticketsRoutes);
 app.use('/api/finance', financeRoutes);
 app.use('/api/organizer', organizerRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/media', mediaRoutes);
 
 // error handling)

@@ -2,8 +2,12 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   type AuthLoginPayload,
   type AuthRegisterPayload,
+  type OtpPayload,
+  type ResendOtpPayload,
   signInWithEmailAndPassword,
   signUpWithEmailAndPassword,
+  verifyOtp,
+  resendOtp,
   getUserRoles,
 } from "@/utils/services/auth.service";
 import { logger } from "@/utils/logger";
@@ -31,6 +35,18 @@ export const useSignUpWithEmailAndPassword = () => {
     onError: (error) => {
       logger.error("Sign In Error", error);
     },
+  });
+};
+
+export const useVerifyOtp = () => {
+  return useMutation({
+    mutationFn: (payload: OtpPayload) => verifyOtp(payload),
+  });
+};
+
+export const useResendOtp = () => {
+  return useMutation({
+    mutationFn: (payload: ResendOtpPayload) => resendOtp(payload),
   });
 };
 

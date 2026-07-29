@@ -16,8 +16,8 @@ export default function TicketPerformance() {
   });
 
   return (
-    <div className="flex-1 space-y-6 p-8 pt-6 bg-neutral-50/30 min-h-screen">
-      <div className="mb-8">
+    <div className="flex-1 space-y-6 p-1 bg-neutral-50/30 min-h-screen">
+      <div className="mb-4">
         <h2 className="text-3xl font-bold tracking-tight text-[#1a201c]">
           Ticket Performance
         </h2>
@@ -26,7 +26,7 @@ export default function TicketPerformance() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3 mb-8">
+      <div className="grid gap-4 md:grid-cols-3 mb-4">
         <Card className="shadow-sm md:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">

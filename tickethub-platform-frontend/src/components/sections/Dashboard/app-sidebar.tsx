@@ -32,7 +32,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton size="lg">
               <Link to="/">
                 <div className="flex items-center gap-2">
-                  <div className="flex size-12 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                  <div className="flex size-12 items-center justify-center rounded-lg text-sidebar-primary-foreground">
                     <img
                       src={assets.TicketHubLogo}
                       alt="Logo"

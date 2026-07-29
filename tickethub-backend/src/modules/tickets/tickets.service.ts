@@ -10,9 +10,10 @@ import {
   events,
   eventsVenues,
   ticketTypes,
+  eventStaff,
 } from '@/db/schema/index.js';
 
-import { eq, inArray } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 import { AppError } from '@/middleware/errorHandler.js';
 import type { PurchaseTicketType } from './tickets.schema.js';
 import { generateTicketIdentifier } from './tickets.utils.js';
@@ -185,8 +186,20 @@ class TicketsService {
 
   async checkInTicket(ticketIdentifier: string, checkedInBy: number) {
     const [ticket] = await db
-      .select()
+      .select({
+        id: ticketOrderItems.id,
+        checkedIn: ticketOrderItems.checkedIn,
+        ticketIdentifier: ticketOrderItems.ticketIdentifier,
+        eventId: events.id,
+        organizerId: events.organizerId,
+      })
       .from(ticketOrderItems)
+      .innerJoin(
+        eventTickets,
+        eq(ticketOrderItems.eventTicketId, eventTickets.id),
+      )
+      .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
+      .innerJoin(events, eq(tickets.eventId, events.id))
       .where(eq(ticketOrderItems.ticketIdentifier, ticketIdentifier))
       .limit(1);
 
@@ -196,6 +209,26 @@ class TicketsService {
 
     if (ticket.checkedIn) {
       throw new AppError(400, 'Ticket has already been checked in.');
+    }
+
+    if (ticket.organizerId !== checkedInBy) {
+      const [staff] = await db
+        .select()
+        .from(eventStaff)
+        .where(
+          and(
+            eq(eventStaff.event_id, ticket.eventId),
+            eq(eventStaff.staff_id, checkedInBy),
+          ),
+        )
+        .limit(1);
+
+      if (!staff) {
+        throw new AppError(
+          403,
+          'You are not authorized to check in this ticket.',
+        );
+      }
     }
 
     await db

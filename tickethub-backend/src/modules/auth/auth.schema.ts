@@ -14,6 +14,8 @@ export const registerSchema = z.object({
   email: z.email().transform((email) => email.toLowerCase()),
   password: passwordSchema,
   roleId: z.number().int().positive(),
+  phoneNumber: z.string().optional(),
+  inviteToken: z.string().optional(),
 });
 
 export const loginSchema = z.object({

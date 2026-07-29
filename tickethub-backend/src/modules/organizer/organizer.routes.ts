@@ -1,15 +1,22 @@
 import { Router } from 'express';
+import { z } from 'zod';
+import validateSafe from 'express-zod-safe';
 
 import {
   dashboard,
   organizerEvents,
   organizerEventById,
-  createEvent,
+  createEventWithTickets,
   updateEvent,
   deleteEvent,
   cancelEvent,
   getAllVenues,
+  createVenue,
   eventAttendees,
+  listEventStaff,
+  createStaffInvite,
+  listOrganizerStaff,
+  assignEventStaff,
 } from './organizer.controller.js';
 
 import { authenticate } from '@/middleware/auth/auth.middleware.js';
@@ -23,9 +30,10 @@ import organizerAnalyticsRoutes from './analytics/analytics.routes.js';
 
 import {
   organizerEventsQuerySchema,
-  createOrganizerEventSchema,
+  createEventWithTicketsSchema,
   updateOrganizerEventSchema,
 } from '@/modules/organizer/organizer.schema.js';
+import { assignStaffSchema } from '@/modules/organizer/organizer.schema.js';
 
 const router = Router();
 
@@ -65,7 +73,7 @@ router.get('/dashboard', authenticate, authorize('organizer'), dashboard);
 router.get(
   '/events',
   authenticate,
-  authorize('organizer'),
+  authorize('organizer', 'event_staff'),
   validateQuery(organizerEventsQuerySchema),
   organizerEvents,
 );
@@ -78,11 +86,11 @@ router.get(
 );
 
 router.post(
-  '/events',
+  '/events/with-tickets',
   authenticate,
   authorize('organizer'),
-  validate(createOrganizerEventSchema),
-  createEvent,
+  validate(createEventWithTicketsSchema),
+  createEventWithTickets,
 );
 
 router.patch(
@@ -103,11 +111,41 @@ router.patch(
 router.get(
   '/events/:eventId/attendees',
   authenticate,
-  authorize('organizer'),
+  authorize('organizer', 'event_staff'),
   eventAttendees,
 );
 
 router.get('/event-venues', getAllVenues);
+router.post('/event-venues', createVenue);
+
+router.get(
+  '/events/:eventId/staff',
+  authenticate,
+  authorize('organizer'),
+  listEventStaff,
+);
+
+router.post(
+  '/events/:eventId/staff/invite',
+  authenticate,
+  authorize('organizer'),
+  createStaffInvite,
+);
+
+router.get(
+  '/staff',
+  authenticate,
+  authorize('organizer'),
+  listOrganizerStaff,
+);
+
+router.post(
+  '/events/:eventId/staff/assign',
+  authenticate,
+  authorize('organizer'),
+  validateSafe({ body: assignStaffSchema, params: z.object({ eventId: z.string() }) }),
+  assignEventStaff,
+);
 
 router.delete('/events/:id', authenticate, authorize('organizer'), deleteEvent);
 

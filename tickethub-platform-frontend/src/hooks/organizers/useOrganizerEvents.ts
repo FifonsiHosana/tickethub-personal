@@ -4,18 +4,33 @@ import {
   getOrganizerEvents,
   getOrganizerEventById,
   createOrganizerEvent,
+  createOrganizerEventWithTickets,
   updateOrganizerEvent,
   deleteOrganizerEvent,
   getEventVenues,
+  createEventVenue,
   type CreateEventPayload,
+  type CreateEventWithTicketsPayload,
   type UpdateEventPayload,
   type GetOrganizerEventsParams,
+  type CreateVenuePayload,
 } from "@/utils/services/organizers/events.service";
 
 export function useEventVenues() {
   return useQuery({
     queryKey: ["organizer-event-venues"],
     queryFn: getEventVenues,
+  });
+}
+
+export function useCreateEventVenue() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: CreateVenuePayload) => createEventVenue(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["organizer-event-venues"] });
+    },
   });
 }
 
@@ -40,6 +55,20 @@ export function useCreateOrganizerEvent() {
 
   return useMutation({
     mutationFn: (payload: CreateEventPayload) => createOrganizerEvent(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["organizer-events"],
+      });
+    },
+  });
+}
+
+export function useCreateOrganizerEventWithTickets() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: CreateEventWithTicketsPayload) =>
+      createOrganizerEventWithTickets(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["organizer-events"],

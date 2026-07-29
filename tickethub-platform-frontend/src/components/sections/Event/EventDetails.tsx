@@ -1,12 +1,32 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useEvent } from "@/hooks/attendees/events/useEvent";
 import { Loader } from "@/components/ui/loader";
 import { format } from "date-fns";
 import { CalendarDays, MapPin, User } from "lucide-react";
 import { EventTicketingSidebar } from "./EventTicketingSidebar";
+import { FastAverageColor } from "fast-average-color";
 
 export const EventDetails: React.FC = () => {
   const { data: event, isLoading, isError } = useEvent();
+  const [bgColor, setBgColor] = useState("#f5f5f5");
+
+  useEffect(() => {
+    // Only run if we have a banner image
+    if (!event?.images) return;
+    const banner = event.images.find((img) => img.type === "Banner")?.imageUrl;
+
+    if (banner) {
+      const fac = new FastAverageColor();
+      fac
+        .getColorAsync(banner, { algorithm: "dominant" })
+        .then((color) => {
+          setBgColor(color.hex);
+        })
+        .catch((e) => {
+          console.error("Error getting color:", e);
+        });
+    }
+  }, [event]);
 
   if (isLoading) return <Loader loading={isLoading} fullScreen={true} />;
   if (isError) {
@@ -23,7 +43,7 @@ export const EventDetails: React.FC = () => {
   }
 
   const bannerImage = event.images.find(
-    (image) => image.type === "Banner",
+    (image) => image.type === "Banner"
   )?.imageUrl;
 
   const formattedDateStr = format(new Date(event.dateAndTime), "EEE, MMM dd");
@@ -35,23 +55,27 @@ export const EventDetails: React.FC = () => {
   return (
     <main className="w-full min-h-screen bg-neutral-50/50 pb-24 pt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-        {/* Left Column: Event Image (Sticky) */}
+        {/* Left Column: Event Image */}
         <div className="lg:col-span-5">
-          <div className="sticky top-24 w-full aspect-4/5 rounded-4xl overflow-hidden shadow-xl shadow-neutral-200/40 bg-neutral-100">
+          <div
+            className="sticky top-24 w-full aspect-4/5 md:h-full rounded-4xl overflow-hidden shadow-xl shadow-neutral-200/40 transition-colors duration-500 ease-in-out"
+            style={{ backgroundColor: bgColor }}
+          >
             {bannerImage ? (
               <img
                 src={bannerImage}
                 alt={event.title}
-                className="w-full h-full object-cover"
+                crossOrigin="anonymous"
+                className="w-full h-full object-contain relative z-10 p-4 rounded-lg"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-neutral-400">
+              <div className="w-full h-full flex items-center justify-center text-neutral-400 bg-neutral-100">
                 No Banner Available
               </div>
             )}
 
             {/* Time Badge Overlay */}
-            <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-md text-white px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide">
+            <div className="absolute top-4 left-4 z-20 bg-black/80 backdrop-blur-md text-white px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide">
               {overlayTime}
             </div>
           </div>
@@ -90,74 +114,7 @@ export const EventDetails: React.FC = () => {
                   {`${event.organizerFirstName} ${event.organizerLastName}`}
                 </p>
               </div>
-
-              {/* {event.categoryNames && event.categoryNames.length > 0 && (
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-2 gap-2 border-t border-neutral-100 mt-4">
-                  <span
-                    className="text-neutral-400 uppercase tracking-widest font-medium text-xs"
-                    aria-label="Categories"
-                    title="Categories"
-                  >
-                    Categories
-                  </span>
-                  <span className="font-medium text-foreground sm:text-right flex flex-wrap gap-1.5 justify-end">
-                    {event.categoryNames.map((name) => (
-                      <span
-                        key={name}
-                        className="inline-block px-2.5 py-0.5 text-xs font-medium bg-neutral-100 rounded-full"
-                      >
-                        {name}
-                      </span>
-                    ))}
-                  </span>
-                </div>
-              )} */}
             </div>
-
-            {/* When, Where, By Summary Box */}
-            {/* <div className="flex flex-col border border-neutral-200 rounded-2xl overflow-hidden text-sm mb-2">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between p-1 border-b border-neutral-100 gap-2">
-                <span className="text-neutral-400 uppercase tracking-widest font-medium text-xs">
-                  When
-                </span>
-                <span className="font-medium text-foreground sm:text-right">
-                  {formattedDateStr} &bull; {formattedTimeStr}
-                </span>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between p-2 border-b border-neutral-100 gap-2">
-                <span className="text-neutral-400 uppercase tracking-widest font-medium text-xs">
-                  Where
-                </span>
-                <span className="font-medium text-foreground sm:text-right">
-                  {event.venueName || `${event.city}, ${event.country}`}
-                </span>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between p-2 border-b border-neutral-100 gap-2">
-                <span className="text-neutral-400 uppercase tracking-widest font-medium text-xs">
-                  By
-                </span>
-                <span className="font-medium text-foreground sm:text-right uppercase">
-                  {`${event.organizerFirstName} ${event.organizerLastName}`}
-                </span>
-              </div>
-              {event.categoryNames && event.categoryNames.length > 0 && (
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-2 gap-2">
-                  <span className="text-neutral-400 uppercase tracking-widest font-medium text-xs">
-                    Categories
-                  </span>
-                  <span className="font-medium text-foreground sm:text-right flex flex-wrap gap-1.5 justify-end">
-                    {event.categoryNames.map((name) => (
-                      <span
-                        key={name}
-                        className="inline-block px-2.5 py-0.5 text-xs font-medium bg-neutral-100 rounded-full"
-                      >
-                        {name}
-                      </span>
-                    ))}
-                  </span>
-                </div>
-              )}
-            </div> */}
 
             {/* Ticketing Component (Drop-in) */}
             <div className="mt-1">

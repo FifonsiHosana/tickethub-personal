@@ -17,7 +17,7 @@ export const Hero: React.FC = () => {
 
   return (
     <section className="relative min-h-screen flex flex-col w-full">
-      {/*Slideshow Background */}
+      {/* Slideshow Background */}
       <div className="absolute inset-0 overflow-hidden">
         <AnimatePresence mode="sync">
           <motion.div
@@ -32,22 +32,22 @@ export const Hero: React.FC = () => {
             }}
           />
         </AnimatePresence>
-
-        {/* Dark overlay */}
-        <div className="absolute inset-0 bg-black/60 z-10"></div>
       </div>
 
-      {/* Ma Centered Hero Section */}
-      <main className="relative z-20 grow flex flex-col items-center justify-center px-6 mt-20">
-        <div className="flex flex-col items-center text-center max-w-4xl">
-          <div className="space-y-2 mb-10">
+      {/* Bottom Gradient Overlay */}
+      <div className="absolute bottom-0 left-0 right-0 h-3/4 bg-linear-to-t from-black/95 via-black/60 to-transparent z-10 pointer-events-none"></div>
+
+      {/* Main Hero Section Aligned to Bottom */}
+      <main className="relative z-20 grow flex flex-col items-center justify-end pb-16 md:pb-24 px-6">
+        {/* Hero Content */}
+        <div className="flex flex-col items-center text-center max-w-4xl w-full">
+          <div className="space-y-4 mb-10">
             <h1 className="text-4xl md:text-5xl xl:text-7xl 2xl:text-8xl font-sans font-medium text-white leading-[1.05]">
-              Experience the <br />
-              energy of the <br />
+              The{" "}
               <span className="font-serif italic font-normal text-primary">
-                ultimate
+                #1
               </span>{" "}
-              live event
+              spot for events
             </h1>
 
             <h2 className="text-white font-sans text-md md:text-xl">
@@ -59,14 +59,14 @@ export const Hero: React.FC = () => {
           <div className="flex flex-col md:flex-row gap-4 items-center md:justify-center w-full">
             <button
               onClick={() => navigate("/login")}
-              className="flex items-center justify-center gap-3 px-8 py-3 bg-primary/80 text-white rounded-xl md:rounded-full text-base font-medium hover:bg-primary hover:scale-105 w-full md:w-auto"
+              className="flex items-center justify-center gap-3 px-8 py-3 bg-primary/80 text-white rounded-xl md:rounded-full text-base font-medium hover:bg-primary hover:scale-105 w-full md:w-auto transition-all"
             >
               Start Selling
-              <ArrowRight />
+              <ArrowRight size={20} />
             </button>
             <button
               onClick={() => navigate("/events")}
-              className="flex items-center justify-center gap-3 px-11 py-3 border border-white text-white rounded-xl md:rounded-full text-base font-medium hover:scale-105 w-full md:w-auto"
+              className="flex items-center justify-center gap-3 px-11 py-3 border border-white text-white rounded-xl md:rounded-full text-base font-medium hover:scale-105 hover:bg-white/10 w-full md:w-auto transition-all"
             >
               Browse Events
             </button>
