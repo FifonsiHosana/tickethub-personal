@@ -1,5 +1,6 @@
 import { CalendarDaysIcon } from "lucide-react";
 import type { DashboardDataResponse } from "@/utils/services/organizers/dashboard.service";
+import { format } from "date-fns";
 
 type Upcoming = DashboardDataResponse["upcomingEvents"];
 
@@ -29,8 +30,8 @@ export default function UpcomingEventsTab({ events }: Props) {
           <div>
             <p className="text-sm font-medium">{event.title}</p>
             <p className="text-xs text-muted-foreground">
-              {new Date(event.dateAndTime).toLocaleDateString()} —{" "}
-              {event.capacity} capacity
+              {format(new Date(event.dateAndTime), "MMM d, yyyy • h:mm a")} —{" "}
+              {event.capacity} venue capacity
             </p>
           </div>
           <span

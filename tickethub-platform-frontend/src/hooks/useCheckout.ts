@@ -47,8 +47,7 @@ export function useCheckout({
       toast.success("Order created successfully.");
       clearCart();
 
-      // TODO:
-      // Initialize payment here when integrated.
+      
       const payment = await initiatePaymentForPurchaseOrder({
         email: payload.attendee.email,
         orderId: response.orderId,

@@ -1,5 +1,6 @@
 import { ShoppingCartIcon } from "lucide-react";
 import type { DashboardDataResponse } from "@/utils/services/organizers/dashboard.service";
+import { format } from "date-fns";
 
 type Sales = DashboardDataResponse["recentSales"];
 
@@ -27,7 +28,7 @@ export default function RecentSalesTab({ sales }: Props) {
           <div>
             <p className="text-sm font-medium">Order #{sale.orderId}</p>
             <p className="text-xs text-muted-foreground">
-              {new Date(sale.purchasedAt).toLocaleDateString()}
+               {format(new Date(sale.purchasedAt), "MMM d, yyyy • h:mm a")}
             </p>
           </div>
           <span

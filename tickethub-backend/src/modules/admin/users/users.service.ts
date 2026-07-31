@@ -152,22 +152,46 @@ export class UsersService {
     return { data };
   }
 
-  async verificationQueue() {
+  async verificationQueue(params: ListUsersQueryType) {
+    const { page, pageSize, search } = params;
     const roleId = await getOrganizerRoleId();
-    if (!roleId) return { data: [] };
+    if (!roleId) return { data: [], pagination: { page, pageSize, total: 0, totalPages: 0 } };
+    const offset = (page - 1) * pageSize;
+    const filters: any[] = [
+      eq(userRoles.roleId, roleId),
+      eq(users.isActive, true),
+      eq(users.isVerified, false),
+    ];
+    if (search)
+      filters.push(
+        or(
+          like(users.firstName, `%${search}%`),
+          like(users.lastName, `%${search}%`),
+          like(users.email, `%${search}%`),
+        ),
+      );
+    const [totalResult] = await db
+      .select({ count: count() })
+      .from(users)
+      .innerJoin(userRoles, eq(userRoles.userId, users.id))
+      .where(and(...filters));
     const data = await db
       .select(userWithRole)
       .from(users)
       .innerJoin(userRoles, eq(userRoles.userId, users.id))
-      .where(
-        and(
-          eq(userRoles.roleId, roleId),
-          eq(users.isActive, true),
-          eq(users.isVerified, false),
-        ),
-      )
-      .orderBy(users.createdAt);
-    return { data };
+      .where(and(...filters))
+      .orderBy(users.createdAt)
+      .limit(pageSize)
+      .offset(offset);
+    return {
+      data,
+      pagination: {
+        page,
+        pageSize,
+        total: Number(totalResult?.count ?? 0),
+        totalPages: Math.ceil(Number(totalResult?.count ?? 0) / pageSize),
+      },
+    };
   }
 }
 

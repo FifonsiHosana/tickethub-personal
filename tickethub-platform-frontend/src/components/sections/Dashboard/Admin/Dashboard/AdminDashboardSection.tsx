@@ -10,6 +10,7 @@ import {
   WalletIcon,
   TicketIcon,
 } from "lucide-react";
+import AdminEventsSection from "../Events/AdminEventsSection";
 
 export default function AdminDashboardSection() {
   const { data, isLoading } = useAdminOverview();
@@ -53,6 +54,11 @@ export default function AdminDashboardSection() {
             </Card>
           );
         })}
+      </div>
+
+        {/* Admin Events Section */}
+      <div className="w-full">
+        <AdminEventsSection />
       </div>
     </div>
   );

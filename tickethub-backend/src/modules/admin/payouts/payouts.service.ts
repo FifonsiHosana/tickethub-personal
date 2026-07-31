@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { db } from '@/db/client.js';
 import {
   payouts,
@@ -6,18 +5,23 @@ import {
   users,
 } from '@/db/schema/index.js';
 import { eq, count, desc } from 'drizzle-orm';
-import config from '@/config/config.js';
 import { AppError } from '@/middleware/errorHandler.js';
 import { now } from '@/utils/timeDatehelpers.js';
+import { getSetting, callPaystackTransfer, createPaystackRecipient } from './payouts.utils.js';
 
 export class PayoutsService {
+  async getDetails(organizerId: number) {
+    const [details] = await db
+      .select()
+      .from(organizerPayoutDetails)
+      .where(eq(organizerPayoutDetails.organizerId, organizerId))
+      .limit(1);
+    return details ?? null;
+  }
+
   async list(page = 1, pageSize = 10) {
     const offset = (page - 1) * pageSize;
-
-    const [totalResult] = await db
-      .select({ count: count() })
-      .from(payouts);
-
+    const [totalResult] = await db.select({ count: count() }).from(payouts);
     const data = await db
       .select({
         id: payouts.id,
@@ -37,12 +41,10 @@ export class PayoutsService {
       .orderBy(desc(payouts.paidAt))
       .limit(pageSize)
       .offset(offset);
-
     return {
       data,
       pagination: {
-        page,
-        pageSize,
+        page, pageSize,
         total: Number(totalResult?.count ?? 0),
         totalPages: Math.ceil(Number(totalResult?.count ?? 0) / pageSize),
       },
@@ -57,38 +59,24 @@ export class PayoutsService {
       .limit(1);
 
     if (!details?.recipientCode) {
-      throw new AppError(
-        400,
-        'Organizer has no payout recipient. Set payout details first.',
-      );
+      throw new AppError(400, 'Organizer has no payout recipient. Set payout details first.');
     }
 
-    const response = await axios.post(
-      'https://api.paystack.co/transfer',
-      {
-        source: 'balance',
-        amount: Math.round(amount * 100),
-        recipient: details.recipientCode,
-        reason: 'TicketHub payout',
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${config.payment.paystack_api_key}`,
-          'Content-Type': 'application/json',
-        },
-      },
-    );
+    const commissionRate = Number(await getSetting('commission_rate')) || 5;
+    const processingFee = Number(await getSetting('processing_fee')) || 1.5;
+    const commission = Math.round((amount * commissionRate) / 100 * 100) / 100;
+    const netAmount = amount - commission - processingFee;
 
-    const result = response.data;
+    const result = await callPaystackTransfer(
+      details.recipientCode,
+      Math.round(netAmount * 100),
+      'TicketHub payout',
+    );
 
     if (!result.status) {
       await db.insert(payouts).values({
-        organizerId,
-        amount: amount.toString(),
-        commission: '0',
-        processingFee: '0',
-        reference: 'failed',
-        status: 'Failed',
+        organizerId, amount: amount.toString(), commission: commission.toString(),
+        processingFee: processingFee.toString(), reference: 'failed', status: 'Failed',
       });
       throw new AppError(502, 'Paystack transfer failed');
     }
@@ -96,21 +84,44 @@ export class PayoutsService {
     const [payout] = await db
       .insert(payouts)
       .values({
-        organizerId,
-        amount: amount.toString(),
-        commission: '0',
-        processingFee: '0',
+        organizerId, amount: amount.toString(), commission: commission.toString(),
+        processingFee: processingFee.toString(),
         reference: result.data.reference as string,
-        status: 'Completed',
-        paidAt: now(),
+        status: 'Pending',
       })
       .$returningId();
 
     return {
-      message: 'Payout initiated successfully',
+      message: 'Payout initiated (pending Paystack processing)',
       payoutId: payout?.id,
       reference: result.data.reference,
     };
+  }
+
+  async handleTransferWebhook(payload: any) {
+    const event = payload.event;
+    if (event !== 'transfer.success' && event !== 'transfer.failed') return;
+
+    const ref = payload.data.reference;
+    const [payout] = await db
+      .select({ id: payouts.id, status: payouts.status })
+      .from(payouts)
+      .where(eq(payouts.reference, ref))
+      .limit(1);
+
+    if (!payout) return;
+
+    if (event === 'transfer.success') {
+      await db
+        .update(payouts)
+        .set({ status: 'Completed', paidAt: now() })
+        .where(eq(payouts.id, payout.id));
+    } else {
+      await db
+        .update(payouts)
+        .set({ status: 'Failed' })
+        .where(eq(payouts.id, payout.id));
+    }
   }
 
   async setPayoutDetails(
@@ -126,10 +137,7 @@ export class PayoutsService {
     },
   ) {
     const paystackPayload: Record<string, string> = {
-      type:
-        details.payoutMethod === 'mobile_money'
-          ? 'mobile_money'
-          : 'nuban',
+      type: details.payoutMethod === 'mobile_money' ? 'mobile_money' : 'ghipss',
       currency: 'GHS',
     };
 
@@ -143,30 +151,8 @@ export class PayoutsService {
       paystackPayload.bank_code = details.mobileMoneyProvider!;
     }
 
-    const paystackResponse = await axios.post(
-      'https://api.paystack.co/transferrecipient',
-      paystackPayload,
-      {
-        headers: {
-          Authorization: `Bearer ${config.payment.paystack_api_key}`,
-          'Content-Type': 'application/json',
-        },
-      },
-    );
-
-    const recipientCode =
-      paystackResponse.data?.data?.recipient_code as string;
-
-    if (!recipientCode) {
-      throw new AppError(502, 'Failed to create Paystack recipient');
-    }
-
-    const values = {
-      ...details,
-      recipientCode,
-      updatedAt: now(),
-    };
-
+    const recipientCode = await createPaystackRecipient(paystackPayload);
+    const values = { ...details, recipientCode, updatedAt: now() };
     const [existing] = await db
       .select({ id: organizerPayoutDetails.id })
       .from(organizerPayoutDetails)
@@ -174,19 +160,12 @@ export class PayoutsService {
       .limit(1);
 
     if (existing) {
-      await db
-        .update(organizerPayoutDetails)
-        .set(values)
-        .where(eq(organizerPayoutDetails.id, existing.id));
+      await db.update(organizerPayoutDetails).set(values).where(eq(organizerPayoutDetails.id, existing.id));
     } else {
-      await db
-        .insert(organizerPayoutDetails)
-        .values({ organizerId, ...values });
+      await db.insert(organizerPayoutDetails).values({ organizerId, ...values });
     }
 
-    return {
-      message: 'Payout details saved and Paystack recipient created',
-    };
+    return { message: 'Payout details saved and Paystack recipient created' };
   }
 }
 

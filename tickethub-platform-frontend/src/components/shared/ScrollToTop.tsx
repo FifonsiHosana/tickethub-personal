@@ -10,3 +10,6 @@ export default function ScrollToTop() {
 
   return null;
 }
+
+// NOTE: This scroll to top is the default react scroll to top behavior when visiting a new route.
+// For the scroll to top behavior on a click event, cheeck the ScrollToTopButton

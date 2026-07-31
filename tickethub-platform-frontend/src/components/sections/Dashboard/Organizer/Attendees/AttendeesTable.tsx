@@ -10,6 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { PaginationSect } from "@/components/shared/Pagination";
 import type { GetAttendeesResponse } from "@/utils/services/organizers/attendees.service";
+import { format } from "date-fns";
 
 interface Props {
   data: GetAttendeesResponse | undefined;
@@ -20,12 +21,7 @@ interface Props {
 
 function formatDateTime(dateStr: string | null) {
   if (!dateStr) return "—";
-  return new Date(dateStr).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  return format(new Date(dateStr), "MMM d, yyyy • h:mm a");
 }
 
 export default function AttendeesTable({

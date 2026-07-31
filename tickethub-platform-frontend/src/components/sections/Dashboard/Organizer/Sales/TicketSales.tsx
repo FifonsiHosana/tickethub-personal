@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useOrganizerSales } from "@/hooks/organizers/useOrganizerSales";
 import { SalesFilterBar } from "./SalesFilterBar";
 import { SalesTable } from "./SalesTable";
-import { Button } from "@/components/ui/button";
+import { PaginationSect } from "@/components/shared/Pagination";
 
 export default function TicketSales() {
   const [page, setPage] = useState(1);
@@ -46,32 +46,8 @@ export default function TicketSales() {
 
       <SalesTable sales={sales} isLoading={isLoading} isError={isError} />
 
-      {/* Pagination Controls */}
       {sales?.pagination && sales.pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between mt-6">
-          <p className="text-sm text-muted-foreground">
-            Showing page {sales.pagination.page} of{" "}
-            {sales.pagination.totalPages}
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page === 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page === sales.pagination.totalPages}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
+        <PaginationSect page={page} currentPage={page} totalPages={sales.pagination.totalPages} setPage={setPage} />
       )}
     </div>
   );

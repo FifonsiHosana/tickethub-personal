@@ -2,7 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { LinkIcon, Calendars, CopyIcon, UserPlusIcon } from "lucide-react";
-import EventSelectDropdown from "@/components/sections/Dashboard/Organizer/Attendees/EventSelectDropdown";
+import EventSelectDropdown from "@/components/sections/Dashboard/Organizer/Shared/EventSelectDropdown";
 import StaffTable from "@/components/sections/Dashboard/Organizer/Attendees/StaffTable";
 import AssignStaffDialog from "@/components/sections/Dashboard/Organizer/Attendees/AssignStaffDialog";
 import { useEventStaff, useGenerateStaffInvite } from "@/hooks/organizers/useOrganizerStaff";

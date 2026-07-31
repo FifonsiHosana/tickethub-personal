@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { getOrganizerDashboard } from './services/dashboard.service.js';
+import payoutsService from '@/modules/admin/payouts/payouts.service.js';
 
 import {
   getOrganizerEvents,
@@ -352,6 +353,34 @@ export async function assignEventStaff(
     const result = await assignStaffToEvent(eventId, staffUserIds, organizerId);
 
     res.status(200).json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getPayoutDetails(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const organizerId = req.user.id;
+    const details = await payoutsService.getDetails(organizerId);
+    res.status(200).json({ success: true, data: details });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function updatePayoutDetails(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const organizerId = req.user.id;
+    const result = await payoutsService.setPayoutDetails(organizerId, req.body);
+    res.status(200).json({ success: true, ...result });
   } catch (err) {
     next(err);
   }

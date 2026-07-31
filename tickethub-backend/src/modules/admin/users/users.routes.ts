@@ -15,6 +15,7 @@ import {
   listUsersQuerySchema,
   suspendUserSchema,
   resetUserPasswordSchema,
+  verificationQueueQuerySchema,
 } from './users.schema.js';
 
 const router = Router();
@@ -30,6 +31,6 @@ router.patch(
 );
 
 router.get('/organizers/list', listOrganizers);
-router.get('/organizers/verification-queue', verificationQueue);
+router.get('/organizers/verification-queue', validateQuery(verificationQueueQuerySchema), verificationQueue);
 
 export default router;

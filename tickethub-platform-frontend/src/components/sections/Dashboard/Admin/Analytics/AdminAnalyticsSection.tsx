@@ -65,7 +65,7 @@ export default function AdminAnalyticsSection() {
         <CardHeader className="pb-2 pt-3 px-4"><CardTitle className="text-sm font-medium">Top Organizers</CardTitle></CardHeader>
         <CardContent className="px-4 pb-3">
           {perfLoading ? <div className="h-20 bg-neutral-100 animate-pulse rounded" /> : (
-            <div className="rounded-md border max-h-70 overflow-auto">
+            <div className="rounded-md border border-gray-300 max-h-70 overflow-auto">
               <Table>
                 <TableHeader>
                   <TableRow><TableHead>Organizer</TableHead><TableHead>Events</TableHead><TableHead>Tickets Sold</TableHead></TableRow>

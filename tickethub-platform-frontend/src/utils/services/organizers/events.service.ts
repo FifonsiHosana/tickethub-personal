@@ -110,7 +110,11 @@ export async function updateOrganizerEvent(
 
 export async function deleteOrganizerEvent(eventId: number) {
   const response = await axiosInstance.delete(`/organizer/events/${eventId}`);
+  return response.data;
+}
 
+export async function cancelOrganizerEvent(eventId: number) {
+  const response = await axiosInstance.patch(`/organizer/events/${eventId}/cancel`);
   return response.data;
 }
 

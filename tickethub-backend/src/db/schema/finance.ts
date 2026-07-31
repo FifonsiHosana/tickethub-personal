@@ -54,7 +54,7 @@ export const payouts = mysqlTable('Payouts', {
   reference: varchar({
     length: 255,
   }).notNull(),
-  status: mysqlEnum('status', ['Completed', 'Failed']).notNull(),
+  status: mysqlEnum('status', ['Pending', 'Completed', 'Failed']).notNull(),
   paidAt: datetime({ mode: 'string', fsp: 3 }),
 });
 

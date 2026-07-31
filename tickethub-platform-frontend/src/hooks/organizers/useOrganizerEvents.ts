@@ -7,6 +7,7 @@ import {
   createOrganizerEventWithTickets,
   updateOrganizerEvent,
   deleteOrganizerEvent,
+  cancelOrganizerEvent,
   getEventVenues,
   createEventVenue,
   type CreateEventPayload,
@@ -95,6 +96,17 @@ export function useUpdateOrganizerEvent() {
       queryClient.invalidateQueries({
         queryKey: ["organizer-event", variables.eventId],
       });
+    },
+  });
+}
+
+export function useCancelOrganizerEvent() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (eventId: number) => cancelOrganizerEvent(eventId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["organizer-events"] });
     },
   });
 }

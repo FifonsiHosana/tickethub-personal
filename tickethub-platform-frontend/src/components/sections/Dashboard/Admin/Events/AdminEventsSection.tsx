@@ -7,8 +7,11 @@ import { toast } from "sonner";
 
 export default function AdminEventsSection() {
   const [tab, setTab] = useState("all");
-  const { data: pendingData, isLoading: pendingLoading } = useAdminEvents({ approvalStatus: "Pending", pageSize: 20 });
-  const { data: allData, isLoading: allLoading } = useAdminEvents({ pageSize: 20 });
+  const [allPage, setAllPage] = useState(1);
+  const [allSearch, setAllSearch] = useState("");
+  const [approvalPage, setApprovalPage] = useState(1);
+  const { data: allData, isLoading: allLoading } = useAdminEvents({ page: allPage, pageSize: 5, search: allSearch || undefined });
+  const { data: pendingData, isLoading: pendingLoading } = useAdminEvents({ approvalStatus: "Pending", page: approvalPage, pageSize: 10 });
   const approveMutation = useApproveEvent();
   const rejectMutation = useRejectEvent();
 
@@ -26,22 +29,33 @@ export default function AdminEventsSection() {
     } catch { toast.error("Failed to reject event"); }
   };
 
-  const pending = pendingData?.data ?? [];
-  const all = allData?.data ?? [];
-
   return (
     <div className="space-y-3 p-1">
       <h1 className="text-xl font-bold">Event Management</h1>
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
-          <TabsTrigger value="all">All Events ({all.length})</TabsTrigger>
-          <TabsTrigger value="approvals">Approval Queue ({pending.length})</TabsTrigger>
+          <TabsTrigger value="all">All Events</TabsTrigger>
+          <TabsTrigger value="approvals">Approval Queue ({pendingData?.data?.length ?? 0})</TabsTrigger>
         </TabsList>
         <TabsContent value="all">
-          <EventsTable events={all} isLoading={allLoading} />
+          <EventsTable
+            data={allData}
+            isLoading={allLoading}
+            page={allPage}
+            onPageChange={setAllPage}
+            search={allSearch}
+            onSearchChange={(val) => { setAllSearch(val); setAllPage(1); }}
+          />
         </TabsContent>
         <TabsContent value="approvals">
-          <ApprovalQueueTable events={pending} isLoading={pendingLoading} onApprove={handleApprove} onReject={handleReject} />
+          <ApprovalQueueTable
+            data={pendingData}
+            isLoading={pendingLoading}
+            page={approvalPage}
+            onPageChange={setApprovalPage}
+            onApprove={handleApprove}
+            onReject={handleReject}
+          />
         </TabsContent>
       </Tabs>
     </div>

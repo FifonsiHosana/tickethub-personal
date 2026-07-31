@@ -15,14 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import { Button } from "@/components/ui/button";
+import { PaginationSect } from "@/components/shared/Pagination";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import type { TicketPerformanceItem } from "@/utils/services/organizers/analytics.service";
 import type { PaginationMeta } from "@/utils/services/organizers/events.service";
@@ -128,47 +121,7 @@ export const TicketPerformanceTable = ({
             </div>
 
             {pagination && pagination.totalPages > 1 && (
-              <div className="flex items-center justify-between mt-4">
-                <p className="text-sm text-muted-foreground">
-                  Page {pagination.page} of {pagination.totalPages}
-                  {" ("}{pagination.total} ticket type{pagination.total !== 1 ? "s" : ""}{")"}
-                </p>
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        onClick={() => onPageChange(Math.max(1, page - 1))}
-                        className={page <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                      />
-                    </PaginationItem>
-                    {Array.from(
-                      { length: pagination.totalPages },
-                      (_, i) => i + 1,
-                    ).map((p) => (
-                      <PaginationItem key={p}>
-                        <Button
-                          variant={p === page ? "outline" : "ghost"}
-                          size="icon"
-                          className="h-8 w-8 text-sm"
-                          onClick={() => onPageChange(p)}
-                        >
-                          {p}
-                        </Button>
-                      </PaginationItem>
-                    ))}
-                    <PaginationItem>
-                      <PaginationNext
-                        onClick={() => onPageChange(page + 1)}
-                        className={
-                          page >= pagination.totalPages
-                            ? "pointer-events-none opacity-50"
-                            : "cursor-pointer"
-                        }
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
+              <PaginationSect page={page} currentPage={page} totalPages={pagination.totalPages} setPage={onPageChange} />
             )}
           </>
         )}

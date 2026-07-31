@@ -11,7 +11,7 @@ export const EventDetails: React.FC = () => {
   const [bgColor, setBgColor] = useState("#f5f5f5");
 
   useEffect(() => {
-    // Only run if we have a banner image
+    
     if (!event?.images) return;
     const banner = event.images.find((img) => img.type === "Banner")?.imageUrl;
 
@@ -120,7 +120,6 @@ export const EventDetails: React.FC = () => {
             <div className="mt-1">
               <EventTicketingSidebar
                 status={"Published"}
-                // capacity={event.capacity}
                 eventName={event.title}
                 banner={bannerImage as string}
               />

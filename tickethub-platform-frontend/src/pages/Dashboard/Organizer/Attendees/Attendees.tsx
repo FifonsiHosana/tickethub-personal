@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Calendars, ScanIcon } from "lucide-react";
-import EventSelectDropdown from "@/components/sections/Dashboard/Organizer/Attendees/EventSelectDropdown";
+import EventSelectDropdown from "@/components/sections/Dashboard/Organizer/Shared/EventSelectDropdown";
 import AttendeesTable from "@/components/sections/Dashboard/Organizer/Attendees/AttendeesTable";
 import ScannerDialog from "@/components/sections/Dashboard/Organizer/Attendees/ScannerDialog";
 import { useEventAttendees } from "@/hooks/organizers/useOrganizerAttendees";

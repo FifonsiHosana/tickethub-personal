@@ -6,10 +6,10 @@ import {
   ListChecksIcon,
   ShieldCheckIcon,
   SettingsIcon,
-  PercentIcon,
   WalletIcon,
   LayoutDashboardIcon,
   UserCheckIcon,
+  BanknoteIcon,
 } from "lucide-react";
 
 export type Role = "organizer" | "event_staff" | "admin";
@@ -53,9 +53,7 @@ const organizerNav: NavItem[] = [
     title: "Attendees",
     url: "/organizer/attendees",
     icon: <UserCheckIcon />,
-    items: [
-      { title: "Event Staff", url: "/organizer/attendees/staff" },
-    ],
+    items: [{ title: "Event Staff", url: "/organizer/attendees/staff" }],
   },
   {
     title: "Analytics",
@@ -66,6 +64,11 @@ const organizerNav: NavItem[] = [
       { title: "Revenue & Payouts", url: "/organizer/analytics/revenue" },
       { title: "Ticket Performance", url: "/organizer/analytics/tickets" },
     ],
+  },
+  {
+    title: "Payout Settings",
+    url: "/organizer/payout-settings",
+    icon: <BanknoteIcon />,
   },
 ];
 
@@ -89,30 +92,13 @@ const platformAdminNav: NavItem[] = [
     title: "Organizers",
     url: "/admin/organizers",
     icon: <ShieldCheckIcon />,
-    items: [
-      { title: "All Organizers", url: "/admin/organizers" },
-      { title: "Verification Queue", url: "/admin/organizers/verify" },
-    ],
-  },
-  {
-    title: "Events",
-    url: "/admin/events",
-    icon: <CalendarIcon />,
-    items: [
-      { title: "All Events", url: "/admin/events" },
-      { title: "Approval Queue", url: "/admin/events/approvals" },
-    ],
   },
   {
     title: "Analytics",
     url: "/admin/analytics",
     icon: <BarChart3Icon />,
   },
-  {
-    title: "Commissions",
-    url: "/admin/commissions",
-    icon: <PercentIcon />,
-  },
+
   {
     title: "Payouts & Settlements",
     url: "/admin/payouts",

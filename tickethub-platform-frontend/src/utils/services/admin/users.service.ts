@@ -89,9 +89,10 @@ export async function getOrganizers(): Promise<{ data: User[] }> {
   return response.data;
 }
 
-export async function getVerificationQueue(): Promise<{ data: User[] }> {
+export async function getVerificationQueue(params?: GetUsersParams): Promise<GetUsersResponse> {
   const response = await axiosInstance.get(
     "admin/users/organizers/verification-queue",
+    { params },
   );
   return response.data;
 }

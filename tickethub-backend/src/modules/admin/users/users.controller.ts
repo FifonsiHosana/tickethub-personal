@@ -86,12 +86,12 @@ export async function listOrganizers(
 }
 
 export async function verificationQueue(
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
   try {
-    const result = await usersService.verificationQueue();
+    const result = await usersService.verificationQueue(req.query as any);
     res.status(200).json({ success: true, ...result });
   } catch (error) {
     next(error);

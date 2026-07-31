@@ -28,7 +28,7 @@ axiosInstance.interceptors.request.use(
 
     return config;
   },
-  (error) => Promise.reject(error),
+  (error) => Promise.reject(error)
 );
 
 // Auth token removal interceptor
@@ -40,11 +40,13 @@ axiosInstance.interceptors.response.use(
       localStorage.removeItem("auth_token");
       localStorage.removeItem("user_role");
 
+      toast.error("Your session has expired. Please login again");
+
       window.location.href = "/";
     }
 
     return Promise.reject(error);
-  },
+  }
 );
 
 // server unreachable interceptor, a.k.a network error
@@ -57,7 +59,7 @@ axiosInstance.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  },
+  }
 );
 
 // Error handling Interceptor
@@ -69,5 +71,5 @@ axiosInstance.interceptors.response.use(
       error.response?.data?.message ?? error.message ?? "Something went wrong";
 
     return Promise.reject(new ApiError(message, statusCode));
-  },
+  }
 );

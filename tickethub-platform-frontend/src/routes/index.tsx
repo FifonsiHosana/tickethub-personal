@@ -1,4 +1,4 @@
-import { Routes, Route, BrowserRouter as Router, Navigate } from "react-router";
+import { Routes, Route, BrowserRouter as Router } from "react-router";
 import { motion } from "motion/react";
 import Home from "@/pages/Home";
 import Login from "@/pages/Auth/Login";
@@ -23,17 +23,19 @@ import SalesAnalyticsPage from "@/pages/Dashboard/Organizer/SalesAnalytics";
 import TicketPerformancePage from "@/pages/Dashboard/Organizer/TicketPerformance";
 import EventPerformancePage from "@/pages/Dashboard/Organizer/EventPerformance";
 import RevenueAndPayoutsPage from "@/pages/Dashboard/Organizer/RevenueAndPayouts";
+import PayoutSettingsPage from "@/pages/Dashboard/Organizer/PayoutSettings/PayoutSettingsPage";
 import DashboardOverview from "@/pages/Dashboard/Organizer/DashboardOverview/DashboardOverview";
-// import TicketTypes from "@/pages/Dashboard/Organizer/Tickets/TicketTypes";
+import TicketTypes from "@/pages/Dashboard/Organizer/Tickets/TicketTypes";
 import Attendees from "@/pages/Dashboard/Organizer/Attendees/Attendees";
 import EventStaff from "@/pages/Dashboard/Organizer/Attendees/EventStaff";
 import PublicTicket from "@/pages/PublicTicket/PublicTicket";
 import AdminDashboard from "@/pages/Dashboard/Admin/AdminDashboard";
 import AdminOrganizers from "@/pages/Dashboard/Admin/AdminOrganizers";
-import AdminEvents from "@/pages/Dashboard/Admin/AdminEvents";
+// import AdminEvents from "@/pages/Dashboard/Admin/AdminEvents";
 import AdminAnalytics from "@/pages/Dashboard/Admin/AdminAnalytics";
 import AdminPayouts from "@/pages/Dashboard/Admin/AdminPayouts";
 import AdminSettings from "@/pages/Dashboard/Admin/AdminSettings";
+
 // import AnalyticsOverview from "@/pages/Dashboard/Organizer/AnalyticsOverview";
 
 export default function RouterLayout() {
@@ -44,6 +46,7 @@ export default function RouterLayout() {
       transition={{ duration: 0.5 }}
       className="w-full overflow-x-clip"
     >
+      
       <Router>
         <ScrollToTop />
         <Routes>
@@ -98,7 +101,7 @@ export default function RouterLayout() {
             <Route path="/organizer/events" element={<EventsList />} />
 
             {/* Tickets */}
-            {/* <Route path="/organizer/tickets" element={<TicketTypes />} /> */}
+            <Route path="/organizer/tickets" element={<TicketTypes />} />
             <Route path="/organizer/sales" element={<TicketSalesPage />} />
             <Route
               path="/organizer/sales/analytics"
@@ -109,6 +112,9 @@ export default function RouterLayout() {
             <Route path="/organizer/attendees" element={<Attendees />} />
             <Route path="/organizer/attendees/staff" element={<EventStaff />} />
             <Route path="/event-staff/attendees" element={<Attendees />} />
+
+            {/* Payout Settings */}
+            <Route path="/organizer/payout-settings" element={<PayoutSettingsPage />} />
 
             {/* Analytics */}
 
@@ -128,15 +134,16 @@ export default function RouterLayout() {
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/organizers" element={<AdminOrganizers />} />
-            <Route path="/admin/events" element={<AdminEvents />} />
+            {/* <Route path="/admin/events" element={<AdminEvents />} /> */}
             <Route path="/admin/analytics" element={<AdminAnalytics />} />
             <Route path="/admin/payouts" element={<AdminPayouts />} />
-            <Route path="/admin/commissions" element={<Navigate to="/admin/settings" replace />} />
+
             <Route path="/admin/settings" element={<AdminSettings />} />
           </Route>
         </Routes>
         <Toaster position="bottom-right" />
       </Router>
+      
     </motion.div>
   );
 }

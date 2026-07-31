@@ -33,10 +33,11 @@ export function useAdminOrganizers() {
   });
 }
 
-export function useVerificationQueue() {
+export function useVerificationQueue(params: GetUsersParams = {}) {
   return useQuery({
-    queryKey: ["admin-verification-queue"],
-    queryFn: getVerificationQueue,
+    queryKey: ["admin-verification-queue", params],
+    queryFn: () => getVerificationQueue(params),
+    placeholderData: (prev) => prev,
   });
 }
 

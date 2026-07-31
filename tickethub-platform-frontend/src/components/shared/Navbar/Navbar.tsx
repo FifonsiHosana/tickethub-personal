@@ -5,15 +5,13 @@ import { useNavigate } from "react-router";
 import { Menu, X } from "lucide-react";
 import { navLinks } from "@/misc/navLinks";
 import { assets } from "@/assets/assets";
-// import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  // const { isScrolled } = useIsMobile();
   const navigate = useNavigate();
 
   return (
-    <nav className="fixed top-6 z-50 w-full px-4 flex flex-col items-center">
+    <nav className="absolute top-6 z-50 w-full px-4 flex flex-col items-center">
       <div
         className={`flex flex-col w-full max-w-4xl rounded-4xl bg-foreground text-white`}
       >

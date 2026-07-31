@@ -427,7 +427,7 @@ export async function cancelOrganizerEvent(
     .update(events)
     .set({
       status: 'Cancelled',
-      updatedAt: new Date().toISOString(),
+      updatedAt: now(),
     })
     .where(and(eq(events.id, eventId), eq(events.organizerId, organizerId)));
 

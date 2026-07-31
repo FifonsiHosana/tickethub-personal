@@ -18,4 +18,10 @@ export const resetUserPasswordSchema = z.object({
   newPassword: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
+export const verificationQueueQuerySchema = z.object({
+  page: z.string().optional().transform((v) => Number(v ?? 1)),
+  pageSize: z.string().optional().transform((v) => Number(v ?? 10)),
+  search: z.string().optional(),
+});
+
 export type ListUsersQueryType = z.infer<typeof listUsersQuerySchema>;

@@ -17,11 +17,14 @@ import {
   createStaffInvite,
   listOrganizerStaff,
   assignEventStaff,
+  getPayoutDetails,
+  updatePayoutDetails,
 } from './organizer.controller.js';
 
 import { authenticate } from '@/middleware/auth/auth.middleware.js';
 import { authorize } from '@/middleware/auth/role.middleware.js';
 import { validate, validateQuery } from '@/middleware/validate.js';
+import { setPayoutDetailsSchema } from '@/modules/admin/payouts/payouts.schema.js';
 
 import organizerTicketsRoutes from './tickets/tickets.routes.js';
 import organizerSalesRoutes from './sales/sales.routes.js';
@@ -145,6 +148,15 @@ router.post(
   authorize('organizer'),
   validateSafe({ body: assignStaffSchema, params: z.object({ eventId: z.string() }) }),
   assignEventStaff,
+);
+
+router.get('/payout-details', authenticate, authorize('organizer'), getPayoutDetails);
+router.put(
+  '/payout-details',
+  authenticate,
+  authorize('organizer'),
+  validate(setPayoutDetailsSchema),
+  updatePayoutDetails,
 );
 
 router.delete('/events/:id', authenticate, authorize('organizer'), deleteEvent);

@@ -44,7 +44,7 @@ export const Hero: React.FC = () => {
           <div className="space-y-4 mb-10">
             <h1 className="text-4xl md:text-5xl xl:text-7xl 2xl:text-8xl font-sans font-medium text-white leading-[1.05]">
               The{" "}
-              <span className="font-serif italic font-normal text-primary">
+              <span className="font-semibold text-primary">
                 #1
               </span>{" "}
               spot for events

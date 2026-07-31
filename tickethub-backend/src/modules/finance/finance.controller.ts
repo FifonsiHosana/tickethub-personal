@@ -3,6 +3,7 @@ import { FinanceService } from './finance.service.js';
 import type { purchaseTicketPaymentInput } from './finance.schema.js';
 import { AppError } from '@/middleware/errorHandler.js';
 import { verifyPaystackSignature } from './finance.utils.js';
+import payoutsService from '@/modules/admin/payouts/payouts.service.js';
 
 export class FinanceController {
   private financeService = new FinanceService();
@@ -36,7 +37,12 @@ export class FinanceController {
         throw new AppError(401, 'You are unauthorized');
       }
 
-      await this.financeService.handlePaystackWebhook(req.body);
+      const event = req.body.event;
+      if (event === 'transfer.success' || event === 'transfer.failed') {
+        await payoutsService.handleTransferWebhook(req.body);
+      } else {
+        await this.financeService.handlePaystackWebhook(req.body);
+      }
 
       res.json({ received: true });
     } catch (err) {

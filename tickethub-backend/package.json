@@ -12,7 +12,8 @@
     "seed-auth": "tsx scripts/seed-auth.ts",
     "seed-events": "tsx scripts/seed-events.ts",
     "seed-organizer": "tsx scripts/seed-organizer.ts",
-    "seed-organizer-events": "tsx scripts/seed-organizer-events.ts"
+    "seed-organizer-events": "tsx scripts/seed-organizer-events.ts",
+    "seed-settings": "tsx scripts/seed-settings.ts"
   },
   "keywords": [],
   "author": "",
