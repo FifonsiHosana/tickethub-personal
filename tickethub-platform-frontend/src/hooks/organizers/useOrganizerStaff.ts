@@ -14,10 +14,10 @@ export function useEventStaff(eventId: number | null) {
   });
 }
 
-export function useOrganizerStaffList() {
+export function useOrganizerStaffList(search?: string) {
   return useQuery({
-    queryKey: ["organizer-staff-list"],
-    queryFn: getOrganizerStaff,
+    queryKey: ["organizer-staff-list", search],
+    queryFn: () => getOrganizerStaff(search),
   });
 }
 

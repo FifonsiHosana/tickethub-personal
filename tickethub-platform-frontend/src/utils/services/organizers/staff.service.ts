@@ -33,8 +33,8 @@ export async function getEventStaff(eventId: number): Promise<StaffMember[]> {
   return response.data.data;
 }
 
-export async function getOrganizerStaff(): Promise<OrganizerStaffMember[]> {
-  const response = await axiosInstance.get("/organizer/staff");
+export async function getOrganizerStaff(search?: string): Promise<OrganizerStaffMember[]> {
+  const response = await axiosInstance.get("/organizer/staff", { params: search ? { search } : undefined });
   return response.data.data;
 }
 

@@ -35,8 +35,9 @@ import {
   organizerEventsQuerySchema,
   createEventWithTicketsSchema,
   updateOrganizerEventSchema,
+  listOrganizerStaffQuerySchema,
+  assignStaffSchema,
 } from '@/modules/organizer/organizer.schema.js';
-import { assignStaffSchema } from '@/modules/organizer/organizer.schema.js';
 
 const router = Router();
 
@@ -139,6 +140,7 @@ router.get(
   '/staff',
   authenticate,
   authorize('organizer'),
+  validateQuery(listOrganizerStaffQuerySchema),
   listOrganizerStaff,
 );
 

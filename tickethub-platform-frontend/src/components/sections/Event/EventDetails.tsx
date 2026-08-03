@@ -66,7 +66,7 @@ export const EventDetails: React.FC = () => {
                 src={bannerImage}
                 alt={event.title}
                 crossOrigin="anonymous"
-                className="w-full h-full object-contain relative z-10 p-4 rounded-lg"
+                className="w-full h-full object-contain relative z-10 p-4 rounded-4xl"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-neutral-400 bg-neutral-100">

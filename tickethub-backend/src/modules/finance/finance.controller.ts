@@ -26,6 +26,38 @@ export class FinanceController {
     }
   };
 
+  getMobileMoneyPlatforms = async (
+    _: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const result = await this.financeService.listMobileMoneyPlatforms();
+
+      return res.status(200).json({
+        status: 'success',
+        message: 'Mobile money platforms',
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getBanks = async (_: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await this.financeService.listBanks();
+
+      return res.status(200).json({
+        status: 'success',
+        message: 'Banks',
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   paystackWebhookHandler = async (
     req: Request,
     res: Response,

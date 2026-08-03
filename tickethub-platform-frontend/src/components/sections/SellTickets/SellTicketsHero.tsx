@@ -13,13 +13,13 @@ export const SellTicketsHero: React.FC = () => {
       {/* Bottom Gradient Overlay */}
       <div className="absolute bottom-0 left-0 right-0 h-3/4 bg-linear-to-t from-black/95 via-black/60 to-transparent z-10 pointer-events-none"></div>
 
-      <div className="relative z-20 grow flex flex-col items-center justify-end pb-16 md:pb-24 px-6">
-        <div className="flex flex-col items-center text-center max-w-4xl w-full">
+      <div className="relative z-20 grow flex flex-col items-center justify-end pb-8 px-6">
+        <div className="flex flex-col items-center text-center max-w-4xl space-y-4 w-full">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-5xl md:text-7xl font-sans font-medium tracking-tight leading-[1.05] max-w-4xl mb-8"
+            className="text-5xl md:text-7xl font-sans font-medium tracking-tight leading-[1.05] max-w-4xl"
           >
             Turn your vision into a <br className="hidden md:block" />
             <span className="font-serif italic font-normal text-primary">
@@ -32,7 +32,7 @@ export const SellTicketsHero: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-base md:text-xl text-white font-sans max-w-2xl mb-10"
+            className="text-base md:text-xl text-white font-sans max-w-2xl"
           >
             Create events, sell tickets seamlessly, and get paid instantly. Join
             the platform trusted by top creators and event curators.

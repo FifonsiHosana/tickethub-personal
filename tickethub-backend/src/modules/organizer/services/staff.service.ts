@@ -1,5 +1,5 @@
 import { db } from '@/db/client.js';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, or, like } from 'drizzle-orm';
 import {
   eventStaff,
   users,
@@ -33,7 +33,19 @@ export async function getEventStaff(eventId: number) {
   return data;
 }
 
-export async function getOrganizerStaff(organizerId: number) {
+export async function getOrganizerStaff(organizerId: number, search?: string) {
+  const filters: ReturnType<typeof eq>[] = [eq(roles.name, 'event_staff'), eq(events.organizerId, organizerId)];
+
+  if (search) {
+    filters.push(
+      or(
+        like(users.firstName, `%${search}%`),
+        like(users.lastName, `%${search}%`),
+        like(users.email, `%${search}%`),
+      )!,
+    );
+  }
+
   const data = await db
     .select({
       id: users.id,
@@ -47,7 +59,7 @@ export async function getOrganizerStaff(organizerId: number) {
     .innerJoin(roles, eq(userRoles.roleId, roles.id))
     .innerJoin(eventStaff, eq(users.id, eventStaff.staff_id))
     .innerJoin(events, eq(eventStaff.event_id, events.id))
-    .where(and(eq(roles.name, 'event_staff'), eq(events.organizerId, organizerId)))
+    .where(and(...filters))
     .groupBy(users.id);
 
   return data;

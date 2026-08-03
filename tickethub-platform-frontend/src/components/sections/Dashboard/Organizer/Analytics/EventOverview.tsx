@@ -20,15 +20,6 @@ export default function EventOverview() {
 
   return (
     <div className="flex-1 space-y-6 p-1 bg-neutral-50/30 min-h-screen">
-      {/* <div className="mb-8">
-        <h2 className="text-3xl font-bold tracking-tight text-[#1a201c]">
-          Event Overview
-        </h2>
-        <p className="text-muted-foreground font-sans">
-          High-level metrics on your overall event portfolio.
-        </p>
-      </div> */}
-
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
         <Card className="shadow-sm md:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between pb-2">

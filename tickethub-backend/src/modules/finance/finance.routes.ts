@@ -7,6 +7,11 @@ const router = Router();
 
 const financeController = new FinanceController();
 
+router.get(
+  '/mobile-money-platforms',
+  financeController.getMobileMoneyPlatforms,
+);
+router.get('/banks', financeController.getBanks);
 router.post(
   '/',
   validate(purchaseTicketPaymentSchema),

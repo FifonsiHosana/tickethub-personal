@@ -35,13 +35,13 @@ export const Hero: React.FC = () => {
       </div>
 
       {/* Bottom Gradient Overlay */}
-      <div className="absolute bottom-0 left-0 right-0 h-3/4 bg-linear-to-t from-black/95 via-black/60 to-transparent z-10 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 right-0 h-3/4 bg-linear-to-t from-black via-black/60 to-transparent z-10 pointer-events-none"></div>
 
       {/* Main Hero Section Aligned to Bottom */}
-      <main className="relative z-20 grow flex flex-col items-center justify-end pb-16 md:pb-24 px-6">
+      <main className="relative z-20 grow flex flex-col items-center justify-end pb-8 md:pb-16 px-6">
         {/* Hero Content */}
         <div className="flex flex-col items-center text-center max-w-4xl w-full">
-          <div className="space-y-4 mb-10">
+          <div className="space-y-4 mb-4">
             <h1 className="text-4xl md:text-5xl xl:text-7xl 2xl:text-8xl font-sans font-medium text-white leading-[1.05]">
               The{" "}
               <span className="font-semibold text-primary">

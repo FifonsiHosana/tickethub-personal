@@ -100,5 +100,10 @@ export const assignStaffSchema = z.object({
   staffUserIds: z.array(z.number().int().positive()).min(1, 'At least one staff member is required'),
 });
 
+export const listOrganizerStaffQuerySchema = z.object({
+  search: z.string().optional(),
+});
+
 export type CreateVenueType = z.infer<typeof createVenueSchema>;
 export type AssignStaffType = z.infer<typeof assignStaffSchema>;
+export type ListOrganizerStaffQueryType = z.infer<typeof listOrganizerStaffQuerySchema>;

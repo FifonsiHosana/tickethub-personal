@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -80,7 +80,7 @@ export function SignUpForm() {
       navigate(`/verify-email?email=${encodeURIComponent(data.email)}`);
     } catch (error: unknown) {
       const message =
-        error instanceof Error ? error.message : "Check-in failed.";
+        error instanceof Error ? error.message : "Sign Up failed.";
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -90,12 +90,14 @@ export function SignUpForm() {
   return (
     <div className="min-h-screen w-full lg:grid lg:grid-cols-2">
       <div className="flex flex-col items-center justify-center p-8 sm:p-12">
-        <img
-          src={assets.TicketHubLogo}
-          width={72}
-          height={72}
-          alt="TicketHub Logo"
-        />
+        <Link to="/" className="hover:cursor-pointer">
+          <img
+            src={assets.TicketHubLogo}
+            width={72}
+            height={72}
+            alt="TicketHub Logo"
+          />
+        </Link>
         <div className="mx-auto flex w-full max-w-sm flex-col gap-6 mt-2">
           <form onSubmit={handleSubmit(onSubmit)}>
             <FieldGroup>
@@ -205,12 +207,12 @@ export function SignUpForm() {
 
           <p className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <a
-              href="/login"
+            <Link
+              to="/login"
               className="underline underline-offset-4 hover:text-primary font-medium"
             >
               Log in
-            </a>
+            </Link>
           </p>
         </div>
       </div>

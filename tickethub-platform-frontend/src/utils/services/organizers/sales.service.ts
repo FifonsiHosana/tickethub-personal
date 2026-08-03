@@ -1,9 +1,5 @@
 import { axiosInstance } from "@/utils/api/axiosInstance";
 
-/* -----------------------------------------------------------------------------
- * Types
- * -------------------------------------------------------------------------- */
-
 export type PaginationParams = {
   page?: number;
   pageSize?: number;
@@ -107,9 +103,6 @@ export type ApiResponse<T> = {
   data: T;
 };
 
-/* -----------------------------------------------------------------------------
- * Services
- * -------------------------------------------------------------------------- */
 
 export async function getOrganizerSales(
   params?: GetOrganizerSalesParams,

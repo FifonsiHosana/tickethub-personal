@@ -10,8 +10,9 @@ export default function AdminEventsSection() {
   const [allPage, setAllPage] = useState(1);
   const [allSearch, setAllSearch] = useState("");
   const [approvalPage, setApprovalPage] = useState(1);
+  const [approvalSearch, setApprovalSearch] = useState("");
   const { data: allData, isLoading: allLoading } = useAdminEvents({ page: allPage, pageSize: 5, search: allSearch || undefined });
-  const { data: pendingData, isLoading: pendingLoading } = useAdminEvents({ approvalStatus: "Pending", page: approvalPage, pageSize: 10 });
+  const { data: pendingData, isLoading: pendingLoading } = useAdminEvents({ approvalStatus: "Pending", page: approvalPage, pageSize: 10, search: approvalSearch || undefined });
   const approveMutation = useApproveEvent();
   const rejectMutation = useRejectEvent();
 
@@ -53,6 +54,8 @@ export default function AdminEventsSection() {
             isLoading={pendingLoading}
             page={approvalPage}
             onPageChange={setApprovalPage}
+            search={approvalSearch}
+            onSearchChange={(val) => { setApprovalSearch(val); setApprovalPage(1); }}
             onApprove={handleApprove}
             onReject={handleReject}
           />

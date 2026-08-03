@@ -14,20 +14,19 @@ interface Props {
   isLoading: boolean;
   page: number;
   onPageChange: (page: number) => void;
+  search: string;
+  onSearchChange: (val: string) => void;
   onApprove: (eventId: number) => void;
   onReject: (eventId: number, reason: string) => void;
 }
 
-export function ApprovalQueueTable({ data, isLoading, page, onPageChange, onApprove, onReject }: Props) {
+export function ApprovalQueueTable({ data, isLoading, page, onPageChange, search, onSearchChange, onApprove, onReject }: Props) {
   const [approveEvent, setApproveEvent] = useState<AdminEvent | null>(null);
   const [rejectId, setRejectId] = useState<number | null>(null);
   const [reason, setReason] = useState("");
-  const [search, setSearch] = useState("");
 
   const events = data?.data ?? [];
   const pagination = data?.pagination;
-
-  const filtered = events.filter((e) => e.title.toLowerCase().includes(search.toLowerCase()));
 
   if (isLoading) return <div className="flex justify-center py-8"><Loader2Icon className="h-6 w-6 animate-spin" /></div>;
 
@@ -35,9 +34,9 @@ export function ApprovalQueueTable({ data, isLoading, page, onPageChange, onAppr
     <div className="space-y-3">
       <div className="relative w-72">
         <SearchIcon className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Search pending events..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <Input placeholder="Search pending events..." className="pl-9" value={search} onChange={(e) => onSearchChange(e.target.value)} />
       </div>
-      {filtered.length === 0 ? (
+      {events.length === 0 ? (
         <div className="flex flex-col items-center py-12 text-center">
           <CheckCircleIcon className="h-10 w-10 text-green-300 mb-3" />
           <p className="text-muted-foreground text-sm">{search ? "No events match your search" : "No events pending approval."}</p>
@@ -56,7 +55,7 @@ export function ApprovalQueueTable({ data, isLoading, page, onPageChange, onAppr
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((event) => (
+                {events.map((event) => (
                   <TableRow key={event.id}>
                     <TableCell className="font-medium">{event.title}</TableCell>
                     <TableCell>{event.organizerFirstName ? `${event.organizerFirstName} ${event.organizerLastName}` : "—"}</TableCell>

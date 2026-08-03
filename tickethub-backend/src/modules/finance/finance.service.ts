@@ -32,6 +32,33 @@ export class FinanceService {
     return this.handleHubtelPayment();
   }
 
+  async listMobileMoneyPlatforms() {
+    const response = await axios.get(
+      'https://api.paystack.co/bank?country=ghana&type=mobile_money',
+      {
+        headers: {
+          Authorization: `Bearer ${config.payment.paystack_api_key}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
+    return response.data.data;
+  }
+
+  async listBanks() {
+    const response = await axios.get(
+      'https://api.paystack.co/bank?country=ghana&type=ghipss',
+      {
+        headers: {
+          Authorization: `Bearer ${config.payment.paystack_api_key}`,
+        },
+      },
+    );
+
+    return response.data.data;
+  }
+
   private async handlePayStackPayment(data: purchaseTicketPaymentInput) {
     const response = await axios.post(
       'https://api.paystack.co/transaction/initialize',

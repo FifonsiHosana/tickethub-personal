@@ -17,10 +17,11 @@ import { toast } from "sonner";
 import { useAuthStorage } from "@/hooks/useAuthStorage";
 import { useSignInWithEmailAndPassword } from "@/hooks/useAuth";
 import { Loader } from "@/components/ui/loader";
+import { Link } from "react-router";
 
 const loginSchema = z.object({
-  email: z.email(),
-  password: z.string().min(8),
+  email: z.email().nonempty(),
+  password: z.string().nonempty({ error: "Field Cannot be empty"}),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -60,12 +61,14 @@ export function LoginForm() {
     <div className="min-h-screen w-full lg:grid lg:grid-cols-2">
       {/* Left side */}
       <div className="flex flex-col items-center justify-center p-8 sm:p-12">
-        <img
-          src={assets.TicketHubLogo}
-          width={72}
-          height={72}
-          alt="TicketHub Logo"
-        />
+        <Link className="hover:cursor-pointer" to="/">
+          <img
+            src={assets.TicketHubLogo}
+            width={72}
+            height={72}
+            alt="TicketHub Logo"
+          />
+        </Link>
         <div className="mx-auto flex w-full max-w-sm flex-col gap-6 mt-2">
           <form onSubmit={handleSubmit(onSubmit)}>
             <FieldGroup>
@@ -145,13 +148,12 @@ export function LoginForm() {
 
               <FieldDescription className="mt-4 text-center text-sm">
                 Don&apos;t have an account?{" "}
-                <a
-                  // TODO: Link to signup page
-                  href="#"
+                <Link
+                  to="/signup"
                   className="underline underline-offset-4 hover:text-primary font-medium"
                 >
                   Sign up
-                </a>
+                </Link>
               </FieldDescription>
             </FieldGroup>
           </form>

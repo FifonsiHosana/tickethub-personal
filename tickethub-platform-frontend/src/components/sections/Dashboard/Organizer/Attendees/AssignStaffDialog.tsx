@@ -31,7 +31,7 @@ export default function AssignStaffDialog({
 }: Props) {
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const { data: allStaff = [], isLoading: loadingAll } = useOrganizerStaffList();
+  const { data: allStaff = [], isLoading: loadingAll } = useOrganizerStaffList(search || undefined);
   const { data: assignedStaff = [] } = useEventStaff(eventId);
   const { mutateAsync: assignStaff, isPending: isAssigning } = useAssignEventStaff();
 
@@ -40,19 +40,8 @@ export default function AssignStaffDialog({
     [assignedStaff],
   );
 
-  const filtered = useMemo(() => {
-    if (!search.trim()) return allStaff;
-    const q = search.toLowerCase();
-    return allStaff.filter(
-      (s) =>
-        s.firstName.toLowerCase().includes(q) ||
-        s.lastName.toLowerCase().includes(q) ||
-        s.email.toLowerCase().includes(q),
-    );
-  }, [allStaff, search]);
-
   const selectableCount = allStaff.filter((s) => !assignedIds.has(s.id)).length;
-  const allSelected = filtered.every(
+  const allSelected = allStaff.every(
     (s) => assignedIds.has(s.id) || selectedIds.has(s.id),
   );
 
@@ -61,7 +50,7 @@ export default function AssignStaffDialog({
       setSelectedIds(new Set());
     } else {
       const newSet = new Set<number>();
-      for (const s of filtered) {
+      for (const s of allStaff) {
         if (!assignedIds.has(s.id)) newSet.add(s.id);
       }
       setSelectedIds(newSet);
@@ -112,7 +101,7 @@ export default function AssignStaffDialog({
             <div className="flex items-center justify-center py-8">
               <Loader2Icon className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
-          ) : filtered.length === 0 ? (
+          ) : allStaff.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">No staff found</p>
           ) : (
             <>
@@ -133,7 +122,7 @@ export default function AssignStaffDialog({
                 </button>
               )}
               <div className="max-h-64 overflow-y-auto space-y-1 border rounded-lg p-1">
-                {filtered.map((s) => {
+                {allStaff.map((s) => {
                   const isAssigned = assignedIds.has(s.id);
                   const isSelected = selectedIds.has(s.id);
                   return (

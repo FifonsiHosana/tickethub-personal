@@ -329,7 +329,8 @@ export async function listOrganizerStaff(
 ) {
   try {
     const organizerId = req.user.id;
-    const result = await getOrganizerStaff(organizerId);
+    const search = req.query.search as string | undefined;
+    const result = await getOrganizerStaff(organizerId, search);
 
     res.status(200).json({ success: true, data: result });
   } catch (err) {
