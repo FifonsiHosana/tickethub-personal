@@ -40,7 +40,27 @@ export async function dashboard(
   try {
     const organizerId = req.user.id;
 
-    const result = await getOrganizerDashboard(organizerId);
+    const dashboardParams: {
+      upcomingPage?: number;
+      upcomingPageSize?: number;
+      topSellingPage?: number;
+      topSellingPageSize?: number;
+    } = {};
+
+    if (req.query.upcomingPage) {
+      dashboardParams.upcomingPage = Number(req.query.upcomingPage);
+    }
+    if (req.query.upcomingPageSize) {
+      dashboardParams.upcomingPageSize = Number(req.query.upcomingPageSize);
+    }
+    if (req.query.topSellingPage) {
+      dashboardParams.topSellingPage = Number(req.query.topSellingPage);
+    }
+    if (req.query.topSellingPageSize) {
+      dashboardParams.topSellingPageSize = Number(req.query.topSellingPageSize);
+    }
+
+    const result = await getOrganizerDashboard(organizerId, dashboardParams);
 
     res.status(200).json({
       success: true,

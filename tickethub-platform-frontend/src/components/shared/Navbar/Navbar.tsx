@@ -5,10 +5,19 @@ import { useNavigate } from "react-router";
 import { Menu, X } from "lucide-react";
 import { navLinks } from "@/misc/navLinks";
 import { assets } from "@/assets/assets";
+import { useAuthStorage } from "@/hooks/useAuthStorage";
+import type { Role } from "@/misc/dashboardData";
 
 export const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const { token, role, logout } = useAuthStorage();
+
+  const isAuthenticated = Boolean(token);
+
+  const visibleLinks = navLinks.filter(
+    (link) => !link.roles || (role && link.roles.includes(role as Role)),
+  );
 
   return (
     <nav className="absolute top-6 z-50 w-full px-4 flex flex-col items-center">
@@ -32,7 +41,7 @@ export const Navbar: React.FC = () => {
 
           {/* Desktop Center Links */}
           <ul className="hidden md:flex items-center gap-8 text-sm font-medium">
-            {navLinks.map((link) => (
+            {visibleLinks.map((link) => (
               <li key={link.name}>
                 <NavLink
                   to={link.path}
@@ -50,12 +59,24 @@ export const Navbar: React.FC = () => {
 
           {/* Desktop CTA plus the hamburger Toggle */}
           <div className="flex items-center pr-2 gap-2">
-            <button
-              onClick={() => navigate("/login")}
-              className="hidden md:block px-6 py-2 text-sm font-medium text-white bg-primary/80 rounded-full hover:cursor-pointer"
-            >
-              Sign In
-            </button>
+            {isAuthenticated ? (
+              <button
+                onClick={() => {
+                  logout();
+                  setIsOpen(false);
+                }}
+                className="hidden md:block px-6 py-2 text-sm font-medium text-white bg-primary/80 rounded-full hover:cursor-pointer"
+              >
+                Log Out
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate("/login")}
+                className="hidden md:block px-6 py-2 text-sm font-medium text-white bg-primary/80 rounded-full hover:cursor-pointer"
+              >
+                Sign In
+              </button>
+            )}
             <button
               className="md:hidden p-2 text-white"
               onClick={() => setIsOpen(!isOpen)}
@@ -74,7 +95,7 @@ export const Navbar: React.FC = () => {
               exit={{ height: 0, opacity: 0 }}
               className="md:hidden flex flex-col items-center gap-4 pb-6 pt-2 border-t border-white/10 w-full"
             >
-              {navLinks.map((link) => (
+              {visibleLinks.map((link) => (
                 <NavLink
                   key={link.name}
                   to={link.path}
@@ -90,12 +111,24 @@ export const Navbar: React.FC = () => {
                   {link.name}
                 </NavLink>
               ))}
-              <button
-                onClick={() => navigate("/login")}
-                className="mt-2 px-8 py-3 text-sm font-medium text-white bg-primary/80 rounded-full hover:bg-white/20 transition-colors"
-              >
-                Sign In
-              </button>
+              {isAuthenticated ? (
+                <button
+                  onClick={() => {
+                    logout();
+                    setIsOpen(false);
+                  }}
+                  className="mt-2 px-8 py-3 text-sm font-medium text-white bg-primary/80 rounded-full hover:bg-white/20 transition-colors"
+                >
+                  Log Out
+                </button>
+              ) : (
+                <button
+                  onClick={() => navigate("/login")}
+                  className="mt-2 px-8 py-3 text-sm font-medium text-white bg-primary/80 rounded-full hover:bg-white/20 transition-colors"
+                >
+                  Sign In
+                </button>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

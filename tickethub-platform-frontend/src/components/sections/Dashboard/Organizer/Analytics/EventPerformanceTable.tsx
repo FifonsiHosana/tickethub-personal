@@ -57,7 +57,7 @@ export const EventPerformanceTable = ({
                 placeholder="Search events..."
                 value={search}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="pl-8 h-8 text-sm bg-white"
+                className="pl-8 h-8 text-sm bg-card"
               />
             </div>
             <ExportDropdown
@@ -88,10 +88,10 @@ export const EventPerformanceTable = ({
           </div>
         ) : (
           <>
-            <div className="rounded-xl border border-gray-300 overflow-hidden">
-              <Table className="border border-gray-300">
-                <TableHeader className="bg-neutral-50/80">
-                  <TableRow className="border border-gray-300">
+            <div className="rounded-xl border border-border overflow-hidden">
+              <Table className="border border-border">
+                <TableHeader className="bg-muted/50">
+                  <TableRow className="border border-border">
                     <TableHead>Event Name</TableHead>
                     <TableHead>Capacity</TableHead>
                     <TableHead>Tickets Sold</TableHead>
@@ -103,29 +103,29 @@ export const EventPerformanceTable = ({
                   {data.map((event) => (
                     <TableRow
                       key={event.eventId}
-                      className="hover:bg-neutral-50/50 border border-gray-300"
+                      className="hover:bg-muted/50 border border-border"
                     >
-                      <TableCell className="font-medium text-[#1a201c] border-gray-300">
+                      <TableCell className="font-medium text-foreground border-border">
                         {event.eventName}
                       </TableCell>
-                      <TableCell className="text-muted-foreground border-gray-300">
+                      <TableCell className="text-muted-foreground border-border">
                         {event.capacity.toLocaleString()}
                       </TableCell>
-                      <TableCell className="font-medium border-gray-300">
+                      <TableCell className="font-medium border-border">
                         {event.ticketsSold.toLocaleString()}
                       </TableCell>
-                      <TableCell className="border-gray-300">
+                      <TableCell className="border-border">
                         <div className="flex items-center gap-3">
                           <Progress
                             value={event.occupancyRate}
-                            className="h-2 bg-neutral-100"
+                            className="h-2 bg-muted"
                           />
                           <span className="text-xs font-medium text-muted-foreground w-12">
                             {event.occupancyRate}%
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right text-[#1a201c] font-semibold border-gray-300">
+                      <TableCell className="text-right text-foreground font-semibold border-border">
                         GH₵ {event.revenue.toLocaleString()}
                       </TableCell>
                     </TableRow>

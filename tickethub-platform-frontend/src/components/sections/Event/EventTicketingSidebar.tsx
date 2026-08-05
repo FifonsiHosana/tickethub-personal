@@ -4,6 +4,7 @@ import { useEventTickets } from "@/hooks/attendees/events/useEvent";
 import { Loader } from "@/components/ui/loader";
 import { type EventTicket } from "@/types/ticket.types";
 import { useNavigate } from "react-router";
+import { Minus, Plus } from "lucide-react";
 import { useTicketCartStore } from "@/stores/tickets.store";
 
 interface EventTicketingSidebarProps {
@@ -46,10 +47,10 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
     );
   }
 
-  if (isError || !tickets) {
+  if (isError || !tickets || tickets.length === 0) {
     return (
       <div className="sticky top-32 p-8 rounded-3xl border border-neutral-100 shadow-xl bg-white text-center">
-        <p className="text-neutral-500 font-sans text-sm">
+        <p className="text-red-500 animate-pulse font-sans text-sm">
           Tickets are currently unavailable.
         </p>
       </div>
@@ -59,17 +60,10 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
   return (
     <div className="sticky top-32 p-3 md:p-4 rounded-3xl border border-neutral-200 shadow-xl shadow-neutral-200/50 flex flex-col gap-4 bg-white">
       {/* Sidebar Header */}
-      {/* <div>
-        <p className="text-sm font-medium text-black mb-1">
-          Event Capacity
-        </p>
-        <p className="text-2xl font-bold text-foreground">{capacity} </p>
-      </div> */}
 
       {/* Ticket List */}
       <div className="flex flex-col gap-4">
         {tickets.map((ticket: EventTicket) => {
-          
           const cartItem = items.find(
             (item) => item.eventTicketId === ticket.eventTicketId,
           );
@@ -87,23 +81,6 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
                   : "border-neutral-200 bg-white"
               } ${isSoldOut ? "opacity-50" : ""}`}
             >
-              {/* <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h4 className="font-sans font-semibold text-foreground text-lg">
-                    {ticket.ticketName}
-                  </h4>
-                  <p className="text-sm text-neutral-800">
-                    {Number(ticket.price) === 0
-                      ? "Free"
-                      : `GH₵ ${Number(ticket.price).toFixed(2)}`}
-                  </p>
-                  {ticket.description && (
-                    <p className="text-xs text-neutral-600 mt-1">
-                      {ticket.description}
-                    </p>
-                  )}
-                </div>
-              </div> */}
 
               {/*  */}
               <div className="flex flex-col w-full">
@@ -116,12 +93,13 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
                       ? "Free"
                       : `GH₵ ${Number(ticket.price).toFixed(2)}`}
                   </p>
-
                 </div>
 
-                <div></div>
-
-                
+                {ticket.description && (
+                  <p className="text-xs text-neutral-600 mt-1">
+                    {ticket.description}
+                  </p>
+                )}
               </div>
               {/* Quantity Controls */}
               <div className="flex items-center justify-between mt-2">
@@ -143,19 +121,7 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
                       disabled={qty === 0}
                       className="w-8 h-8 rounded-full border border-neutral-300 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 disabled:opacity-30 transition-colors"
                     >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M20 12H4"
-                        />
-                      </svg>
+                      <Minus className="w-4 h-4" />
                     </button>
 
                     <span className="w-4 text-center font-semibold text-foreground">
@@ -187,19 +153,7 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
                       disabled={qty >= ticket.totalRemaining}
                       className="w-8 h-8 rounded-full border border-neutral-300 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 disabled:opacity-30 transition-colors"
                     >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 4v16m8-8H4"
-                        />
-                      </svg>
+                      <Plus className="w-4 h-4" />
                     </button>
                   </div>
                 )}

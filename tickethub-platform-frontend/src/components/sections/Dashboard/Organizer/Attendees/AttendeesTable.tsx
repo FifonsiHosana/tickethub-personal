@@ -32,7 +32,7 @@ export default function AttendeesTable({
 }: Props) {
   if (isLoading) {
     return (
-      <div className="w-full h-64 flex items-center justify-center border rounded-xl bg-white">
+      <div className="w-full h-64 flex items-center justify-center border rounded-xl bg-card">
         <Loader2Icon className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
@@ -40,8 +40,8 @@ export default function AttendeesTable({
 
   if (!data?.data.length) {
     return (
-      <div className="w-full h-64 flex flex-col items-center justify-center border rounded-xl bg-white text-center">
-        <UsersIcon className="h-10 w-10 text-neutral-300 mb-3" />
+      <div className="w-full h-64 flex flex-col items-center justify-center border rounded-xl bg-card text-center">
+        <UsersIcon className="h-10 w-10 text-muted-foreground mb-3" />
         <h3 className="text-lg font-semibold text-foreground">
           No attendees yet
         </h3>
@@ -54,9 +54,9 @@ export default function AttendeesTable({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-gray-300 overflow-hidden bg-white">
+      <div className="rounded-xl border border-border overflow-hidden bg-card">
         <Table>
-          <TableHeader className="bg-neutral-50">
+          <TableHeader className="bg-muted/50">
             <TableRow>
               <TableHead>Attendee</TableHead>
               <TableHead>Ticket</TableHead>
@@ -87,8 +87,8 @@ export default function AttendeesTable({
                     variant="secondary"
                     className={
                       a.checkedIn
-                        ? "bg-green-100 text-green-700"
-                        : "bg-neutral-100 text-neutral-500"
+                        ? "bg-green-500/15 text-green-700 hover:bg-green-500/25 dark:bg-green-500/10 dark:text-green-400 dark:hover:bg-green-500/20"
+                        : "bg-neutral-500/15 text-neutral-700 hover:bg-neutral-500/25 dark:bg-neutral-500/10 dark:text-neutral-400 dark:hover:bg-neutral-500/20"
                     }
                   >
                     {a.checkedIn ? "Checked In" : "Unused"}

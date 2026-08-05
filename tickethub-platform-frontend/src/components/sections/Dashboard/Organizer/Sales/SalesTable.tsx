@@ -20,7 +20,7 @@ interface SalesTableProps {
 export const SalesTable = ({ sales, isLoading, isError }: SalesTableProps) => {
   if (isLoading) {
     return (
-      <div className="w-full h-64 flex flex-col items-center justify-center border rounded-xl bg-white">
+      <div className="w-full h-64 flex flex-col items-center justify-center border rounded-xl bg-card">
         <Loader2Icon className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
         <p className="text-muted-foreground font-sans">
           Loading transactions...
@@ -31,7 +31,7 @@ export const SalesTable = ({ sales, isLoading, isError }: SalesTableProps) => {
 
   if (isError) {
     return (
-      <div className="w-full h-64 flex items-center justify-center border rounded-xl bg-white text-red-500">
+      <div className="w-full h-64 flex items-center justify-center border rounded-xl bg-card text-red-500">
         Failed to load sales data.
       </div>
     );
@@ -39,9 +39,9 @@ export const SalesTable = ({ sales, isLoading, isError }: SalesTableProps) => {
 
   if (!sales?.data.length) {
     return (
-      <div className="w-full h-64 flex flex-col items-center justify-center border rounded-xl bg-white text-center">
-        <div className="h-16 w-16 rounded-full bg-neutral-100 flex items-center justify-center mb-4">
-          <ReceiptTextIcon className="h-8 w-8 text-neutral-400" />
+      <div className="w-full h-64 flex flex-col items-center justify-center border rounded-xl bg-card text-center">
+        <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+          <ReceiptTextIcon className="h-8 w-8 text-muted-foreground" />
         </div>
         <h3 className="text-lg font-semibold text-foreground">
           No transactions found
@@ -54,10 +54,10 @@ export const SalesTable = ({ sales, isLoading, isError }: SalesTableProps) => {
   }
 
   return (
-    <div className="rounded-xl border border-gray-300 bg-white overflow-hidden">
-      <Table className="border border-gray-300">
-        <TableHeader className="bg-neutral-50/80 border-b border-gray-200">
-          <TableRow className="border-b border-gray-200">
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
+      <Table className="border border-border">
+        <TableHeader className="bg-muted/50 border-b border-border">
+          <TableRow className="border-b border-border">
             <TableHead>Customer</TableHead>
             <TableHead>Event & Ticket</TableHead>
             <TableHead>Date</TableHead>
@@ -69,7 +69,7 @@ export const SalesTable = ({ sales, isLoading, isError }: SalesTableProps) => {
           {sales.data.map((sale) => (
             <TableRow
               key={sale.paymentId}
-              className="hover:bg-neutral-50/50 border-b border-gray-200 transition-colors"
+              className="hover:bg-muted/50 border-b border-border transition-colors"
             >
               <TableCell>
                 <div className="flex flex-col">
@@ -91,7 +91,7 @@ export const SalesTable = ({ sales, isLoading, isError }: SalesTableProps) => {
                   </span>
                 </div>
               </TableCell>
-              <TableCell className="text-sm text-neutral-600">
+              <TableCell className="text-sm text-muted-foreground">
                 {sale.purchasedAt
                   ? format(new Date(sale.purchasedAt), "MMM d, yyyy")
                   : "N/A"}
@@ -107,8 +107,8 @@ export const SalesTable = ({ sales, isLoading, isError }: SalesTableProps) => {
                   variant="secondary"
                   className={
                     sale.paymentStatus === "Completed"
-                      ? "bg-green-500/15 text-green-700 hover:bg-green-500/25"
-                      : "bg-red-500/15 text-red-700 hover:bg-red-500/25"
+                      ? "bg-green-500/15 text-green-700 hover:bg-green-500/25 dark:bg-green-500/10 dark:text-green-400 dark:hover:bg-green-500/20"
+                      : "bg-red-500/15 text-red-700 hover:bg-red-500/25 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
                   }
                 >
                   {sale.paymentStatus}

@@ -28,7 +28,7 @@ export function VerificationQueueTable({ data, isLoading, page, onPageChange, se
   if (!search && organizers.length === 0) {
     return (
       <div className="flex flex-col items-center py-12 text-center">
-        <ShieldCheckIcon className="h-10 w-10 text-neutral-300 mb-3" />
+        <ShieldCheckIcon className="h-10 w-10 text-muted-foreground mb-3" />
         <p className="text-muted-foreground text-sm">All organizers have been verified.</p>
       </div>
     );

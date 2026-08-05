@@ -16,9 +16,9 @@ export default function TicketPerformance() {
   });
 
   return (
-    <div className="flex-1 space-y-6 p-1 bg-neutral-50/30 min-h-screen">
+    <div className="flex-1 space-y-6 p-1 bg-card min-h-screen">
       <div className="mb-4">
-        <h2 className="text-3xl font-bold tracking-tight text-[#1a201c]">
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">
           Ticket Performance
         </h2>
         <p className="text-muted-foreground font-sans">
@@ -35,7 +35,7 @@ export default function TicketPerformance() {
             <TicketIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-[#1a201c]">
+            <div className="text-4xl font-bold text-foreground">
               {overview?.ticketsSold?.toLocaleString() ?? "0"}
             </div>
             <p className="text-xs text-muted-foreground mt-1">

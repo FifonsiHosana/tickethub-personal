@@ -31,19 +31,19 @@ export const SalesFilterBar = ({
           placeholder="Search by customer email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="pl-9 w-full bg-white"
+          className="pl-9 w-full"
         />
       </div>
 
       <div className="w-full sm:w-48">
         <Select value={status} onValueChange={(val: Status) => setStatus(val)}>
-          <SelectTrigger className="w-full bg-white">
+          <SelectTrigger className="w-full">
             <div className="flex items-center gap-2">
               <FilterIcon className="h-4 w-4 text-muted-foreground" />
               <SelectValue placeholder="Filter by status" />
             </div>
           </SelectTrigger>
-          <SelectContent className="bg-white">
+          <SelectContent>
             <SelectItem value="All">All Transactions</SelectItem>
             <SelectItem value="Completed">Completed</SelectItem>
             <SelectItem value="Failed">Failed</SelectItem>

@@ -5,7 +5,7 @@ export default function PayoutSettingsSection() {
   const { data, isLoading } = usePayoutDetails();
 
   if (isLoading) {
-    return <div className="h-32 bg-neutral-100 animate-pulse rounded-xl max-w-lg" />;
+    return <div className="h-32 bg-muted animate-pulse rounded-xl max-w-lg" />;
   }
 
   return <PayoutSettingsForm details={data?.data} />;

@@ -133,10 +133,10 @@ export default function AssignStaffDialog({
                       onClick={() => toggleStaff(s.id)}
                       className={`flex items-center gap-3 w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
                         isAssigned
-                          ? "bg-gray-50 opacity-60 cursor-not-allowed"
+                          ? "bg-muted/50 opacity-60 cursor-not-allowed"
                           : isSelected
                             ? "bg-primary/5 hover:bg-primary/10"
-                            : "hover:bg-gray-50"
+                            : "hover:bg-muted"
                       }`}
                     >
                       {isAssigned || isSelected ? (
@@ -159,7 +159,7 @@ export default function AssignStaffDialog({
                         </p>
                       </div>
                       {isAssigned && (
-                        <span className="text-xs text-muted-foreground bg-gray-100 px-2 py-0.5 rounded shrink-0">
+                        <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded shrink-0">
                           Assigned
                         </span>
                       )}

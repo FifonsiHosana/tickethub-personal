@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useFormContext } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
 import { CalendarIcon, UsersIcon, PlusIcon } from "lucide-react";
 import { type CreateEventFormValues } from "@/types/organizer/event.schema";
 import { useEventVenues } from "@/hooks/organizers/useOrganizerEvents";
@@ -20,7 +20,12 @@ import { AddVenueDialog } from "./AddVenueDialog";
 type Venue = { id: number; venue_name: string };
 
 export function EventBasicFields() {
-  const { register, setValue, watch, formState: { errors } } = useFormContext<CreateEventFormValues>();
+  const {
+    register,
+    control,
+    setValue,
+    formState: { errors },
+  } = useFormContext<CreateEventFormValues>();
   const { data: venues = [], isLoading } = useEventVenues();
   const [venueDialogOpen, setVenueDialogOpen] = useState(false);
 
@@ -53,31 +58,39 @@ export function EventBasicFields() {
           <FieldContent>
             <div className="flex items-start gap-2">
               <div className="max-w-55 flex-1 min-w-0">
-                <Combobox
-                  items={venues}
-                  itemToStringValue={(v: Venue) => v.venue_name}
-                  value={venues.find((v: Venue) => v.id === watch("eventVenueId"))?.venue_name ?? null}
-                  onValueChange={(venue: Venue | null) => {
-                    if (venue) setValue("eventVenueId", venue.id, { shouldValidate: true });
-                  }}
-                >
-                  <ComboboxInput
-                    className="border border-gray-300 focus-within:border-none focus-visible:border-none"
-                    id="eventVenueId"
-                    disabled={isLoading}
-                    placeholder={isLoading ? "Loading..." : "Select a venue"}
-                  />
-                  <ComboboxContent className="bg-white">
-                    <ComboboxEmpty>No venue found.</ComboboxEmpty>
-                    <ComboboxList>
-                      {(venue: Venue) => (
-                        <ComboboxItem key={venue.id} value={venue}>
-                          {venue.venue_name}
-                        </ComboboxItem>
-                      )}
-                    </ComboboxList>
-                  </ComboboxContent>
-                </Combobox>
+                <Controller
+                  name="eventVenueId"
+                  control={control}
+                  render={({ field }) => (
+                    <Combobox
+                      items={venues}
+                      itemToStringLabel={(v: Venue) => v.venue_name}
+                      itemToStringValue={(v: Venue) => v.venue_name}
+                      value={venues.find((v: Venue) => v.id === field.value) ?? null}
+                      onValueChange={(venue: Venue | null) => {
+                        field.onChange(venue ? venue.id : undefined);
+                      }}
+                    >
+                      <ComboboxInput
+                        className="border border-border focus-within:border-none focus-visible:border-none"
+                        id="eventVenueId"
+                        disabled={isLoading}
+                        placeholder={isLoading ? "Loading..." : "Select a venue"}
+                        onBlur={field.onBlur}
+                      />
+                      <ComboboxContent>
+                        <ComboboxEmpty>No venue found.</ComboboxEmpty>
+                        <ComboboxList>
+                          {(venue: Venue) => (
+                            <ComboboxItem key={venue.id} value={venue}>
+                              {venue.venue_name}
+                            </ComboboxItem>
+                          )}
+                        </ComboboxList>
+                      </ComboboxContent>
+                    </Combobox>
+                  )}
+                />
               </div>
               <Button
                 type="button"

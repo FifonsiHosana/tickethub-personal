@@ -19,6 +19,7 @@ import {
 import { now } from '@/utils/timeDatehelpers.js';
 
 import { sendMail } from '@/modules/emails/emails.service.js';
+import { linkOrdersByEmail } from '@/modules/attendee/attendee.service.js';
 import type { CreateLoginInput, CreateRegisterInput } from './auth.schema.js';
 import { AppError } from '@/middleware/errorHandler.js';
 import type { Roles } from './auth.types.js';
@@ -71,32 +72,45 @@ export class AuthService {
 
     const passwordHash = await hashPassword(payload.password);
 
-    const [createdUser] = await db
-      .insert(users)
-      .values({
-        firstName: payload.firstName,
-        lastName: payload.lastName,
-        email: payload.email,
-        phoneNumber: payload.phoneNumber,
-        passwordHash,
-        isVerified: false,
-        isActive: true,
-      })
-      .$returningId();
+    const createdUser = await db.transaction(async (tx) => {
+      const [user] = await tx
+        .insert(users)
+        .values({
+          firstName: payload.firstName,
+          lastName: payload.lastName,
+          email: payload.email,
+          phoneNumber: payload.phoneNumber,
+          passwordHash,
+          isVerified: false,
+          isActive: true,
+        })
+        .$returningId();
 
-    await db.insert(userRoles).values({
-      userId: createdUser?.id,
-      roleId: role.id,
+      await tx.insert(userRoles).values({
+        userId: user?.id,
+        roleId: role.id,
+      });
+
+      // If this is an event_staff registration via invite, add to EventStaff
+      if (inviteData && role.name === 'event_staff') {
+        await tx.insert(eventStaff).values({
+          event_id: inviteData.eventId,
+          staff_id: user?.id,
+          assigned_by: inviteData.organizerId,
+          assigned_at: now(),
+        });
+      }
+
+      // Link any existing guest orders to this attendee account
+      if (role.name === 'attendee' && user?.id) {
+        await linkOrdersByEmail(tx, user.id, payload.email);
+      }
+
+      return user;
     });
 
-    // If this is an event_staff registration via invite, add to EventStaff
-    if (inviteData && role.name === 'event_staff') {
-      await db.insert(eventStaff).values({
-        event_id: inviteData.eventId,
-        staff_id: createdUser?.id,
-        assigned_by: inviteData.organizerId,
-        assigned_at: now(),
-      });
+    if (!createdUser?.id) {
+      throw new AppError(500, 'Failed to create account.');
     }
 
     await db
@@ -117,7 +131,7 @@ export class AuthService {
       otpHash,
       purpose: 'EMAIL_VERIFICATION',
       expiresAt: getOtpExpiry(),
-      userId: createdUser?.id,
+      userId: createdUser.id,
     });
 
     await sendMail(

@@ -31,12 +31,11 @@ import EventStaff from "@/pages/Dashboard/Organizer/Attendees/EventStaff";
 import PublicTicket from "@/pages/PublicTicket/PublicTicket";
 import AdminDashboard from "@/pages/Dashboard/Admin/AdminDashboard";
 import AdminOrganizers from "@/pages/Dashboard/Admin/AdminOrganizers";
-// import AdminEvents from "@/pages/Dashboard/Admin/AdminEvents";
 import AdminAnalytics from "@/pages/Dashboard/Admin/AdminAnalytics";
 import AdminPayouts from "@/pages/Dashboard/Admin/AdminPayouts";
 import AdminSettings from "@/pages/Dashboard/Admin/AdminSettings";
+import TicketOrderHistory from "@/pages/Attendee/TicketOrderHistory";
 
-// import AnalyticsOverview from "@/pages/Dashboard/Organizer/AnalyticsOverview";
 
 export default function RouterLayout() {
   return (
@@ -76,6 +75,19 @@ export default function RouterLayout() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
+          </Route>
+
+          <Route
+            element={
+              <ProtectedRoute allowedRoles={["attendee"]}>
+                <HomeLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route
+              path="/ticket-order-history"
+              element={<TicketOrderHistory />}
+            />
           </Route>
 
           <Route

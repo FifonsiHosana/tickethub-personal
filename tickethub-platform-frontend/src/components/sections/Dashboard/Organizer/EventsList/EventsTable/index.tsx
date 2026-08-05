@@ -38,7 +38,7 @@ export function EventsTable({ events, isLoading, isError, search, onSearchChange
       <EventsTableHeader search={search} onSearchChange={onSearchChange} events={events} />
       <CardContent className="p-0">
         {isLoading && (
-          <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
+          <div className="flex flex-col items-center justify-center py-24">
             <Loader2Icon className="h-8 w-8 animate-spin mb-4" />
             <p>Loading events...</p>
           </div>
@@ -51,10 +51,10 @@ export function EventsTable({ events, isLoading, isError, search, onSearchChange
         {!isLoading && !isError && (!events || events.length === 0) && (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center mb-4">
-              <CalendarX2Icon className="h-10 w-10 text-muted-foreground" />
+              <CalendarX2Icon className="h-10 w-10" />
             </div>
             <h3 className="text-lg font-semibold">No events found</h3>
-            <p className="text-muted-foreground mt-2 mb-6 max-w-sm">
+            <p className=" mt-2 mb-6 max-w-sm">
               {search ? "No events match your search. Try adjusting your search terms." : "You haven't created any events yet."}
             </p>
             {!search && (
@@ -70,7 +70,7 @@ export function EventsTable({ events, isLoading, isError, search, onSearchChange
           <>
             <EventsTableBody events={events} onViewDetails={handleView} onEdit={handleEdit} onCancel={handleCancel} />
             {pagination && pagination.totalPages > 1 && (
-              <div className="px-6 py-3 border-t border-gray-300">
+              <div className="px-6 py-3 border-t border-border">
                 <PaginationSect page={page} currentPage={page} totalPages={pagination.totalPages} setPage={onPageChange} />
               </div>
             )}

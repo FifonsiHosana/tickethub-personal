@@ -157,6 +157,11 @@ export default function AdminPayoutsSection() {
                       <TableCell className="text-xs">{p.reference}</TableCell>
                       <TableCell>
                         <Badge
+                          className={p.status === "Completed"
+                            ? "bg-green-500/15 text-green-700 dark:bg-green-500/10 dark:text-green-400"
+                            : p.status === "Pending"
+                            ? "bg-amber-500/15 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
+                            : "bg-red-500/15 text-red-700 dark:bg-red-500/10 dark:text-red-400"}
                           variant={
                             p.status === "Completed" ? "default" : "secondary"
                           }

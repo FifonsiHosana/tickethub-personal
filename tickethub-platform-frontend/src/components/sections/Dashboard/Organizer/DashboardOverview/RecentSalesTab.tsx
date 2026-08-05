@@ -12,7 +12,7 @@ export default function RecentSalesTab({ sales }: Props) {
   if (!sales.length) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <ShoppingCartIcon className="h-10 w-10 text-neutral-300 mb-3" />
+        <ShoppingCartIcon className="h-10 w-10 text-muted-foreground mb-3" />
         <p className="text-muted-foreground text-sm">No recent sales.</p>
       </div>
     );

@@ -9,7 +9,7 @@ export default function AdminAnalyticsSection() {
   const { data: stats, isLoading: stLoading } = useEventStats();
   const { data: perf, isLoading: perfLoading } = useOrganizerPerformance();
 
-  if (ovLoading) return <div className="h-32 bg-neutral-100 animate-pulse rounded-xl" />;
+  if (ovLoading) return <div className="h-32 bg-muted animate-pulse rounded-xl" />;
 
   const summaryCards = [
     { title: "Total Revenue", value: `GH₵ ${(overview?.totalRevenue ?? 0).toLocaleString()}`, icon: BanknoteIcon },
@@ -39,7 +39,7 @@ export default function AdminAnalyticsSection() {
         <Card className="shadow-sm">
           <CardHeader className="pb-2 pt-3 px-4"><CardTitle className="text-sm font-medium">Events by Status</CardTitle></CardHeader>
           <CardContent className="px-4 pb-3">
-            {stLoading ? <div className="h-16 bg-neutral-100 animate-pulse rounded" /> : (
+            {stLoading ? <div className="h-16 bg-muted animate-pulse rounded" /> : (
               <div className="space-y-1">
                 {stats?.statusCounts.map((s) => (
                   <div key={s.status} className="flex justify-between text-sm"><span>{s.status}</span><span className="font-medium">{s.count}</span></div>
@@ -51,7 +51,7 @@ export default function AdminAnalyticsSection() {
         <Card className="shadow-sm">
           <CardHeader className="pb-2 pt-3 px-4"><CardTitle className="text-sm font-medium">Events by Approval</CardTitle></CardHeader>
           <CardContent className="px-4 pb-3">
-            {stLoading ? <div className="h-16 bg-neutral-100 animate-pulse rounded" /> : (
+            {stLoading ? <div className="h-16 bg-muted animate-pulse rounded" /> : (
               <div className="space-y-1">
                 {stats?.approvalCounts.map((s) => (
                   <div key={s.status} className="flex justify-between text-sm"><span><Badge variant={s.status === "Approved" ? "default" : s.status === "Pending" ? "secondary" : "destructive"}>{s.status}</Badge></span><span className="font-medium">{s.count}</span></div>
@@ -64,8 +64,8 @@ export default function AdminAnalyticsSection() {
       <Card className="shadow-sm">
         <CardHeader className="pb-2 pt-3 px-4"><CardTitle className="text-sm font-medium">Top Organizers</CardTitle></CardHeader>
         <CardContent className="px-4 pb-3">
-          {perfLoading ? <div className="h-20 bg-neutral-100 animate-pulse rounded" /> : (
-            <div className="rounded-md border border-gray-300 max-h-70 overflow-auto">
+          {perfLoading ? <div className="h-20 bg-muted animate-pulse rounded" /> : (
+            <div className="rounded-md border border-border max-h-70 overflow-auto">
               <Table>
                 <TableHeader>
                   <TableRow><TableHead>Organizer</TableHead><TableHead>Events</TableHead><TableHead>Tickets Sold</TableHead></TableRow>

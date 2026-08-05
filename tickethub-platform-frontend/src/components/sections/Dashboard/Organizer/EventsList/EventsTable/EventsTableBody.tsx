@@ -12,8 +12,8 @@ interface Props {
 export function EventsTableBody({ events, onViewDetails, onEdit, onCancel }: Props) {
   return (
     <Table>
-      <TableHeader className="border-b border-gray-300 bg-neutral-50/50">
-        <TableRow className="border-b border-gray-300 hover:bg-transparent">
+      <TableHeader className="border-b border-border">
+        <TableRow className="border-b border-border hover:bg-transparent">
           <TableHead className="pl-6">Event Name</TableHead>
           <TableHead>Date & Time</TableHead>
           <TableHead>Capacity</TableHead>

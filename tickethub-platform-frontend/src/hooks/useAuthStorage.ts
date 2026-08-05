@@ -2,6 +2,7 @@ import useLocalStorage from "@/hooks/useLocalStorage";
 import { decodeToken } from "@/utils/token";
 import { toast } from "sonner";
 import { type User } from "@/types";
+import { removeItem } from "@/utils/storage/localStorage";
 
 export function useAuthStorage() {
   const [token, setToken, clearToken] = useLocalStorage<string | null>(
@@ -20,6 +21,7 @@ export function useAuthStorage() {
     clearToken();
     clearUser();
     toast.success("Logged out successfully");
+    removeItem("vite-ui-theme");
   }
 
   function setAuth(data: { token: string; user: User }) {

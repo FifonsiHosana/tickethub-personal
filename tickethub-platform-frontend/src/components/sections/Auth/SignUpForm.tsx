@@ -17,16 +17,43 @@ import { assets } from "@/assets/assets";
 import { useSignUpWithEmailAndPassword, useRoles } from "@/hooks/useAuth";
 import { logger } from "@/utils/logger";
 
-const signupSchema = z.object({
-  firstName: z
-    .string()
-    .trim()
-    .min(2, "First name must be at least 2 characters"),
-  lastName: z.string().trim().min(2, "Last name must be at least 2 characters"),
-  email: z.email("Invalid email"),
-  phoneNumber: z.string().optional(),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-});
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters.")
+  .max(64)
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter.")
+  .regex(/[a-z]/, "Password must contain at least one lowercase letter.")
+  .regex(/[0-9]/, "Password must contain at least one number.");
+
+const signupSchema = z
+  .object({
+    firstName: z
+      .string()
+      .trim()
+      .min(2, "First name must be at least 2 characters"),
+    lastName: z
+      .string()
+      .trim()
+      .min(2, "Last name must be at least 2 characters"),
+    email: z.email("Invalid email"),
+    phoneNumber: z
+      .string()
+      .min(10, "Phone number must not be less than 10 words"),
+    password: passwordSchema,
+    role: z.string(),
+  })
+  .refine((data) => data.role.length > 0, {
+    message: "Please select an account type.",
+    path: ["role"],
+  });
 
 type SignupFormValues = z.infer<typeof signupSchema>;
 
@@ -35,10 +62,13 @@ export function SignUpForm() {
   const [searchParams] = useSearchParams();
   const inviteToken = searchParams.get("token");
   const { mutateAsync: signUp, isPending } = useSignUpWithEmailAndPassword();
-  const { data: rolesData } = useRoles();
+  const { data: rolesData, isLoading: isLoadingRoles } = useRoles();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const roles = Array.isArray(rolesData?.data) ? rolesData.data : [];
+  const selectableRoles = roles.filter((role) =>
+    ["organizer", "attendee"].includes(role.name),
+  );
 
   logger.info(`These are the roles ${JSON.stringify(roles)}`);
 
@@ -54,6 +84,7 @@ export function SignUpForm() {
       email: "",
       phoneNumber: "",
       password: "",
+      role: inviteToken ? "event_staff" : "",
     },
   });
 
@@ -62,10 +93,15 @@ export function SignUpForm() {
   const onSubmit = async (data: SignupFormValues) => {
     try {
       setIsSubmitting(true);
-      const eventStaffRole = roles.find(
-        (r: { name: string }) => r.name === "event_staff"
+      const roleName = inviteToken ? "event_staff" : data.role;
+      const selectedRole = roles.find(
+        (r: { name: string }) => r.name === roleName,
       );
-      const roleId = eventStaffRole?.id;
+      const roleId = selectedRole?.id;
+
+      if (!roleId) {
+        throw new Error("Please select a valid account type.");
+      }
 
       await signUp({
         ...data,
@@ -75,7 +111,7 @@ export function SignUpForm() {
       });
 
       toast.success(
-        "Account created! Check your email for the verification code."
+        "Account created! Check your email for the verification code.",
       );
       navigate(`/verify-email?email=${encodeURIComponent(data.email)}`);
     } catch (error: unknown) {
@@ -158,8 +194,46 @@ export function SignUpForm() {
                 )}
               </Field>
 
+              {!inviteToken && (
+                <Field>
+                  <FieldLabel htmlFor="role">Role</FieldLabel>
+                  <Controller
+                    name="role"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value ?? ""}
+                        disabled={isLoadingRoles}
+                      >
+                        <SelectTrigger>
+                          <SelectValue>
+                            {field.value && !isLoadingRoles
+                              ? field.value.charAt(0).toUpperCase() +
+                                field.value.slice(1)
+                              : "Select Account Type"}
+                          </SelectValue>
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          {selectableRoles.map((role) => (
+                            <SelectItem key={role.id} value={role.name}>
+                              {role.name.charAt(0).toUpperCase() +
+                                role.name.slice(1)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.role && (
+                    <FieldError>{errors.role.message}</FieldError>
+                  )}
+                </Field>
+              )}
+
               <Field>
-                <FieldLabel htmlFor="phoneNumber">Phone (optional)</FieldLabel>
+                <FieldLabel htmlFor="phoneNumber">Phone</FieldLabel>
                 <Controller
                   name="phoneNumber"
                   control={control}

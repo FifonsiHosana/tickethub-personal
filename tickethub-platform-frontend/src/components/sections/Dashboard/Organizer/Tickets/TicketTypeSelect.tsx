@@ -35,7 +35,7 @@ export function TicketTypeSelect({ value, onChange }: Props) {
                 {selected ? selected.name : "Select type"}
               </SelectValue>
             </SelectTrigger>
-            <SelectContent className="bg-white">
+            <SelectContent>
               {types.map((t) => (
                 <SelectItem key={t.id} value={t.id.toString()}>
                   {t.name}

@@ -55,7 +55,7 @@ export default function Attendees() {
       </div>
 
       {!eventId && (
-        <div className="flex flex-col bg-white rounded border border-gray-300 items-center justify-center py-32 text-center">
+        <div className="flex flex-col bg-card text-center rounded border border-border items-center justify-center py-32">
           <Calendars className="h-10 w-10 text-muted-foreground mb-3" />
           <h3 className="text-lg font-semibold">Kindly select an event</h3>
         </div>

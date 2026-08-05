@@ -22,7 +22,7 @@ export default function AdminSettingsSection() {
   const [values, setValues] = useState<Record<string, string>>({});
 
   if (isLoading)
-    return <div className="h-32 bg-neutral-100 animate-pulse rounded-xl" />;
+    return <div className="h-32 bg-muted animate-pulse rounded-xl" />;
 
   if (!settings?.length) {
     return (

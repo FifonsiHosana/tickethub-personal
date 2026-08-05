@@ -79,3 +79,18 @@ export function useTicketSalesBreakdown() {
     queryFn: getTicketSalesBreakdown,
   });
 }
+
+export interface RecentOrdersParams {
+  eventId?: number;
+  page?: number;
+  pageSize?: number;
+  search?: string;
+}
+
+export function useRecentOrders(params: RecentOrdersParams = {}) {
+  return useQuery({
+    queryKey: [...organizerSalesKeys.all, "recent-orders", params],
+    queryFn: () => getOrganizerSales(params),
+    placeholderData: (previousData) => previousData,
+  });
+}

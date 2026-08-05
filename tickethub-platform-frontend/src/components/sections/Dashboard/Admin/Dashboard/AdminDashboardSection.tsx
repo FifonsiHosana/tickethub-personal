@@ -19,7 +19,7 @@ export default function AdminDashboardSection() {
     return (
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="h-24 bg-neutral-100 animate-pulse rounded-xl" />
+          <div key={i} className="h-24 bg-muted animate-pulse rounded-xl" />
         ))}
       </div>
     );
@@ -38,13 +38,12 @@ export default function AdminDashboardSection() {
 
   return (
     <div className="space-y-3 p-1">
-      <h1 className="text-xl font-bold">Admin Dashboard</h1>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {cards.map((card) => {
           const Icon = card.icon;
           return (
             <Card key={card.title} className="shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between pb-2 pt-3 px-4">
+              <CardHeader className="flex flex-row items-center justify-between px-3">
                 <CardTitle className="text-xs font-medium text-muted-foreground">{card.title}</CardTitle>
                 <Icon className="h-4 w-4 text-muted-foreground" />
               </CardHeader>

@@ -21,7 +21,7 @@ export default function EventsDashboard() {
   const { data: dashboardData } = useOrganizerDashboardData();
 
   return (
-    <div className="flex-1 space-y-3 p-1 bg-neutral-50/30 min-h-screen">
+    <div className="flex-1 space-y-3 p-1 min-h-screen">
       <DashboardStatistics statistics={dashboardData?.statistics} />
 
       <EventsTable

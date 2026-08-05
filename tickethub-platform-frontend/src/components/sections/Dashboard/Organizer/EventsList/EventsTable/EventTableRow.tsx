@@ -28,12 +28,12 @@ export function EventTableRow({
 }: Props) {
   return (
     <TableRow
-      className="cursor-pointer border-gray-300 transition-colors"
+      className="cursor-pointer border-border transition-colors"
       onClick={onViewDetails}
     >
-      <TableCell className="pl-6 font-medium border-gray-300">
+      <TableCell className="pl-6 font-medium border-border">
         <div className="flex flex-col">
-          <span className="text-[#1a201c]">{event.title}</span>
+          <span>{event.title}</span>
           {event.description && (
             <span className="text-xs text-muted-foreground truncate max-w-62.5">
               {event.description}
@@ -41,35 +41,35 @@ export function EventTableRow({
           )}
         </div>
       </TableCell>
-      <TableCell className="whitespace-nowrap text-sm text-neutral-600 border-gray-300">
+      <TableCell className="whitespace-nowrap text-sm border-border">
         {format(new Date(event.dateAndTime), "MMM d, yyyy • h:mm a")}
       </TableCell>
-      <TableCell className="text-sm text-neutral-600 border-gray-300">
+      <TableCell className="text-sm border-border">
         {event.capacity.toLocaleString()}
       </TableCell>
-      <TableCell className="border-gray-300">
+      <TableCell className="border-border">
         <Badge
           variant="secondary"
           className={`border ${
-            statusColor[event.status] ?? "bg-gray-500/15 text-gray-700"
+            statusColor[event.status] ?? "bg-gray-500/15 text-gray-700 dark:bg-gray-500/10 dark:text-gray-400"
           }`}
         >
           {event.status}
         </Badge>
       </TableCell>
-      <TableCell className="border-gray-300">
+      <TableCell className="border-border">
         <Badge
           variant="secondary"
           className={`border-0 ${
             approvalColor[event.approvalStatus] ??
-            "bg-gray-500/15 text-gray-700"
+            "bg-gray-500/15 text-gray-700 dark:bg-gray-500/10 dark:text-gray-400"
           }`}
         >
           {event.approvalStatus}
         </Badge>
       </TableCell>
       <TableCell
-        className="text-right pr-6 border-gray-300"
+        className="text-right pr-6 border-border"
         onClick={(e) => e.stopPropagation()}
       >
         <DropdownMenu>
@@ -77,14 +77,14 @@ export function EventTableRow({
             render={
               <Button
                 variant="ghost"
-                className="h-8 w-8 p-0 hover:bg-neutral-100"
+                className="h-8 w-8 p-0 hover:bg-muted"
               >
                 <span className="sr-only">Open menu</span>
-                <MoreHorizontalIcon className="h-4 w-4 text-neutral-500" />
+                <MoreHorizontalIcon className="h-4 w-4 text-muted-foreground" />
               </Button>
             }
           />
-          <DropdownMenuContent className="bg-white" align="end">
+          <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={onViewDetails}>
               <EyeIcon className="h-4 w-4" /> View Details
             </DropdownMenuItem>
@@ -94,7 +94,7 @@ export function EventTableRow({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={onCancel}
-              className="text-red-600 focus:bg-red-50 focus:text-red-700"
+              className="text-red-600 focus:bg-red-500/10 focus:text-red-400 dark:focus:bg-red-500/10 dark:focus:text-red-400"
             >
               <BanIcon className="h-4 w-4" /> Cancel Event
             </DropdownMenuItem>

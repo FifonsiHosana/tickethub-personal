@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 export interface TicketBuilderFormProps {
   editingTicket: TicketFormValues | null;
@@ -34,7 +35,7 @@ export function TicketBuilderFormInner({
 
   const [name, setName] = useState(editingTicket?.name ?? "");
   const [ticketTypeId, setTicketTypeId] = useState<number | null>(
-    editingTicket?.ticketTypeId ?? null
+    editingTicket?.ticketTypeId ?? null,
   );
   const [price, setPrice] = useState(editingTicket?.price ?? 0);
   const [qty, setQty] = useState<number | undefined>(editingTicket?.totalCount);
@@ -112,7 +113,7 @@ export function TicketBuilderFormInner({
                 {selectedTicketType ? selectedTicketType.name : "Select type"}
               </SelectValue>
             </SelectTrigger>
-            <SelectContent className="bg-white">
+            <SelectContent>
               {types.map((t) => (
                 <SelectItem key={t.id} value={t.id.toString()}>
                   {t.name}
@@ -191,18 +192,24 @@ export function TicketBuilderFormInner({
       />
 
       <div className="grid grid-cols-2 gap-3">
-        <Input
-          type="datetime-local"
-          value={salesStartDate}
-          onChange={(e) => setSalesStartDate(e.target.value)}
-          placeholder="Sales start"
-        />
-        <Input
-          type="datetime-local"
-          value={salesEndDate}
-          onChange={(e) => setSalesEndDate(e.target.value)}
-          placeholder="Sales end"
-        />
+        <div className="space-y-1">
+          <Label>Sales Start</Label>
+          <Input
+            type="datetime-local"
+            value={salesStartDate}
+            onChange={(e) => setSalesStartDate(e.target.value)}
+            placeholder="Sales start"
+          />
+        </div>
+        <div className="space-y-1">
+          <Label>Sales End</Label>
+          <Input
+            type="datetime-local"
+            value={salesEndDate}
+            onChange={(e) => setSalesEndDate(e.target.value)}
+            placeholder="Sales end"
+          />
+        </div>
       </div>
 
       <Button

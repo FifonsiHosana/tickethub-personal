@@ -72,7 +72,7 @@ export function OrganizersTable({
           }}
         />
       </div>
-      <div className="rounded-md border border-gray-300 max-h-96 overflow-auto">
+      <div className="rounded-md border border-border max-h-96 overflow-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -104,8 +104,8 @@ export function OrganizersTable({
                     <Badge
                       className={`${
                         org.isVerified
-                          ? "bg-green-500/15 text-green-700 hover:bg-green-500/25"
-                          : "bg-red-500/15 text-red-700 hover:bg-red-500/25"
+                          ? "bg-green-500/15 text-green-700 hover:bg-green-500/25 dark:bg-green-500/10 dark:text-green-400 dark:hover:bg-green-500/20"
+                          : "bg-red-500/15 text-red-700 hover:bg-red-500/25 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
                       }`}
                       variant={org.isVerified ? "default" : "secondary"}
                     >
@@ -116,8 +116,8 @@ export function OrganizersTable({
                     <Badge
                       className={`${
                         org.isVerified
-                          ? "bg-green-500/15 text-green-700 hover:bg-green-500/25"
-                          : "bg-red-500/15 text-red-700 hover:bg-red-500/25"
+                          ? "bg-green-500/15 text-green-700 hover:bg-green-500/25 dark:bg-green-500/10 dark:text-green-400 dark:hover:bg-green-500/20"
+                          : "bg-red-500/15 text-red-700 hover:bg-red-500/25 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
                       }`}
                       variant={org.isActive ? "default" : "destructive"}
                     >

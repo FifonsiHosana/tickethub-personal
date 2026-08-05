@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useOrganizerDashboardData } from "@/hooks/organizers/useDashboardData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -12,17 +13,27 @@ import {
 import OverviewTabs from "./OverviewTabs";
 
 export default function DashboardOverview() {
-  const { data: dashboard, isLoading } = useOrganizerDashboardData();
+  const [upcomingPage, setUpcomingPage] = useState(1);
+  const [upcomingPageSize, setUpcomingPageSize] = useState(5);
+  const [topSellingPage, setTopSellingPage] = useState(1);
+  const [topSellingPageSize, setTopSellingPageSize] = useState(5);
+
+  const { data: dashboard, isLoading } = useOrganizerDashboardData({
+    upcomingPage,
+    upcomingPageSize,
+    topSellingPage,
+    topSellingPageSize,
+  });
 
   if (isLoading) {
     return (
       <div className="flex-1 space-y-3 p-1">
-        <div className="h-8 w-48 bg-neutral-200 animate-pulse rounded" />
+        <div className="h-8 w-48 bg-muted animate-pulse rounded" />
         <div className="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div
               key={i}
-              className="h-28 bg-neutral-100 animate-pulse rounded-xl"
+              className="h-28 bg-muted animate-pulse rounded-xl"
             />
           ))}
         </div>
@@ -76,20 +87,20 @@ export default function DashboardOverview() {
   ];
 
   return (
-    <div className="flex-1 space-y-3 p-1 bg-neutral-50/30 min-h-screen">
+    <div className="flex-1 space-y-3 p-1 min-h-screen">
       <div className="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-4">
         {metricCards.map((card, idx) => {
           const Icon = card.icon;
           return (
             <Card key={idx} className="shadow-sm">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+                <CardTitle className="text-sm font-medium">
                   {card.title}
                 </CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
+                <Icon className="h-4 w-4" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-[#1a201c]">
+                <div className="text-2xl font-bold">
                   {card.value}
                 </div>
               </CardContent>
@@ -100,8 +111,17 @@ export default function DashboardOverview() {
 
       <OverviewTabs
         upcomingEvents={dashboard?.upcomingEvents ?? []}
-        recentSales={dashboard?.recentSales ?? []}
+        upcomingPagination={dashboard?.upcomingPagination}
+        upcomingPage={upcomingPage}
+        setUpcomingPage={setUpcomingPage}
+        upcomingPageSize={upcomingPageSize}
+        setUpcomingPageSize={setUpcomingPageSize}
         topSellingEvents={dashboard?.topSellingEvents ?? []}
+        topSellingPagination={dashboard?.topSellingPagination}
+        topSellingPage={topSellingPage}
+        setTopSellingPage={setTopSellingPage}
+        topSellingPageSize={topSellingPageSize}
+        setTopSellingPageSize={setTopSellingPageSize}
       />
     </div>
   );

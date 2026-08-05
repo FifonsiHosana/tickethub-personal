@@ -56,7 +56,7 @@ export const TicketPerformanceTable = ({
                 placeholder="Search tickets..."
                 value={search}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="pl-8 h-8 text-sm bg-white"
+                className="pl-8 h-8 text-sm bg-card"
               />
             </div>
             <ExportDropdown
@@ -84,9 +84,9 @@ export const TicketPerformanceTable = ({
           </div>
         ) : (
           <>
-            <div className="rounded-xl border border-gray-300 overflow-hidden">
+            <div className="rounded-xl border border-border overflow-hidden">
               <Table>
-                <TableHeader className="bg-neutral-50/80">
+                <TableHeader className="bg-muted/50">
                   <TableRow>
                     <TableHead>Ticket Name</TableHead>
                     <TableHead>Event</TableHead>
@@ -100,18 +100,18 @@ export const TicketPerformanceTable = ({
                   {data.map((ticket) => (
                     <TableRow
                       key={ticket.ticketId}
-                      className="hover:bg-neutral-50/50 border border-gray-300"
+                      className="hover:bg-muted/50 border border-border"
                     >
-                      <TableCell className="font-medium text-[#1a201c] border-gray-300">
+                      <TableCell className="font-medium text-foreground border-border">
                         {ticket.ticketName}
                       </TableCell>
-                      <TableCell className="text-muted-foreground text-sm border-gray-300">
+                      <TableCell className="text-muted-foreground text-sm border-border">
                         {ticket.eventName}
                       </TableCell>
-                      <TableCell className="text-right font-medium border-gray-300">
+                      <TableCell className="text-right font-medium border-border">
                         {ticket.ticketsSold.toLocaleString()}
                       </TableCell>
-                      <TableCell className="text-right text-[#1a201c] font-semibold border-gray-300">
+                      <TableCell className="text-right text-foreground font-semibold border-border">
                         GH₵ {ticket.revenue.toLocaleString()}
                       </TableCell>
                     </TableRow>

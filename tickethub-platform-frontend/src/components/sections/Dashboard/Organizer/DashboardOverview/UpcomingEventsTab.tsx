@@ -1,18 +1,33 @@
 import { CalendarDaysIcon } from "lucide-react";
-import type { DashboardDataResponse } from "@/utils/services/organizers/dashboard.service";
 import { format } from "date-fns";
+import type { DashboardDataResponse } from "@/utils/services/organizers/dashboard.service";
+import type { DashboardPaginationMeta } from "@/utils/services/organizers/dashboard.service";
+import { PaginationSect } from "@/components/shared/Pagination";
 
 type Upcoming = DashboardDataResponse["upcomingEvents"];
+type Pagination = DashboardPaginationMeta;
 
 interface Props {
   events: Upcoming;
+  pagination?: Pagination;
+  page: number;
+  setPage: (page: number) => void;
+  pageSize: number;
+  setPageSize: (size: number) => void;
 }
 
-export default function UpcomingEventsTab({ events }: Props) {
+export default function UpcomingEventsTab({
+  events,
+  pagination,
+  page,
+  setPage,
+  pageSize,
+  setPageSize,
+}: Props) {
   if (!events.length) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <CalendarDaysIcon className="h-10 w-10 text-neutral-300 mb-3" />
+        <CalendarDaysIcon className="h-10 w-10 text-muted-foreground mb-3" />
         <p className="text-muted-foreground text-sm">
           No upcoming events scheduled.
         </p>
@@ -37,16 +52,27 @@ export default function UpcomingEventsTab({ events }: Props) {
           <span
             className={`text-xs font-medium px-2 py-1 rounded ${
               event.status === "Published"
-                ? "bg-green-100 text-green-700"
+                ? "bg-green-500/15 text-green-700 dark:bg-green-500/10 dark:text-green-400"
                 : event.status === "Draft"
-                  ? "bg-slate-100 text-slate-700"
-                  : "bg-gray-100 text-gray-700"
+                  ? "bg-slate-500/15 text-slate-700 dark:bg-slate-500/10 dark:text-slate-400"
+                  : "bg-gray-500/15 text-gray-700 dark:bg-gray-500/10 dark:text-gray-400"
             }`}
           >
             {event.status}
           </span>
         </div>
       ))}
+
+      {pagination && (
+        <PaginationSect
+          page={page}
+          currentPage={page}
+          totalPages={pagination.totalPages}
+          setPage={setPage}
+          pageSize={pageSize}
+          onPageSizeChange={setPageSize}
+        />
+      )}
     </div>
   );
 }

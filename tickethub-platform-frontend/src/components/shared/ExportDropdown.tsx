@@ -40,7 +40,7 @@ export function ExportDropdown<T extends Record<string, unknown>>({
           </Button>
         }
       />
-      <DropdownMenuContent className="bg-white space-y-2" align="end">
+      <DropdownMenuContent className="space-y-2" align="end">
         <DropdownMenuItem
           className="gap-2 cursor-pointer "
           onClick={() =>

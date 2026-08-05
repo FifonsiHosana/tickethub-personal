@@ -1,17 +1,32 @@
 import { TrendingUpIcon } from "lucide-react";
 import type { DashboardDataResponse } from "@/utils/services/organizers/dashboard.service";
+import type { DashboardPaginationMeta } from "@/utils/services/organizers/dashboard.service";
+import { PaginationSect } from "@/components/shared/Pagination";
 
 type TopEvents = DashboardDataResponse["topSellingEvents"];
+type Pagination = DashboardPaginationMeta;
 
 interface Props {
   events: TopEvents;
+  pagination?: Pagination;
+  page: number;
+  setPage: (page: number) => void;
+  pageSize: number;
+  setPageSize: (size: number) => void;
 }
 
-export default function TopSellingEventsTab({ events }: Props) {
+export default function TopSellingEventsTab({
+  events,
+  pagination,
+  page,
+  setPage,
+  pageSize,
+  setPageSize,
+}: Props) {
   if (!events.length) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <TrendingUpIcon className="h-10 w-10 text-neutral-300 mb-3" />
+        <TrendingUpIcon className="h-10 w-10 text-muted-foreground mb-3" />
         <p className="text-muted-foreground text-sm">
           No top selling events yet.
         </p>
@@ -32,6 +47,17 @@ export default function TopSellingEventsTab({ events }: Props) {
           </span>
         </div>
       ))}
+
+      {pagination && (
+        <PaginationSect
+          page={page}
+          currentPage={page}
+          totalPages={pagination.totalPages}
+          setPage={setPage}
+          pageSize={pageSize}
+          onPageSizeChange={setPageSize}
+        />
+      )}
     </div>
   );
 }

@@ -12,7 +12,7 @@ import {
   BanknoteIcon,
 } from "lucide-react";
 
-export type Role = "organizer" | "event_staff" | "admin";
+export type Role = "organizer" | "event_staff" | "admin" | "attendee";
 
 export type NavItem = {
   title: string;
@@ -115,4 +115,5 @@ export const navByRole: Record<Role, NavItem[]> = {
   organizer: organizerNav,
   event_staff: eventStaffNav,
   admin: platformAdminNav,
+  attendee: [],
 };

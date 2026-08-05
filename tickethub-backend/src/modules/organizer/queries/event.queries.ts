@@ -37,8 +37,13 @@ export async function getEventCountsByStatus(organizerId: number) {
 /**
  * Upcoming events sorted by date
  */
-export async function getUpcomingEvents(organizerId: number, limit = 5) {
-  return db
+export async function getUpcomingEvents(
+  organizerId: number,
+  page = 1,
+  pageSize = 5,
+) {
+  const offset = (page - 1) * pageSize;
+  const data = await db
     .select()
     .from(events)
     .where(
@@ -48,14 +53,42 @@ export async function getUpcomingEvents(organizerId: number, limit = 5) {
       ),
     )
     .orderBy(events.dateAndTime)
-    .limit(limit);
+    .limit(pageSize)
+    .offset(offset);
+
+  const [totalResult] = await db
+    .select({ total: count() })
+    .from(events)
+    .where(
+      and(
+        eq(events.organizerId, organizerId),
+        gte(events.dateAndTime, new Date().toISOString()),
+      ),
+    );
+
+  const total = Number(totalResult?.total ?? 0);
+
+  return {
+    data,
+    pagination: {
+      page,
+      pageSize,
+      total,
+      totalPages: Math.ceil(total / pageSize),
+    },
+  };
 }
 
 /**
  * Top selling events by ticket count
  */
-export async function getTopSellingEvents(organizerId: number, limit = 5) {
-  return db
+export async function getTopSellingEvents(
+  organizerId: number,
+  page = 1,
+  pageSize = 5,
+) {
+  const offset = (page - 1) * pageSize;
+  const data = await db
     .select({
       eventId: events.id,
       eventTitle: events.title,
@@ -77,7 +110,38 @@ export async function getTopSellingEvents(organizerId: number, limit = 5) {
     )
     .groupBy(events.id)
     .orderBy(desc(sql`COUNT(${ticketOrderItems.id})`))
-    .limit(limit);
+    .limit(pageSize)
+    .offset(offset);
+
+  const [totalResult] = await db
+    .select({ total: count() })
+    .from(events)
+    .innerJoin(tickets, eq(tickets.eventId, events.id))
+    .innerJoin(eventTickets, eq(eventTickets.ticketId, tickets.id))
+    .innerJoin(
+      ticketOrderItems,
+      eq(ticketOrderItems.eventTicketId, eventTickets.id),
+    )
+    .innerJoin(ticketOrders, eq(ticketOrderItems.orderId, ticketOrders.id))
+    .where(
+      and(
+        eq(events.organizerId, organizerId),
+        eq(ticketOrders.status, 'Completed'),
+      ),
+    )
+    .groupBy(events.id);
+
+  const total = Number(totalResult?.total ?? 0);
+
+  return {
+    data,
+    pagination: {
+      page,
+      pageSize,
+      total,
+      totalPages: Math.ceil(total / pageSize),
+    },
+  };
 }
 
 export interface EventPerformanceParams {

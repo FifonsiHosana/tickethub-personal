@@ -6,6 +6,7 @@ import {
   ticketOrderItems,
   ticketOrderUserDetails,
   tickets,
+  ticketTypes,
   eventTickets,
   events,
 } from '@/db/schema/index.js';
@@ -96,53 +97,62 @@ export async function getOrganizerSales(options: GetOrganizerSalesOptions) {
 
       eventId: events.id,
 
-      eventTitle: events.title,
+       eventTitle: events.title,
 
-      ticketSummary: sql<string>`GROUP_CONCAT(DISTINCT ${tickets.name} SEPARATOR ', ')`,
+       ticketType: sql<string>`GROUP_CONCAT(DISTINCT ${ticketTypes.name} SEPARATOR ', ')`,
 
-      quantity: ticketOrders.quantity,
+       ticketSummary: sql<string>`GROUP_CONCAT(DISTINCT ${tickets.name} SEPARATOR ', ')`,
 
-      amount: payments.amount,
+       quantity: sql<number>`MAX(${ticketOrders.quantity})`,
 
-      currency: payments.currency,
+       amount: payments.amount,
 
-      provider: payments.provider,
+       currency: payments.currency,
 
-      paymentStatus: payments.status,
+       provider: payments.provider,
 
-      reference: payments.reference,
+       paymentStatus: payments.status,
 
-      purchasedAt: payments.paidAt,
-    })
+       reference: payments.reference,
 
-    .from(payments)
+       purchasedAt: payments.paidAt,
 
-    .innerJoin(ticketOrders, eq(payments.orderId, ticketOrders.id))
+       totalTickets: sql<number>`COUNT(${ticketOrderItems.id})`,
 
-    .innerJoin(
-      ticketOrderUserDetails,
-      eq(ticketOrders.id, ticketOrderUserDetails.orderId),
-    )
+       checkedInCount:
+         sql<number>`COUNT(CASE WHEN ${ticketOrderItems.checkedIn} = 1 THEN 1 END)`,
+     })
 
-    .innerJoin(ticketOrderItems, eq(ticketOrders.id, ticketOrderItems.orderId))
+     .from(payments)
 
-    .innerJoin(
-      eventTickets,
-      eq(ticketOrderItems.eventTicketId, eventTickets.id),
-    )
-    .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
+     .innerJoin(ticketOrders, eq(payments.orderId, ticketOrders.id))
 
-    .innerJoin(events, eq(tickets.eventId, events.id))
+     .innerJoin(
+       ticketOrderUserDetails,
+       eq(ticketOrders.id, ticketOrderUserDetails.orderId),
+     )
 
-    .where(and(...filters))
+     .innerJoin(ticketOrderItems, eq(ticketOrders.id, ticketOrderItems.orderId))
 
-    .groupBy(ticketOrders.id, payments.id, ticketOrderUserDetails.id, events.id)
+     .innerJoin(
+       eventTickets,
+       eq(ticketOrderItems.eventTicketId, eventTickets.id),
+     )
+     .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
 
-    .orderBy(desc(payments.paidAt))
+     .innerJoin(ticketTypes, eq(eventTickets.ticketTypeId, ticketTypes.id))
 
-    .limit(pageSize)
+     .innerJoin(events, eq(tickets.eventId, events.id))
 
-    .offset(offset);
+     .where(and(...filters))
+
+     .groupBy(ticketOrders.id, payments.id, ticketOrderUserDetails.id, events.id)
+
+     .orderBy(desc(payments.paidAt))
+
+     .limit(pageSize)
+
+     .offset(offset);
 
   const total = await db
     .select({

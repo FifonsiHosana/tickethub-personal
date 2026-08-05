@@ -23,6 +23,7 @@ export type GetOrganizerSalesResponse = {
     phoneNumber: string;
     eventId: number;
     eventTitle: string;
+    ticketType: string;
     ticketSummary: string;
     quantity: number;
     amount: string;
@@ -31,6 +32,8 @@ export type GetOrganizerSalesResponse = {
     paymentStatus: "Completed" | "Failed";
     reference: string;
     purchasedAt: string | null;
+    totalTickets: number;
+    checkedInCount: number;
   }[];
   pagination: {
     page: number;

@@ -79,6 +79,7 @@ export const EventsLists: React.FC = () => {
 
         {/* Pagination */}
         <PaginationSect
+          
           currentPage={currentPage}
           totalPages={totalPages}
           page={page}

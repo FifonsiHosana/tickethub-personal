@@ -42,7 +42,7 @@ export default function TicketTypesTable({
 }: Props) {
   if (isLoading) {
     return (
-      <div className="w-full h-64 flex items-center justify-center border rounded-xl bg-white">
+      <div className="w-full h-64 flex items-center justify-center border rounded-xl bg-card">
         <Loader2Icon className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
@@ -50,8 +50,8 @@ export default function TicketTypesTable({
 
   if (!tickets?.length) {
     return (
-      <div className="w-full h-64 flex flex-col items-center justify-center border rounded-xl bg-white text-center">
-        <TicketIcon className="h-10 w-10 text-neutral-300 mb-3" />
+      <div className="w-full h-64 flex flex-col items-center justify-center border rounded-xl bg-card text-center">
+        <TicketIcon className="h-10 w-10 text-muted-foreground mb-3" />
         <h3 className="text-lg font-semibold text-foreground">No tickets yet</h3>
         <p className="text-muted-foreground text-sm mt-1">
           Add tickets for this event to start selling.
@@ -61,9 +61,9 @@ export default function TicketTypesTable({
   }
 
   return (
-    <div className="rounded-xl border border-gray-300 overflow-hidden bg-white">
+    <div className="rounded-xl border border-border overflow-hidden bg-card">
       <Table>
-        <TableHeader className="bg-neutral-50">
+        <TableHeader className="bg-muted/50">
           <TableRow>
             <TableHead>Ticket</TableHead>
             <TableHead>Type</TableHead>
@@ -78,7 +78,7 @@ export default function TicketTypesTable({
             <TableRow key={t.id}>
               <TableCell>
                 <div className="flex flex-col">
-                  <span className="font-medium text-sm text-[#1a201c]">
+                  <span className="font-medium text-sm text-foreground">
                     {t.name}
                   </span>
                   {t.benefits && (
@@ -91,7 +91,7 @@ export default function TicketTypesTable({
               <TableCell className="text-sm">
                 <Badge
                   variant="secondary"
-                  className="bg-neutral-100 text-neutral-600"
+                  className="bg-muted text-muted-foreground dark:bg-neutral-500/10 dark:text-neutral-400"
                 >
                   {t.ticketType ?? "—"}
                 </Badge>
@@ -99,7 +99,7 @@ export default function TicketTypesTable({
               <TableCell className="text-sm font-medium">
                 GH₵ {Number(t.price).toFixed(2)}
               </TableCell>
-              <TableCell className="text-sm text-neutral-600">
+              <TableCell className="text-sm text-muted-foreground">
                 {t.remaining.toLocaleString()} / {t.totalCount.toLocaleString()}
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">
@@ -111,21 +111,21 @@ export default function TicketTypesTable({
                     render={
                       <Button
                         variant="ghost"
-                        className="h-8 w-8 p-0 hover:bg-neutral-100"
+                        className="h-8 w-8 p-0 hover:bg-muted"
                       >
                         <span className="sr-only">Open menu</span>
-                        <MoreHorizontalIcon className="h-4 w-4 text-neutral-500" />
+                        <MoreHorizontalIcon className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     }
                   />
-                  <DropdownMenuContent className="bg-white" align="end">
+                  <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => onEdit(t)}>
                       Edit Ticket
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={() => onDelete(t)}
-                      className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                      className="text-red-600 focus:bg-red-500/10 focus:text-red-400 dark:focus:bg-red-500/10 dark:focus:text-red-400"
                     >
                       Delete Ticket
                     </DropdownMenuItem>

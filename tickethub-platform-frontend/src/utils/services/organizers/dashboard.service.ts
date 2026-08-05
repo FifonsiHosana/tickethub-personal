@@ -1,5 +1,12 @@
 import { axiosInstance } from "@/utils/api/axiosInstance";
 
+export type DashboardPaginationMeta = {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+};
+
 export type DashboardDataResponse = {
   statistics: {
     totalEvents: number;
@@ -31,6 +38,7 @@ export type DashboardDataResponse = {
     createdAt: string;
     updatedAt: string;
   }[];
+  upcomingPagination: DashboardPaginationMeta;
   recentSales: {
     orderId: number;
     customerId: number | null;
@@ -42,10 +50,23 @@ export type DashboardDataResponse = {
     eventTitle: string;
     ticketsSold: number;
   }[];
+  topSellingPagination: DashboardPaginationMeta;
 };
 
-export async function getOrganizerDashboardData(): Promise<DashboardDataResponse> {
-  const response = await axiosInstance.get("organizer/dashboard");
+export interface DashboardParams {
+  upcomingPage?: number;
+  upcomingPageSize?: number;
+  topSellingPage?: number;
+  topSellingPageSize?: number;
+}
+
+export async function getOrganizerDashboardData(
+  params?: DashboardParams,
+): Promise<DashboardDataResponse> {
+  const response = await axiosInstance.get("organizer/dashboard", {
+    params,
+  });
 
   return response.data.data;
 }
+
