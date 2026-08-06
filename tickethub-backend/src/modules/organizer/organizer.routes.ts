@@ -28,6 +28,7 @@ import { setPayoutDetailsSchema } from '@/modules/admin/payouts/payouts.schema.j
 
 import organizerTicketsRoutes from './tickets/tickets.routes.js';
 import organizerSalesRoutes from './sales/sales.routes.js';
+import organizerOrdersRoutes from './orders/orders.routes.js';
 import organizerReportsRoutes from './reports/reports.routes.js';
 import organizerAnalyticsRoutes from './analytics/analytics.routes.js';
 
@@ -52,6 +53,12 @@ router.use(
   authenticate,
   authorize('organizer'),
   organizerSalesRoutes,
+);
+router.use(
+  '/orders',
+  authenticate,
+  authorize('organizer'),
+  organizerOrdersRoutes,
 );
 router.use(
   '/reports',

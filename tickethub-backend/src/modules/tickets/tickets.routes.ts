@@ -2,7 +2,7 @@ import { Router } from 'express';
 import controller from './tickets.controller.js';
 import { validate } from '@/middleware/validate.js';
 import { purchaseTicketSchema, checkInTicketSchema } from './tickets.schema.js';
-import { authenticate } from '@/middleware/auth/auth.middleware.js';
+import { authenticate, optionalAuthenticate } from '@/middleware/auth/auth.middleware.js';
 import { authorize } from '@/middleware/auth/role.middleware.js';
 
 const router = Router();
@@ -13,9 +13,14 @@ const router = Router();
 router.get('/:ticketIdentifier', controller.getTicketByIdentifier);
 
 /**
- * Customer purchases tickets
+ * Customer purchases tickets (optional auth — owner id derived from token)
  */
-router.post('/', validate(purchaseTicketSchema), controller.purchaseTickets);
+router.post(
+  '/',
+  optionalAuthenticate,
+  validate(purchaseTicketSchema),
+  controller.purchaseTickets,
+);
 
 /**
  * Staff scans/checks in ticket

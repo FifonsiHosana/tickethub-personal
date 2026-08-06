@@ -35,9 +35,16 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // A 401 only means "session expired" when the request actually sent a
+    // token. Auth-flow requests (login, signup, verify-otp, resend-otp)
+    // never attach one, so their 401s pass through to the caller's own
+    // error handling instead of redirecting.
+    const wasAuthenticated = !!error.config?.headers?.Authorization;
+
+    if (error.response?.status === 401 && wasAuthenticated) {
       // clear auth + redirect
       localStorage.removeItem("auth_token");
+      localStorage.removeItem("auth_user");
       localStorage.removeItem("user_role");
 
       toast.error("Your session has expired. Please login again");

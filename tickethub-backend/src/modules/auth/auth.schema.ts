@@ -14,7 +14,7 @@ export const registerSchema = z.object({
   email: z.email().transform((email) => email.toLowerCase()),
   password: passwordSchema,
   roleId: z.number().int().positive(),
-  phoneNumber: z.string().optional(),
+  phoneNumber: z.string(),
   inviteToken: z.string().optional(),
 });
 
@@ -43,4 +43,3 @@ export const resetPasswordSchema = z.object({
 
 export type CreateRegisterInput = z.infer<typeof registerSchema>;
 export type CreateLoginInput = z.infer<typeof loginSchema>;
-

@@ -15,7 +15,6 @@ export const purchaseTicketSchema = z.object({
     email: z.email().transform((email) => email.toLowerCase()),
     phoneNumber: z.string().min(7).max(20),
   }),
-  userId: z.number().optional(),
 });
 
 export const checkInTicketSchema = z.object({

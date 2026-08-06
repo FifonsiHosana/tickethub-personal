@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrganizerEvents } from "@/hooks/organizers/useOrganizerEvents";
-import { useRecentOrders } from "@/hooks/organizers/useOrganizerSales";
+import { useOrganizerOrders } from "@/hooks/organizers/useOrganizerOrders";
 import { PaginationSect } from "@/components/shared/Pagination";
 import RecentOrdersTable from "./RecentOrdersTable";
 
@@ -22,14 +22,14 @@ export default function RecentOrdersTab() {
   });
   const events = eventsResponse?.data ?? [];
 
-  const { data: sales, isError } = useRecentOrders({
+  const { data: ordersData, isError } = useOrganizerOrders({
     eventId: eventId === "all" ? undefined : Number(eventId),
     page,
     pageSize,
   });
 
-  const orders = sales?.data ?? [];
-  const pagination = sales?.pagination;
+  const orders = ordersData?.data ?? [];
+  const pagination = ordersData?.pagination;
 
   const selectedEventTitle =
     eventId === "all"
@@ -48,7 +48,7 @@ export default function RecentOrdersTab() {
           </p>
         </div>
       {eventsLoading ? (
-        <Skeleton className="h-9 w-[180px]" />
+        <Skeleton className="h-9 w-45" />
       ) : (
         <Select
           value={String(eventId)}
@@ -57,7 +57,7 @@ export default function RecentOrdersTab() {
             setPage(1);
           }}
         >
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-45">
             <SelectValue>{selectedEventTitle}</SelectValue>
           </SelectTrigger>
           <SelectContent>

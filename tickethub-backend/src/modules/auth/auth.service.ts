@@ -30,6 +30,49 @@ export class AuthService {
     return rolesResponse;
   }
 
+  /**
+   * Remove stale EMAIL_VERIFICATION OTPs for an email, then generate, persist,
+   * and email a fresh one.
+   */
+  private async generateAndSendVerificationOtp(email: string, userId: number) {
+    await db
+      .delete(otpVerifications)
+      .where(
+        and(
+          eq(otpVerifications.email, email),
+          eq(otpVerifications.purpose, 'EMAIL_VERIFICATION'),
+        ),
+      );
+
+    const otp = generateOTP();
+
+    const otpHash = await hashPassword(otp);
+
+    await db.insert(otpVerifications).values({
+      email,
+      otpHash,
+      purpose: 'EMAIL_VERIFICATION',
+      expiresAt: getOtpExpiry(),
+      userId,
+      isUsed: false,
+    });
+
+    await sendMail(
+      email,
+      'Verify your TicketHub account',
+      `Your verification code is ${otp}`,
+      `
+        <h2>Welcome to TicketHub</h2>
+
+        <p>Your verification code is</p>
+
+        <h1>${otp}</h1>
+
+        <p>This code expires in 10 minutes.</p>
+      `,
+    );
+  }
+
   async register(payload: CreateRegisterInput) {
     const [existingUser] = await db
       .select()
@@ -37,7 +80,8 @@ export class AuthService {
       .where(eq(users.email, payload.email))
       .limit(1);
 
-    if (existingUser) {
+    // A verified account owns this email — block re-registration.
+    if (existingUser?.isVerified) {
       throw new AppError(400, 'An account with this email already exists.');
     }
 
@@ -71,6 +115,30 @@ export class AuthService {
     }
 
     const passwordHash = await hashPassword(payload.password);
+
+    // A pending (unverified) account exists — refresh its profile + send a new
+    // OTP instead of erroring out. Role/invite stays as originally created.
+    if (existingUser) {
+      await db
+        .update(users)
+        .set({
+          firstName: payload.firstName,
+          lastName: payload.lastName,
+          phoneNumber: payload.phoneNumber,
+          passwordHash,
+          updatedAt: now(),
+        })
+        .where(eq(users.id, existingUser.id));
+
+      await this.generateAndSendVerificationOtp(payload.email, existingUser.id);
+
+      return {
+        success: true,
+        alreadyPending: true,
+        message:
+          'An account is already pending verification. A new code has been sent to your email.',
+      };
+    }
 
     const createdUser = await db.transaction(async (tx) => {
       const [user] = await tx
@@ -113,41 +181,7 @@ export class AuthService {
       throw new AppError(500, 'Failed to create account.');
     }
 
-    await db
-      .delete(otpVerifications)
-      .where(
-        and(
-          eq(otpVerifications.email, payload.email),
-          eq(otpVerifications.purpose, 'EMAIL_VERIFICATION'),
-        ),
-      );
-
-    const otp = generateOTP();
-
-    const otpHash = await hashPassword(otp);
-
-    await db.insert(otpVerifications).values({
-      email: payload.email,
-      otpHash,
-      purpose: 'EMAIL_VERIFICATION',
-      expiresAt: getOtpExpiry(),
-      userId: createdUser.id,
-    });
-
-    await sendMail(
-      payload.email,
-      'Verify your TicketHub account',
-      `Your verification code is ${otp}`,
-      `
-            <h2>Welcome to TicketHub</h2>
-
-            <p>Your verification code is</p>
-
-            <h1>${otp}</h1>
-
-            <p>This code expires in 10 minutes.</p>
-        `,
-    );
+    await this.generateAndSendVerificationOtp(payload.email, createdUser.id);
 
     return {
       success: true,
@@ -171,7 +205,7 @@ export class AuthService {
     }
 
     if (!user.isVerified) {
-      throw new AppError(401, 'Please verify your email.');
+      throw new AppError(403, 'Please verify your email.');
     }
 
     if (!user.isActive) {
@@ -193,6 +227,12 @@ export class AuthService {
       .from(userRoles)
       .innerJoin(roles, eq(userRoles.roleId, roles.id))
       .where(eq(userRoles.userId, user.id));
+
+    // Link any guest orders placed with this email to the attendee account
+    // (idempotent — only touches orders with no owner yet)
+    if (userRole?.Roles.name === 'attendee') {
+      await linkOrdersByEmail(db, user.id, user.email);
+    }
 
     const token = generateAccessToken({
       id: user.id,
@@ -242,7 +282,7 @@ export class AuthService {
         .update(users)
         .set({
           isVerified: true,
-          updatedAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
+          updatedAt: now(),
         })
         .where(eq(users.id, verification.userId));
     }
@@ -254,7 +294,7 @@ export class AuthService {
       .update(otpVerifications)
       .set({
         isUsed: true,
-        updatedAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
+        updatedAt: now(),
       })
       .where(eq(otpVerifications.id, verification.id));
 
@@ -285,60 +325,9 @@ export class AuthService {
     }
 
     /**
-     * Remove old verification OTPs
+     * Generate a fresh OTP and email it
      */
-    await db
-      .delete(otpVerifications)
-      .where(
-        and(
-          eq(otpVerifications.email, email),
-          eq(otpVerifications.purpose, 'EMAIL_VERIFICATION'),
-        ),
-      );
-
-    /**
-     * Generate new OTP
-     */
-    const otp = generateOTP();
-
-    /**
-     * Hash OTP before storing
-     */
-    const otpHash = await hashPassword(otp);
-
-    /**
-     * Save new OTP
-     */
-    await db.insert(otpVerifications).values({
-      userId: user.id,
-      email,
-      otpHash,
-      purpose: 'EMAIL_VERIFICATION',
-      expiresAt: getOtpExpiry(),
-      isUsed: false,
-    });
-
-    /**
-     * Send email
-     */
-    await sendMail(
-      email,
-      'Your TicketHub verification code',
-      `Your verification code is ${otp}`,
-      `
-      <div>
-        <h2>TicketHub Email Verification</h2>
-
-        <p>Your new verification code is:</p>
-
-        <h1>${otp}</h1>
-
-        <p>
-          This code expires in 10 minutes.
-        </p>
-      </div>
-    `,
-    );
+    await this.generateAndSendVerificationOtp(email, user.id);
 
     return {
       message: 'Verification code sent successfully.',

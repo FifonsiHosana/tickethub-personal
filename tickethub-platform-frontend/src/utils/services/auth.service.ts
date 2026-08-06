@@ -10,6 +10,12 @@ export type AuthRegisterPayload = {
   inviteToken?: string;
 };
 
+export type AuthRegisterResponse = {
+  success: boolean;
+  alreadyPending?: boolean;
+  message: string;
+};
+
 export type AuthLoginPayload = {
   email: string;
   password: string;
@@ -32,7 +38,10 @@ export const signInWithEmailAndPassword = async (payload: AuthLoginPayload) => {
 export const signUpWithEmailAndPassword = async (
   payload: AuthRegisterPayload,
 ) => {
-  const response = await axiosInstance.post("/auth/register", payload);
+  const response = await axiosInstance.post<AuthRegisterResponse>(
+    "/auth/register",
+    payload,
+  );
   return response;
 };
 

@@ -5,10 +5,10 @@ import {
   FieldGroup,
   FieldError,
   FieldLabel,
-  FieldSeparator,
+  // FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { FaApple, FaGoogle, FaMeta } from "react-icons/fa6";
+// import { FaApple, FaGoogle, FaMeta } from "react-icons/fa6";
 import { assets } from "@/assets/assets";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,7 +21,7 @@ import { Link } from "react-router";
 
 const loginSchema = z.object({
   email: z.email().nonempty(),
-  password: z.string().nonempty({ error: "Field Cannot be empty"}),
+  password: z.string().nonempty({ error: "Field Cannot be empty" }),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -53,7 +53,8 @@ export function LoginForm() {
       toast.success("Signed in successfully");
     } catch (error) {
       console.log(error);
-      toast.error("Something went wrong");
+      const message = error instanceof Error ? error.message : "Log in failed";
+      toast.error(message);
     }
   };
 
@@ -127,7 +128,7 @@ export function LoginForm() {
                 </Button>
               </Field>
 
-              <FieldSeparator className="*:data-[slot=field-separator-content]:bg-background text-xs text-muted-foreground">
+              {/* <FieldSeparator className="*:data-[slot=field-separator-content]:bg-background text-xs text-muted-foreground">
                 Or continue with
               </FieldSeparator>
 
@@ -144,7 +145,7 @@ export function LoginForm() {
                   <FaMeta className="h-5 w-5" />
                   <span className="sr-only">Login with Meta</span>
                 </Button>
-              </Field>
+              </Field> */}
 
               <FieldDescription className="mt-4 text-center text-sm">
                 Don&apos;t have an account?{" "}

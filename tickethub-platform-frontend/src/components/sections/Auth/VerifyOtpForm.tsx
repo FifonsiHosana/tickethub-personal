@@ -62,13 +62,19 @@ export function VerifyOtpForm() {
 
   return (
     <div className="min-h-screen w-full  lg:grid lg:grid-cols-2">
-      <div className="flex flex-col items-center justify-center p-8 sm:p-12">
-        <img src={assets.TicketHubLogo} width={72} height={72} alt="TicketHub Logo" />
+      <div className="flex flex-col items-center justify-center h-screen lg:h-full p-8 sm:p-12">
+        <img
+          src={assets.TicketHubLogo}
+          width={72}
+          height={72}
+          alt="TicketHub Logo"
+        />
         <div className="mx-auto flex w-full max-w-sm flex-col items-center gap-6 mt-2">
           <div className="text-center">
             <h1 className="text-3xl font-bold">Verify your email</h1>
             <p className="text-muted-foreground text-sm mt-2">
-              Enter the 6-digit code sent to<br />
+              Enter the 6-digit code sent to
+              <br />
               <span className="font-medium text-foreground">{email}</span>
             </p>
           </div>
@@ -79,7 +85,9 @@ export function VerifyOtpForm() {
               {digits.map((d, i) => (
                 <input
                   key={i}
-                  ref={(el) => { inputRefs.current[i] = el; }}
+                  ref={(el) => {
+                    inputRefs.current[i] = el;
+                  }}
                   type="text"
                   inputMode="numeric"
                   maxLength={1}
@@ -94,13 +102,22 @@ export function VerifyOtpForm() {
             {error && <FieldError>{error}</FieldError>}
           </Field>
 
-          <Button className="w-full" onClick={handleSubmit} disabled={isVerifying}>
+          <Button
+            className="w-full"
+            onClick={handleSubmit}
+            disabled={isVerifying}
+          >
             {isVerifying ? "Verifying..." : "Verify"}
           </Button>
 
           <p className="text-sm text-muted-foreground">
             Didn&apos;t receive the code?{" "}
-            <button type="button" className="underline underline-offset-4 hover:text-primary font-medium" onClick={handleResend} disabled={isResending}>
+            <button
+              type="button"
+              className="underline underline-offset-4 hover:text-primary font-medium"
+              onClick={handleResend}
+              disabled={isResending}
+            >
               {isResending ? "Sending..." : "Resend"}
             </button>
           </p>

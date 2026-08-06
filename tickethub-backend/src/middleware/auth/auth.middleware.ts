@@ -43,3 +43,38 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
     });
   }
 }
+
+/**
+ * Like `authenticate`, but never rejects.
+ *
+ * Sets `req.user` when a valid Bearer token is present, and continues as a
+ * guest (no `req.user`) when the header is missing or the token is invalid.
+ * Used on public routes that want to optionally attribute requests to a
+ * signed-in user without requiring auth (e.g. ticket purchases).
+ */
+export function optionalAuthenticate(
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+) {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (authHeader) {
+      const [bearer, token] = authHeader.split(' ');
+
+      if (bearer === 'Bearer' && token) {
+        const decoded = jwt.verify(token, config.auth.jwt_secret) as JwtPayload;
+
+        req.user = {
+          id: decoded.id,
+          role: decoded.role,
+        };
+      }
+    }
+  } catch (error) {
+    // Invalid or expired token — treat as guest
+  }
+
+  next();
+}

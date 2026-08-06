@@ -35,7 +35,8 @@ import AdminAnalytics from "@/pages/Dashboard/Admin/AdminAnalytics";
 import AdminPayouts from "@/pages/Dashboard/Admin/AdminPayouts";
 import AdminSettings from "@/pages/Dashboard/Admin/AdminSettings";
 import TicketOrderHistory from "@/pages/Attendee/TicketOrderHistory";
-
+import SuccessPage from "@/pages/Checkout/Success";
+import CancelPage from "@/pages/Checkout/Cancel";
 
 export default function RouterLayout() {
   return (
@@ -45,7 +46,6 @@ export default function RouterLayout() {
       transition={{ duration: 0.5 }}
       className="w-full overflow-x-clip"
     >
-      
       <Router>
         <ScrollToTop />
         <Routes>
@@ -62,6 +62,8 @@ export default function RouterLayout() {
             <Route path="/events" element={<EventsListPage />} />
             <Route path="/sell-event-tickets" element={<OrganizerAd />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/success" element={<SuccessPage />} />
+            <Route path="/cancel" element={<CancelPage />} />
             <Route path="/t/:ticketIdentifier" element={<PublicTicket />} />
           </Route>
 
@@ -126,7 +128,10 @@ export default function RouterLayout() {
             <Route path="/event-staff/attendees" element={<Attendees />} />
 
             {/* Payout Settings */}
-            <Route path="/organizer/payout-settings" element={<PayoutSettingsPage />} />
+            <Route
+              path="/organizer/payout-settings"
+              element={<PayoutSettingsPage />}
+            />
 
             {/* Analytics */}
 
@@ -155,7 +160,6 @@ export default function RouterLayout() {
         </Routes>
         <Toaster position="bottom-right" />
       </Router>
-      
     </motion.div>
   );
 }

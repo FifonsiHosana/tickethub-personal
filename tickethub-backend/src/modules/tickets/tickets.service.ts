@@ -20,7 +20,7 @@ import { generateTicketIdentifier } from './tickets.utils.js';
 import config from '@/config/config.js';
 
 class TicketsService {
-  async purchaseTickets(payload: PurchaseTicketType) {
+  async purchaseTickets(payload: PurchaseTicketType, userId: number | null) {
     return await db.transaction(async (tx) => {
       const ticketIds = payload.items.map((item) => item.eventTicketId);
 
@@ -84,8 +84,6 @@ class TicketsService {
         (sum, item) => sum + item.quantity,
         0,
       );
-
-      const userId = payload.userId ? payload.userId : null;
 
       const [order] = await tx
         .insert(ticketOrders)

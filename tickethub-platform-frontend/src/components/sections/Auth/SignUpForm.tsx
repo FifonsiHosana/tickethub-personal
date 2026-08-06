@@ -46,9 +46,10 @@ const signupSchema = z
     email: z.email("Invalid email"),
     phoneNumber: z
       .string()
-      .min(10, "Phone number must not be less than 10 words"),
+      .min(10, "Phone number must not be less than 10 digits")
+      .regex(/^\+?[0-9]+$/, "Invalid phone number"),
     password: passwordSchema,
-    role: z.string(),
+    role: z.string("Please select an account type."),
   })
   .refine((data) => data.role.length > 0, {
     message: "Please select an account type.",
@@ -103,16 +104,21 @@ export function SignUpForm() {
         throw new Error("Please select a valid account type.");
       }
 
-      await signUp({
+      const response = await signUp({
         ...data,
-        phoneNumber: data.phoneNumber || undefined,
         roleId,
         inviteToken: inviteToken || undefined,
       });
 
-      toast.success(
-        "Account created! Check your email for the verification code.",
-      );
+      if (response?.data?.alreadyPending) {
+        toast.success(
+          "An account is already pending verification. A new code has been sent to your email.",
+        );
+      } else {
+        toast.success(
+          "Account created! Check your email for the verification code.",
+        );
+      }
       navigate(`/verify-email?email=${encodeURIComponent(data.email)}`);
     } catch (error: unknown) {
       const message =
@@ -146,7 +152,7 @@ export function SignUpForm() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <Field>
                   <FieldLabel htmlFor="firstName">First Name</FieldLabel>
                   <Controller
@@ -241,11 +247,14 @@ export function SignUpForm() {
                     <Input
                       id="phoneNumber"
                       type="tel"
-                      placeholder="+233 XX XXX XXXX"
+                      placeholder="020 XXX XXXX"
                       {...field}
                     />
                   )}
                 />
+                {errors.phoneNumber && (
+                  <FieldError>{errors.phoneNumber.message}</FieldError>
+                )}
               </Field>
 
               <Field>

@@ -8,10 +8,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { GetOrganizerSalesResponse } from "@/utils/services/organizers/sales.service";
+import type { OrganizerOrder } from "@/utils/services/organizers/orders.service";
 import { cn } from "@/lib/utils";
 
-type Order = GetOrganizerSalesResponse["data"][number];
+type Order = OrganizerOrder;
 
 interface Props {
   orders: Order[];
@@ -30,6 +30,13 @@ function getCheckInClass(checkedIn: number, total: number) {
   return "bg-slate-500/15 text-slate-700 dark:bg-slate-500/10 dark:text-slate-400";
 }
 
+function getOrderStatusClass(status: Order["status"]) {
+  if (status === "Completed") {
+    return "bg-green-500/15 text-green-700 dark:bg-green-500/10 dark:text-green-400";
+  }
+  return "bg-amber-500/15 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400";
+}
+
 export default function RecentOrdersTable({ orders }: Props) {
   if (!orders?.length) {
     return (
@@ -40,7 +47,7 @@ export default function RecentOrdersTable({ orders }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-border overflow-hidden bg-card">
+    <div className="rounded-xl border border-border overflow-x-auto bg-card">
       <Table>
         <TableHeader className="bg-muted/50">
           <TableRow className="border-b border-border">
@@ -49,6 +56,7 @@ export default function RecentOrdersTable({ orders }: Props) {
             <TableHead>Ticket</TableHead>
             <TableHead>Event Name</TableHead>
             <TableHead>Purchase Date</TableHead>
+            <TableHead>Order Status</TableHead>
             <TableHead>Check-in Status</TableHead>
             <TableHead className="text-right">Amount</TableHead>
           </TableRow>
@@ -103,6 +111,17 @@ export default function RecentOrdersTable({ orders }: Props) {
                     variant="secondary"
                     className={cn(
                       "border",
+                      getOrderStatusClass(order.status),
+                    )}
+                  >
+                    {order.status}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    variant="secondary"
+                    className={cn(
+                      "border",
                       getCheckInClass(order.checkedInCount, order.totalTickets),
                     )}
                   >
@@ -110,7 +129,9 @@ export default function RecentOrdersTable({ orders }: Props) {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right font-medium text-foreground">
-                  {order.currency} {Number(order.amount).toLocaleString()}
+                  {order.currency
+                    ? `${order.currency} ${Number(order.amount).toLocaleString()}`
+                    : Number(order.amount).toLocaleString()}
                 </TableCell>
               </TableRow>
             );

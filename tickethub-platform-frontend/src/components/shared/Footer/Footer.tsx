@@ -2,8 +2,15 @@ import { assets } from "@/assets/assets";
 import { navLinks } from "@/misc/navLinks";
 import { contactData, socialLinks } from "@/misc/footerData";
 import { NavLink } from "react-router";
+import { useAuthStorage } from "@/hooks/useAuthStorage";
+import type { Role } from "@/misc/dashboardData";
 
 export default function Footer() {
+  const { role } = useAuthStorage();
+
+  const visibleLinks = navLinks.filter(
+    (link) => !link.roles || (role && link.roles.includes(role as Role)),
+  );
   return (
     <footer className="bg-foreground w-full py-20">
       <div className="mx-auto container px-6 lg:px-12">
@@ -30,11 +37,11 @@ export default function Footer() {
               <h2 className="text-white/50 font-sans font-medium text-xs uppercase tracking-widest mb-2">
                 Explore
               </h2>
-              {navLinks.map((link) => (
+              {visibleLinks.map((link) => (
                 <NavLink
                   key={link.name}
                   to={link.path}
-                  className="text-white hover:text-white/70 transition-colors text-sm md:text-base font-medium"
+                  className="text-white hover:text-primary transition-colors text-sm md:text-base font-medium"
                 >
                   {link.name}
                 </NavLink>

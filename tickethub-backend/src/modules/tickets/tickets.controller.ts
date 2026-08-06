@@ -5,7 +5,10 @@ import ticketsService from './tickets.service.js';
 class TicketsController {
   async purchaseTickets(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await ticketsService.purchaseTickets(req.body);
+      const result = await ticketsService.purchaseTickets(
+        req.body,
+        req.user?.id ?? null,
+      );
 
       return res.status(201).json({
         success: true,

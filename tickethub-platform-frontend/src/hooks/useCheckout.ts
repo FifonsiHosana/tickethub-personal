@@ -47,7 +47,6 @@ export function useCheckout({
       toast.success("Order created successfully.");
       clearCart();
 
-      
       const payment = await initiatePaymentForPurchaseOrder({
         email: payload.attendee.email,
         orderId: response.orderId,
@@ -63,11 +62,12 @@ export function useCheckout({
         onSuccess: (transaction) => {
           console.log(transaction);
           toast.success("Payment successful.");
-          navigate("/");
+          navigate(`/success?reference=${transaction.reference}`);
           clearCart();
         },
         onCancel: () => {
           toast.error("Payment cancelled.");
+          navigate("/cancel");
         },
       });
     } catch (error) {
@@ -76,7 +76,7 @@ export function useCheckout({
       toast.error(
         error instanceof Error
           ? error.message
-          : "Unable to create ticket order."
+          : "Unable to create ticket order.",
       );
     }
   };
