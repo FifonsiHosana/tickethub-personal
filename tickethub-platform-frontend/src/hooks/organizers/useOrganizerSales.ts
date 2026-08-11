@@ -27,11 +27,12 @@ export const organizerSalesKeys = {
     [...organizerSalesKeys.all, "event", eventId] as const,
 
   // Dashboards & Summaries
-  summary: () => [...organizerSalesKeys.all, "summary"] as const,
+  summary: (from?: string, to?: string) =>
+    [...organizerSalesKeys.all, "summary", { from, to }] as const,
   revenue: (from: string, to: string) =>
     [...organizerSalesKeys.all, "revenue", { from, to }] as const,
-  ticketBreakdown: () =>
-    [...organizerSalesKeys.all, "ticket-breakdown"] as const,
+  ticketBreakdown: (from?: string, to?: string) =>
+    [...organizerSalesKeys.all, "ticket-breakdown", { from, to }] as const,
 };
 
 export function useOrganizerSales(params: GetOrganizerSalesParams = {}) {
@@ -58,10 +59,10 @@ export function useEventSales(eventId: number) {
   });
 }
 
-export function useSalesSummary() {
+export function useSalesSummary(from?: string, to?: string) {
   return useQuery({
-    queryKey: organizerSalesKeys.summary(),
-    queryFn: getSalesSummary,
+    queryKey: organizerSalesKeys.summary(from, to),
+    queryFn: () => getSalesSummary(from, to),
   });
 }
 
@@ -73,9 +74,9 @@ export function useRevenueBreakdown(from: string, to: string) {
   });
 }
 
-export function useTicketSalesBreakdown() {
+export function useTicketSalesBreakdown(from?: string, to?: string) {
   return useQuery({
-    queryKey: organizerSalesKeys.ticketBreakdown(),
-    queryFn: getTicketSalesBreakdown,
+    queryKey: organizerSalesKeys.ticketBreakdown(from, to),
+    queryFn: () => getTicketSalesBreakdown(from, to),
   });
 }

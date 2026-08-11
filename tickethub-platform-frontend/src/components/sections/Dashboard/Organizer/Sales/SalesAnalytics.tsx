@@ -1,20 +1,13 @@
-import { useMemo } from "react";
-import { subDays, format } from "date-fns";
+import { useDashboardDateRange } from "@/components/shared/date/useDashboardDateRange";
+import { chartRange } from "@/utils/dateRanges";
 import { AnalyticsSummaryCards } from "./AnalyticsSummaryCards";
 import { RevenueChart } from "./RevenueChart";
 import { TicketPerformanceChart } from "./TicketPerformance";
 import { TicketSalesOverTime } from "./TicketSalesOverTime";
 
 export default function SalesAnalytics() {
-  const { from, to } = useMemo(() => {
-    const endDate = new Date();
-    const startDate = subDays(endDate, 30);
-
-    return {
-      from: format(startDate, "yyyy-MM-dd"),
-      to: format(endDate, "yyyy-MM-dd"),
-    };
-  }, []);
+  const { range } = useDashboardDateRange();
+  const { from, to } = chartRange(range);
 
   return (
     <div className="flex-1 space-y-6 p-8 pt-6 bg-card min-h-screen">
@@ -32,7 +25,7 @@ export default function SalesAnalytics() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <RevenueChart from={from} to={to} />
-        <TicketPerformanceChart />
+        <TicketPerformanceChart from={from} to={to} />
       </div>
 
       <TicketSalesOverTime from={from} to={to} />

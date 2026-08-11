@@ -10,7 +10,8 @@ import {
 
 export const analyticsKeys = {
   all: ["organizer-analytics"] as const,
-  overview: () => [...analyticsKeys.all, "overview"] as const,
+  overview: (from?: string, to?: string) =>
+    [...analyticsKeys.all, "overview", { from, to }] as const,
   revenueTrend: (params: RevenueTrendParams) =>
     [...analyticsKeys.all, "revenue-trend", params] as const,
   events: (params?: AnalyticsSearchParams) =>
@@ -19,10 +20,10 @@ export const analyticsKeys = {
     [...analyticsKeys.all, "tickets", params] as const,
 };
 
-export function useOverviewAnalytics() {
+export function useOverviewAnalytics(from?: string, to?: string) {
   return useQuery({
-    queryKey: analyticsKeys.overview(),
-    queryFn: getOverviewAnalytics,
+    queryKey: analyticsKeys.overview(from, to),
+    queryFn: () => getOverviewAnalytics({ from, to }),
   });
 }
 

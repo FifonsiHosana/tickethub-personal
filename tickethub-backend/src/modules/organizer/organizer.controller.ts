@@ -45,6 +45,8 @@ export async function dashboard(
       upcomingPageSize?: number;
       topSellingPage?: number;
       topSellingPageSize?: number;
+      from?: string;
+      to?: string;
     } = {};
 
     if (req.query.upcomingPage) {
@@ -58,6 +60,14 @@ export async function dashboard(
     }
     if (req.query.topSellingPageSize) {
       dashboardParams.topSellingPageSize = Number(req.query.topSellingPageSize);
+    }
+
+    const { from, to } = req.query as { from?: string; to?: string };
+    if (from && /^\d{4}-\d{2}-\d{2}$/.test(from)) {
+      dashboardParams.from = from;
+    }
+    if (to && /^\d{4}-\d{2}-\d{2}$/.test(to)) {
+      dashboardParams.to = to;
     }
 
     const result = await getOrganizerDashboard(organizerId, dashboardParams);
@@ -82,7 +92,7 @@ export async function organizerEvents(
 ) {
   try {
     const userId = req.user.id;
-    const isStaff = req.user.role === 'event_staff';
+    const isStaff = req.user.roles.includes('event_staff');
     const organizerId = isStaff ? 0 : userId;
 
     const { page, pageSize, search, status } = req.query;

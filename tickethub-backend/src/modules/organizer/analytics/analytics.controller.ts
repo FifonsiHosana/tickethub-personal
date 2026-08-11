@@ -13,7 +13,8 @@ export async function getOverviewAnalyticsController(
   next: NextFunction,
 ) {
   try {
-    const analytics = await getOverviewAnalytics(req.user.id);
+    const { from, to } = req.query as { from?: string; to?: string };
+    const analytics = await getOverviewAnalytics(req.user.id, { from, to });
 
     res.status(200).json({
       success: true,
@@ -53,13 +54,15 @@ export async function getEventPerformanceController(
   next: NextFunction,
 ) {
   try {
-    const { page, pageSize, search } = req.query;
+    const { page, pageSize, search, from, to } = req.query;
 
     const result = await getEventPerformance({
       organizerId: req.user.id,
       page,
       pageSize,
       search,
+      from,
+      to,
     });
 
     res.status(200).json({
@@ -78,13 +81,15 @@ export async function getTicketPerformanceController(
   next: NextFunction,
 ) {
   try {
-    const { page, pageSize, search } = req.query;
+    const { page, pageSize, search, from, to } = req.query;
 
     const result = await getTicketPerformance({
       organizerId: req.user.id,
       page,
       pageSize,
       search,
+      from,
+      to,
     });
 
     res.status(200).json({

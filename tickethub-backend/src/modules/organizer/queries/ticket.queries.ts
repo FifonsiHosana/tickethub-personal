@@ -1,5 +1,6 @@
 import { db } from '@/db/client.js';
 import { and, eq, sql, desc, count } from 'drizzle-orm';
+import { applyDateRange, type DateRange } from '@/utils/dateRange.js';
 
 import {
   events,
@@ -13,7 +14,13 @@ import {
 /**
  * Total tickets sold (completed orders only)
  */
-export async function getTicketsSold(organizerId: number) {
+export async function getTicketsSold(organizerId: number, range?: DateRange) {
+  const filters: any[] = [
+    eq(events.organizerId, organizerId),
+    eq(ticketOrders.status, 'Completed'),
+  ];
+  applyDateRange(filters, ticketOrders.createdAt, range);
+
   const [result] = await db
     .select({
       count: sql<number>`COUNT(${ticketOrderItems.id})`,
@@ -26,12 +33,7 @@ export async function getTicketsSold(organizerId: number) {
     )
     .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
     .innerJoin(events, eq(tickets.eventId, events.id))
-    .where(
-      and(
-        eq(events.organizerId, organizerId),
-        eq(ticketOrders.status, 'Completed'),
-      ),
-    );
+    .where(and(...filters));
 
   return Number(result?.count ?? 0);
 }
@@ -39,7 +41,17 @@ export async function getTicketsSold(organizerId: number) {
 /**
  * Total completed check-ins for an organizer
  */
-export async function getCheckInCount(organizerId: number) {
+export async function getCheckInCount(
+  organizerId: number,
+  range?: DateRange,
+) {
+  const filters: any[] = [
+    eq(events.organizerId, organizerId),
+    eq(ticketOrders.status, 'Completed'),
+    eq(ticketOrderItems.checkedIn, true),
+  ];
+  applyDateRange(filters, ticketOrderItems.checkedInAt, range);
+
   const [result] = await db
     .select({
       count: sql<number>`COUNT(${ticketOrderItems.id})`,
@@ -52,13 +64,7 @@ export async function getCheckInCount(organizerId: number) {
     )
     .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
     .innerJoin(events, eq(tickets.eventId, events.id))
-    .where(
-      and(
-        eq(events.organizerId, organizerId),
-        eq(ticketOrders.status, 'Completed'),
-        eq(ticketOrderItems.checkedIn, true),
-      ),
-    );
+    .where(and(...filters));
 
   return Number(result?.count ?? 0);
 }
@@ -87,7 +93,16 @@ export async function getTicketsRemaining(organizerId: number) {
 /**
  * Sales breakdown by ticket type (for charts)
  */
-export async function getTicketSalesBreakdown(organizerId: number) {
+export async function getTicketSalesBreakdown(
+  organizerId: number,
+  range?: DateRange,
+) {
+  const filters: any[] = [
+    eq(events.organizerId, organizerId),
+    eq(ticketOrders.status, 'Completed'),
+  ];
+  applyDateRange(filters, ticketOrders.createdAt, range);
+
   return db
     .select({
       ticketName: tickets.name,
@@ -107,9 +122,7 @@ export async function getTicketSalesBreakdown(organizerId: number) {
     )
     .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
     .innerJoin(events, eq(tickets.eventId, events.id))
-    .where(
-      and(eq(events.organizerId, organizerId), eq(ticketOrders.status, 'Completed')),
-    )
+    .where(and(...filters))
     .groupBy(tickets.id);
 }
 
@@ -118,15 +131,18 @@ export interface TicketPerformanceParams {
   page?: number;
   pageSize?: number;
   search?: string | undefined;
+  from?: string | undefined;
+  to?: string | undefined;
 }
 
 /**
  * Per-ticket performance (for analytics table)
  */
 export async function getTicketPerformance(params: TicketPerformanceParams) {
-  const { organizerId, page = 1, pageSize = 10, search } = params;
+  const { organizerId, page = 1, pageSize = 10, search, from, to } = params;
   const offset = (page - 1) * pageSize;
   const filters = [eq(events.organizerId, organizerId)];
+  applyDateRange(filters, ticketOrders.createdAt, { from, to });
 
   if (search) {
     filters.push(

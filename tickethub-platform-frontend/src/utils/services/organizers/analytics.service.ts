@@ -48,6 +48,8 @@ export type AnalyticsSearchParams = {
   page?: number;
   pageSize?: number;
   search?: string;
+  from?: string;
+  to?: string;
 };
 
 // Standard API Response Wrapper
@@ -57,10 +59,17 @@ export type ApiResponse<T> = {
   pagination?: PaginationMeta;
 };
 
-export async function getOverviewAnalytics(): Promise<AnalyticsOverviewResponse> {
+export type DateRangeParams = {
+  from?: string;
+  to?: string;
+};
+
+export async function getOverviewAnalytics(
+  params?: DateRangeParams,
+): Promise<AnalyticsOverviewResponse> {
   const response = await axiosInstance.get<
     ApiResponse<AnalyticsOverviewResponse>
-  >("/organizer/analytics/overview");
+  >("/organizer/analytics/overview", { params });
   return response.data.data;
 }
 

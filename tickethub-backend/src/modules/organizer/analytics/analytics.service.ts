@@ -1,3 +1,4 @@
+import { type DateRange } from '@/utils/dateRange.js';
 import {
   getTotalRevenue,
   getRevenueTrend,
@@ -8,21 +9,21 @@ import {
   getConversionRate,
 } from '../queries/index.js';
 
-export interface AnalyticsDateRange {
-  from?: string | undefined;
-  to?: string | undefined;
-}
+export type AnalyticsDateRange = DateRange;
 
 /**
  * Organizer dashboard overview cards
  */
-export async function getOverviewAnalytics(organizerId: number) {
+export async function getOverviewAnalytics(
+  organizerId: number,
+  range?: DateRange,
+) {
   const [totalRevenue, ticketsSold, eventCounts, conversion] =
     await Promise.all([
-      getTotalRevenue(organizerId),
-      getTicketsSold(organizerId),
+      getTotalRevenue(organizerId, range),
+      getTicketsSold(organizerId, range),
       getEventCountsByStatus(organizerId),
-      getConversionRate(organizerId),
+      getConversionRate(organizerId, range),
     ]);
 
   return {

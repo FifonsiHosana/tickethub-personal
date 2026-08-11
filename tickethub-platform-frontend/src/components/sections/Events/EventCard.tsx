@@ -51,12 +51,12 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
           <h3 className="text-xl font-sans font-bold text-foreground line-clamp-1 mb-1 group-hover:text-neutral-500 transition-colors">
             {event.title}
           </h3>
-          <p className="text-sm text-neutral-800 font-medium line-clamp-1 tracking-tight mt-1">
+          <p className="text-base text-neutral-700 font-medium line-clamp-1 tracking-tight">
             {event.venueName
               ? `${event.venueName}, ${event.city}`
               : "Location TBA"}
           </p>
-          <p className="text-xs text-neutral-500 mt-1">
+          <p className="text-sm text-neutral-600">
             {formattedDateTime} at {formattedTime}
           </p>
         </div>

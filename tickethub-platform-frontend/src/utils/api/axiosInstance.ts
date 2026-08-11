@@ -17,10 +17,20 @@ export class ApiError extends Error {
   }
 }
 
+function getSessionAuthToken(): string | null {
+  try {
+    const raw = sessionStorage.getItem("auth_token");
+    return raw ? (JSON.parse(raw) as string) : null;
+  } catch {
+    return null;
+  }
+}
+
 // Auth Token attachment interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = getItem("auth_token") as string | null;
+    const token =
+      (getItem("auth_token") as string | null) ?? getSessionAuthToken();
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -41,11 +51,14 @@ axiosInstance.interceptors.response.use(
     // error handling instead of redirecting.
     const wasAuthenticated = !!error.config?.headers?.Authorization;
 
-    if (error.response?.status === 401 && wasAuthenticated) {
-      // clear auth + redirect
+if (error.response?.status === 401 && wasAuthenticated) {
+      // clear auth + redirect (from both persistent and session scopes)
       localStorage.removeItem("auth_token");
       localStorage.removeItem("auth_user");
       localStorage.removeItem("user_role");
+      sessionStorage.removeItem("auth_token");
+      sessionStorage.removeItem("auth_user");
+      sessionStorage.removeItem("user_role");
 
       toast.error("Your session has expired. Please login again");
 

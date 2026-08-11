@@ -2,12 +2,13 @@ import type { Request, Response, NextFunction } from 'express';
 import analyticsService from './analytics.service.js';
 
 export async function overview(
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
   try {
-    const data = await analyticsService.getOverview();
+    const { from, to } = req.query as { from?: string; to?: string };
+    const data = await analyticsService.getOverview({ from, to });
     res.status(200).json({ success: true, data });
   } catch (error) {
     next(error);

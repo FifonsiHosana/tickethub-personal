@@ -11,7 +11,8 @@ import {
   events,
 } from '@/db/schema/index.js';
 
-import { and, between, desc, eq, like, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, like, sql } from 'drizzle-orm';
+import { applyDateRange, type DateRange } from '@/utils/dateRange.js';
 
 import {
   getSalesSummary as getSharedSalesSummary,
@@ -37,31 +38,67 @@ export interface GetOrganizerSalesOptions {
   search?: string;
 }
 
+export interface OrganizerSaleEventBreakdown {
+  eventId: number;
+
+  eventTitle: string;
+
+  ticketType: string;
+
+  ticketSummary: string;
+
+  totalTickets: number;
+
+  checkedInCount: number;
+}
+
+export interface OrganizerSale {
+  paymentId: number;
+
+  orderId: number;
+
+  customerFirstName: string;
+
+  customerLastName: string;
+
+  customerEmail: string;
+
+  phoneNumber: string;
+
+  quantity: number;
+
+  amount: string;
+
+  currency: string;
+
+  provider: 'hubtel' | 'paystack';
+
+  paymentStatus: 'Completed' | 'Failed';
+
+  reference: string;
+
+  purchasedAt: string | null;
+
+  events: OrganizerSaleEventBreakdown[];
+}
+
 /* -----------------------------------------------------------------------------
  * Helpers
  * -------------------------------------------------------------------------- */
 
-function buildFilters({
-  organizerId,
-  eventId,
+function buildHeaderFilters({
   status,
   from,
   to,
   search,
-}: GetOrganizerSalesOptions) {
-  const filters = [eq(events.organizerId, organizerId)];
-
-  if (eventId) {
-    filters.push(eq(events.id, eventId));
-  }
+}: Pick<GetOrganizerSalesOptions, 'status' | 'from' | 'to' | 'search'>) {
+  const filters: any[] = [];
 
   if (status) {
     filters.push(eq(payments.status, status));
   }
 
-  if (from && to) {
-    filters.push(between(payments.paidAt, from, to));
-  }
+  applyDateRange(filters, payments.paidAt, { from, to });
 
   if (search) {
     filters.push(like(ticketOrderUserDetails.email, `%${search}%`));
@@ -70,16 +107,55 @@ function buildFilters({
   return filters;
 }
 
+function buildOrderScopeSubquery({
+  organizerId,
+  eventId,
+}: Pick<GetOrganizerSalesOptions, 'organizerId' | 'eventId'>) {
+  const scopes = [eq(events.organizerId, organizerId)];
+
+  if (eventId) {
+    scopes.push(eq(events.id, eventId));
+  }
+
+  return db
+    .select({ id: ticketOrders.id })
+    .from(ticketOrderItems)
+    .innerJoin(ticketOrders, eq(ticketOrderItems.orderId, ticketOrders.id))
+    .innerJoin(
+      eventTickets,
+      eq(ticketOrderItems.eventTicketId, eventTickets.id),
+    )
+    .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
+    .innerJoin(events, eq(tickets.eventId, events.id))
+    .where(and(...scopes));
+}
+
 /* -----------------------------------------------------------------------------
  * Services
  * -------------------------------------------------------------------------- */
 
-export async function getOrganizerSales(options: GetOrganizerSalesOptions) {
+export async function getOrganizerSales(
+  options: GetOrganizerSalesOptions,
+): Promise<{
+  data: OrganizerSale[];
+
+  pagination: {
+    page: number;
+
+    pageSize: number;
+
+    total: number;
+
+    totalPages: number;
+  };
+}> {
   const { page = 1, pageSize = 10 } = options;
 
   const offset = (page - 1) * pageSize;
 
-  const filters = buildFilters(options);
+  const headerFilters = buildHeaderFilters(options);
+
+  const orderScope = buildOrderScopeSubquery(options);
 
   const sales = await db
     .select({
@@ -95,94 +171,96 @@ export async function getOrganizerSales(options: GetOrganizerSalesOptions) {
 
       phoneNumber: ticketOrderUserDetails.phoneNumber,
 
-      eventId: events.id,
+      quantity: ticketOrders.quantity,
 
-       eventTitle: events.title,
+      amount: payments.amount,
 
-       ticketType: sql<string>`GROUP_CONCAT(DISTINCT ${ticketTypes.name} SEPARATOR ', ')`,
+      currency: payments.currency,
 
-       ticketSummary: sql<string>`GROUP_CONCAT(DISTINCT ${tickets.name} SEPARATOR ', ')`,
+      provider: payments.provider,
 
-       quantity: sql<number>`MAX(${ticketOrders.quantity})`,
+      paymentStatus: payments.status,
 
-       amount: payments.amount,
+      reference: payments.reference,
 
-       currency: payments.currency,
-
-       provider: payments.provider,
-
-       paymentStatus: payments.status,
-
-       reference: payments.reference,
-
-       purchasedAt: payments.paidAt,
-
-       totalTickets: sql<number>`COUNT(${ticketOrderItems.id})`,
-
-       checkedInCount:
-         sql<number>`COUNT(CASE WHEN ${ticketOrderItems.checkedIn} = 1 THEN 1 END)`,
-     })
-
-     .from(payments)
-
-     .innerJoin(ticketOrders, eq(payments.orderId, ticketOrders.id))
-
-     .innerJoin(
-       ticketOrderUserDetails,
-       eq(ticketOrders.id, ticketOrderUserDetails.orderId),
-     )
-
-     .innerJoin(ticketOrderItems, eq(ticketOrders.id, ticketOrderItems.orderId))
-
-     .innerJoin(
-       eventTickets,
-       eq(ticketOrderItems.eventTicketId, eventTickets.id),
-     )
-     .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
-
-     .innerJoin(ticketTypes, eq(eventTickets.ticketTypeId, ticketTypes.id))
-
-     .innerJoin(events, eq(tickets.eventId, events.id))
-
-     .where(and(...filters))
-
-     .groupBy(ticketOrders.id, payments.id, ticketOrderUserDetails.id, events.id)
-
-     .orderBy(desc(payments.paidAt))
-
-     .limit(pageSize)
-
-     .offset(offset);
-
-  const total = await db
-    .select({
-      total: sql<number>`COUNT(DISTINCT ${ticketOrders.id})`,
+      purchasedAt: payments.paidAt,
     })
-
     .from(payments)
-
     .innerJoin(ticketOrders, eq(payments.orderId, ticketOrders.id))
-
-    .innerJoin(ticketOrderItems, eq(ticketOrders.id, ticketOrderItems.orderId))
-
-    .innerJoin(
-      eventTickets,
-      eq(ticketOrderItems.eventTicketId, eventTickets.id),
-    )
-
-    .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
-
-    .innerJoin(events, eq(tickets.eventId, events.id))
-
     .innerJoin(
       ticketOrderUserDetails,
       eq(ticketOrders.id, ticketOrderUserDetails.orderId),
     )
+    .where(and(...headerFilters, inArray(ticketOrders.id, orderScope)))
+    .orderBy(desc(payments.paidAt))
+    .limit(pageSize)
+    .offset(offset);
 
-    .where(and(...filters));
+  const orderIds = sales.map((sale) => sale.orderId);
+
+  const eventBreakdown = orderIds.length
+    ? await db
+        .select({
+          orderId: ticketOrders.id,
+
+          eventId: events.id,
+
+          eventTitle: events.title,
+
+          ticketType:
+            sql<string>`GROUP_CONCAT(DISTINCT ${ticketTypes.name} SEPARATOR ', ')`,
+
+          ticketSummary:
+            sql<string>`GROUP_CONCAT(DISTINCT ${tickets.name} SEPARATOR ', ')`,
+
+          totalTickets: sql<number>`COUNT(${ticketOrderItems.id})`,
+
+          checkedInCount:
+            sql<number>`COUNT(CASE WHEN ${ticketOrderItems.checkedIn} = 1 THEN 1 END)`,
+        })
+        .from(ticketOrderItems)
+        .innerJoin(ticketOrders, eq(ticketOrderItems.orderId, ticketOrders.id))
+        .innerJoin(
+          eventTickets,
+          eq(ticketOrderItems.eventTicketId, eventTickets.id),
+        )
+        .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
+        .innerJoin(ticketTypes, eq(eventTickets.ticketTypeId, ticketTypes.id))
+        .innerJoin(events, eq(tickets.eventId, events.id))
+        .where(inArray(ticketOrders.id, orderIds))
+        .groupBy(ticketOrders.id, events.id)
+    : [];
+
+  const eventsByOrder = new Map<number, OrganizerSaleEventBreakdown[]>();
+
+  for (const row of eventBreakdown) {
+    const existing = eventsByOrder.get(row.orderId);
+
+    if (existing) {
+      existing.push(row);
+    } else {
+      eventsByOrder.set(row.orderId, [row]);
+    }
+  }
+
+  const data = sales.map((sale) => ({
+    ...sale,
+
+    events: eventsByOrder.get(sale.orderId) ?? [],
+  }));
+
+  const total = await db
+    .select({ total: sql<number>`COUNT(DISTINCT ${ticketOrders.id})` })
+    .from(payments)
+    .innerJoin(ticketOrders, eq(payments.orderId, ticketOrders.id))
+    .innerJoin(
+      ticketOrderUserDetails,
+      eq(ticketOrders.id, ticketOrderUserDetails.orderId),
+    )
+    .where(and(...headerFilters, inArray(ticketOrders.id, orderScope)));
 
   return {
-    data: sales,
+    data,
 
     pagination: {
       page,
@@ -341,8 +419,8 @@ export async function getEventSales(organizerId: number, eventId: number) {
  * - failed payments
  * - tickets sold
  */
-export async function getSalesSummary(organizerId: number) {
-  return getSharedSalesSummary(organizerId);
+export async function getSalesSummary(organizerId: number, range?: DateRange) {
+  return getSharedSalesSummary(organizerId, range);
 }
 
 /**
@@ -359,6 +437,9 @@ export async function getRevenueBreakdown(
 /**
  * Sales by ticket type — delegates to shared query
  */
-export async function getTicketSalesBreakdown(organizerId: number) {
-  return getSharedTicketSalesBreakdown(organizerId);
+export async function getTicketSalesBreakdown(
+  organizerId: number,
+  range?: DateRange,
+) {
+  return getSharedTicketSalesBreakdown(organizerId, range);
 }

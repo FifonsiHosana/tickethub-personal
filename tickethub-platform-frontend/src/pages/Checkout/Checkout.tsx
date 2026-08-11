@@ -6,12 +6,16 @@ import { useTicketCartStore } from "@/stores/tickets.store";
 import { usePurchaseTickets } from "@/hooks/attendees/tickets/useTickets";
 import { usePayTicket } from "@/hooks/attendees/tickets/usePayTickets";
 import { useCheckout } from "@/hooks/useCheckout";
+import { useProcessingFeePercentage } from "@/hooks/useSettings";
+import { computeTotalWithFee } from "@/utils/checkout/checkout.utils";
 import { Loader } from "@/components/ui/loader";
 
 export const Checkout: React.FC = () => {
   const { items, totalTicketAmount: subtotal } = useTicketCartStore();
   const purchaseMutation = usePurchaseTickets();
   const initiatePaymentFunction = usePayTicket();
+  const processingFeePercentage = useProcessingFeePercentage();
+  const { feeAmount } = computeTotalWithFee(subtotal, processingFeePercentage);
 
   const { handleTicketOrderPurchase } = useCheckout({
     createTicketPurchaseOrder: purchaseMutation.mutateAsync,
@@ -22,7 +26,7 @@ export const Checkout: React.FC = () => {
     return <Loader loading={true} fullScreen={true} />;
 
   return (
-    <main className="w-full min-h-screen bg-neutral-50/50 pt-24 pb-32">
+    <main className="w-full min-h-screen bg-neutral-50/50 py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Page Header */}
         <div className="mb-10">
@@ -58,6 +62,7 @@ export const Checkout: React.FC = () => {
           <div className="lg:col-span-5 xl:col-span-4 sticky top-24 h-fit">
             <PricingSummary
               subtotal={subtotal}
+              feeAmount={feeAmount}
               isProcessing={
                 purchaseMutation.isPending || initiatePaymentFunction.isPending
               }

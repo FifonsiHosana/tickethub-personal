@@ -1,9 +1,16 @@
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
 import type { CheckoutFormData } from "@/components/sections/Checkout/CheckoutForm";
-import { buildCheckoutPayload } from "@/utils/checkout/checkout.utils";
+import {
+  computeTotalWithFee,
+  buildCheckoutPayload,
+} from "@/utils/checkout/checkout.utils";
 import { useTicketCartStore } from "@/stores/tickets.store";
 import PayStackPop from "@paystack/inline-js";
+import {
+  setSessionItem,
+  GUEST_CHECKOUT_EMAIL_KEY,
+} from "@/utils/storage/sessionStorage";
 import type {
   PurchaseTicketResponse,
   PurchaseTicketRequest,
@@ -13,6 +20,7 @@ import {
   type purchaseTicketPaymentInput,
 } from "@/utils/services/attendees/finance.service";
 import type { UseMutateAsyncFunction } from "@tanstack/react-query";
+import { useProcessingFeePercentage } from "@/hooks/useSettings";
 
 interface CheckoutProps {
   createTicketPurchaseOrder: UseMutateAsyncFunction<
@@ -35,6 +43,7 @@ export function useCheckout({
 }: CheckoutProps) {
   const navigate = useNavigate();
   const { clearCart, items, totalTicketAmount } = useTicketCartStore();
+  const processingFeePercentage = useProcessingFeePercentage();
   const handleTicketOrderPurchase = async (formData: CheckoutFormData) => {
     if (items.length === 0) {
       toast.error("Cart is empty.");
@@ -46,12 +55,18 @@ export function useCheckout({
       console.log(response);
       toast.success("Order created successfully.");
       clearCart();
+      setSessionItem(GUEST_CHECKOUT_EMAIL_KEY, payload.attendee.email);
+
+      const { total } = computeTotalWithFee(
+        totalTicketAmount,
+        processingFeePercentage,
+      );
 
       const payment = await initiatePaymentForPurchaseOrder({
         email: payload.attendee.email,
         orderId: response.orderId,
         phoneNumber: payload.attendee.phoneNumber,
-        totalAmount: totalTicketAmount,
+        totalAmount: total,
       });
 
       if (!payment) return;

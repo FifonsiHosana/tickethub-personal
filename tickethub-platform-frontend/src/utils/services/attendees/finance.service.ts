@@ -8,9 +8,12 @@ export type purchaseTicketPaymentInput = {
 };
 
 export type initiatePaystackPaymentResponse = {
-  checkout_url: string;
+  checkoutUrl: string;
   reference: string;
   access_code: string;
+  subtotal: number;
+  feeAmount: number;
+  totalAmount: number;
 };
 
 export const purchaseTicketPayment = async (

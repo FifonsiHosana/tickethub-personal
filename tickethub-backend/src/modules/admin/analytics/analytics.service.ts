@@ -11,9 +11,10 @@ import {
   ticketConfigurations,
 } from '@/db/schema/index.js';
 import { and, eq, count, sql, gte, lte } from 'drizzle-orm';
+import { applyDateRange, type DateRange } from '@/utils/dateRange.js';
 
 export class AnalyticsService {
-  async getOverview() {
+  async getOverview(range?: DateRange) {
     const [userCounts] = await db
       .select({
         total: count(),
@@ -32,20 +33,26 @@ export class AnalyticsService {
       .from(events)
       .where(eq(events.approvalStatus, 'Pending'));
 
+    const revenueFilters: any[] = [eq(payments.status, 'Completed')];
+    applyDateRange(revenueFilters, payments.paidAt, range);
     const [revenue] = await db
-      .select({ total: sql<string>`COALESCE(SUM(${payments.amount}), 0)` })
+      .select({ total: sql<string>`COALESCE(SUM(${payments.subtotal}), 0)` })
       .from(payments)
-      .where(eq(payments.status, 'Completed'));
+      .where(and(...revenueFilters));
 
+    const commissionFilters: any[] = [eq(payouts.status, 'Completed')];
+    applyDateRange(commissionFilters, payouts.paidAt, range);
     const [commission] = await db
       .select({ total: sql<string>`COALESCE(SUM(${payouts.commission}), 0)` })
       .from(payouts)
-      .where(eq(payouts.status, 'Completed'));
+      .where(and(...commissionFilters));
 
+    const payoutFilters: any[] = [eq(payouts.status, 'Completed')];
+    applyDateRange(payoutFilters, payouts.paidAt, range);
     const [payoutTotal] = await db
       .select({ total: sql<string>`COALESCE(SUM(${payouts.amount}), 0)` })
       .from(payouts)
-      .where(eq(payouts.status, 'Completed'));
+      .where(and(...payoutFilters));
 
     return {
       totalUsers: Number(userCounts?.total ?? 0),
@@ -67,7 +74,7 @@ export class AnalyticsService {
     const data = await db
       .select({
         date: sql<string>`DATE(${payments.paidAt})`,
-        revenue: sql<string>`COALESCE(SUM(${payments.amount}), 0)`,
+        revenue: sql<string>`COALESCE(SUM(${payments.subtotal}), 0)`,
       })
       .from(payments)
       .where(and(...filters))

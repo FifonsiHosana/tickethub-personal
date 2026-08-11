@@ -13,10 +13,12 @@ import {
   ticketTypes,
 } from '@/db/schema/index.js';
 import { sendMail } from '@/modules/emails/emails.service.js';
+import { ensureAccountForOrder } from '@/modules/attendee/guest-account.service.js';
 import axios from 'axios';
 import type { purchaseTicketPaymentInput } from './finance.schema.js';
 import { now } from '@/utils/timeDatehelpers.js';
 import { buildPurchaseConfirmationEmail } from '../emails/templates/ticketPurchase.template.js';
+import { computeOrderBreakdown } from './finance.pricing.js';
 
 // eventually have a settings table, that would have the current provider
 // on the admin dashboard
@@ -60,11 +62,15 @@ export class FinanceService {
   }
 
   private async handlePayStackPayment(data: purchaseTicketPaymentInput) {
+    const { subtotal, feeAmount, totalAmount } = await computeOrderBreakdown(
+      data.orderId,
+    );
+
     const response = await axios.post(
       'https://api.paystack.co/transaction/initialize',
       JSON.stringify({
         email: data.email,
-        amount: Math.round(data.totalAmount * 100),
+        amount: Math.round(totalAmount * 100),
 
         metadata: {
           orderId: data.orderId,
@@ -89,6 +95,9 @@ export class FinanceService {
       checkoutUrl: result.data.authorization_url as string,
       reference: result.data.reference as string,
       access_code: result.data.access_code as string,
+      subtotal,
+      feeAmount,
+      totalAmount,
     };
   }
 
@@ -113,6 +122,7 @@ export class FinanceService {
     customerEmail: string,
   ) {
     const amountToString = amount.toString();
+    const { subtotal, feeAmount } = await computeOrderBreakdown(orderId);
     await db.transaction(async (tx) => {
       /**
        * ensure order exists
@@ -135,6 +145,8 @@ export class FinanceService {
         provider,
         reference: paymentReference,
         amount: amountToString,
+        subtotal: subtotal.toString(),
+        feeAmount: feeAmount.toString(),
         currency,
         status: 'Completed',
         paidAt: now(),
@@ -149,6 +161,16 @@ export class FinanceService {
           status: 'Completed',
         })
         .where(eq(ticketOrders.id, orderId));
+
+      /**
+       * create a background account for a guest buyer (null password)
+       * and link the order to it
+       */
+      const { accountCreated } = await ensureAccountForOrder(
+        tx,
+        orderId,
+        customerEmail,
+      );
 
       /**
        * get purchased tickets
@@ -227,6 +249,8 @@ export class FinanceService {
           orderId,
           items: orderItems,
           total: amount,
+          accountCreated,
+          email: customerEmail,
         });
       await sendMail(
         customerEmail,

@@ -1,4 +1,5 @@
 import { useAdminOverview } from "@/hooks/admin/useAdminAnalytics";
+import { useDashboardDateRange } from "@/components/shared/date/useDashboardDateRange";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   UsersIcon,
@@ -13,7 +14,11 @@ import {
 import AdminEventsSection from "../Events/AdminEventsSection";
 
 export default function AdminDashboardSection() {
-  const { data, isLoading } = useAdminOverview();
+  const { range } = useDashboardDateRange();
+  const { data, isLoading } = useAdminOverview(
+    range?.from ?? undefined,
+    range?.to ?? undefined,
+  );
 
   if (isLoading) {
     return (

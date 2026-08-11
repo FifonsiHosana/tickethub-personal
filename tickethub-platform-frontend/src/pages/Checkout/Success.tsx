@@ -2,11 +2,14 @@ import { useSearchParams, useNavigate, Link } from "react-router";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Ticket } from "lucide-react";
+import { useAuthStorage } from "@/hooks/useAuthStorage";
+// import { getSessionItem, GUEST_CHECKOUT_EMAIL_KEY } from "@/utils/storage/sessionStorage";
 
 export default function SuccessPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { token } = useAuthStorage();
 
   const paystackRef = searchParams.get("reference");
 
@@ -16,8 +19,14 @@ export default function SuccessPage() {
     }
   }, [paystackRef, navigate]);
 
+  // const guestEmail = getSessionItem(GUEST_CHECKOUT_EMAIL_KEY);
+  const ticketsTarget = token
+    ? "/ticket-order-history"
+    : "/login"
+    // : `/account/setup-password?email=${encodeURIComponent(guestEmail ?? "")}`;
+
   return (
-    <section className="py-32 px-6 lg:px-12 max-w-7xl h-full mx-auto flex items-center justify-center text-center">
+    <section className="py-24 px-6 lg:px-12 max-w-7xl h-full mx-auto flex items-center justify-center text-center">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -43,6 +52,17 @@ export default function SuccessPage() {
           <Button
             size="lg"
             className="rounded-full h-14 px-8 shadow-xl shadow-primary/20 group"
+            render={
+              <Link to={ticketsTarget}>
+                <Ticket className="mr-2 w-4 h-4" />
+                View Ticket Details
+              </Link>
+            }
+          ></Button>
+          <Button
+            size="lg"
+            variant="outline"
+            className="rounded-full h-14 px-8 group"
             render={
               <Link to={`/events`}>
                 Check out more Events{" "}

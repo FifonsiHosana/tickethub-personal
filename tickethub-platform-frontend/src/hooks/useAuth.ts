@@ -2,13 +2,22 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   type AuthLoginPayload,
   type AuthRegisterPayload,
+  type CompleteRegisterPayload,
+  type ForgotPasswordPayload,
   type OtpPayload,
   type ResendOtpPayload,
+  type ResetPasswordPayload,
+  type SendOtpPayload,
   signInWithEmailAndPassword,
   signUpWithEmailAndPassword,
   verifyOtp,
   resendOtp,
+  sendOtp,
+  completeRegister,
+  becomeOrganizer,
   getUserRoles,
+  requestPasswordReset,
+  resetPassword,
 } from "@/utils/services/auth.service";
 import { logger } from "@/utils/logger";
 
@@ -50,10 +59,42 @@ export const useResendOtp = () => {
   });
 };
 
+export const useSendOtp = () => {
+  return useMutation({
+    mutationFn: (payload: SendOtpPayload) => sendOtp(payload),
+  });
+};
+
+export const useCompleteRegister = () => {
+  return useMutation({
+    mutationFn: (payload: CompleteRegisterPayload) =>
+      completeRegister(payload),
+  });
+};
+
+export const useBecomeOrganizer = () => {
+  return useMutation({
+    mutationFn: () => becomeOrganizer(),
+  });
+};
+
 export const useRoles = () => {
   return useQuery({
     queryKey: ["roles"],
     staleTime: Infinity,
     queryFn: getUserRoles,
+  });
+};
+
+export const useRequestPasswordReset = () => {
+  return useMutation({
+    mutationFn: (payload: ForgotPasswordPayload) =>
+      requestPasswordReset(payload),
+  });
+};
+
+export const useResetPassword = () => {
+  return useMutation({
+    mutationFn: (payload: ResetPasswordPayload) => resetPassword(payload),
   });
 };

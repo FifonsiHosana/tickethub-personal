@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import { DrizzleQueryError } from 'drizzle-orm';
 import logger from '@/utils/logger/index.js';
 
 export class AppError extends Error {
@@ -46,11 +47,18 @@ export function errorHandler(
     isOperational ? 'Operational error' : 'Unexpected error',
   );
 
-  // Don't leak internal details in production for non-operational errors
-  const message =
-    isOperational || process.env.NODE_ENV !== 'production'
-      ? err.message
-      : 'Internal Server Error';
+  // Don't leak internal details for DB/query failures or in production for
+  // non-operational errors.
+  let message: string;
+
+  if (err instanceof DrizzleQueryError) {
+    message = 'Something went wrong';
+  } else {
+    message =
+      isOperational || process.env.NODE_ENV !== 'production'
+        ? err.message
+        : 'Internal Server Error';
+  }
 
   res.status(statusCode).json({
     status: 'error',

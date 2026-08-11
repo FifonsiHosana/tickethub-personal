@@ -10,5 +10,9 @@ export const getOrdersSchema = z.object({
 
   status: z.enum(['Pending', 'Completed']).optional(),
 
+  from: z.iso.date().optional(),
+
+  to: z.iso.date().optional(),
+
   search: z.string().trim().optional(),
 });

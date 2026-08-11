@@ -38,14 +38,14 @@ export default function OverviewTabs({
   return (
     <Card className="shadow-sm">
       <Tabs defaultValue="upcoming">
-        <CardHeader className="pb-0">
+        <CardHeader className="px-2">
           <TabsList>
             <TabsTrigger value="upcoming">Upcoming Events</TabsTrigger>
             <TabsTrigger value="recent-orders">Recent Orders</TabsTrigger>
             <TabsTrigger value="top-selling">Top Selling</TabsTrigger>
           </TabsList>
         </CardHeader>
-        <CardContent className="pt-4">
+        <CardContent className="px-2">
           <TabsContent value="upcoming">
             <UpcomingEventsTab
               events={upcomingEvents}

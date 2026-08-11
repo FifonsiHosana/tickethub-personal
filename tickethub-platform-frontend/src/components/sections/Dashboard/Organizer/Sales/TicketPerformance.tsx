@@ -17,8 +17,14 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-export const TicketPerformanceChart = () => {
-  const { data, isLoading } = useTicketSalesBreakdown();
+export const TicketPerformanceChart = ({
+  from,
+  to,
+}: {
+  from?: string;
+  to?: string;
+}) => {
+  const { data, isLoading } = useTicketSalesBreakdown(from, to);
 
   const formattedData = useMemo(() => {
     if (!data) return [];

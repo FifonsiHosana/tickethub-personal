@@ -2,10 +2,9 @@ import React, { useState } from "react";
 import { Link } from "react-router";
 import { format } from "date-fns";
 import { useEvents } from "@/hooks/attendees/events/useEvent";
-import { Loader } from "@/components/ui/loader";
-
 import type { Event } from "@/types/event.types";
 import { PaginationSect } from "@/components/shared/Pagination";
+import { EventsSkeleton } from "@/components/shared/EventsSkeleton";
 
 const PAGE_SIZE = 6;
 
@@ -24,12 +23,16 @@ export const EventsList: React.FC = () => {
   const events = eventsResponse?.data ?? [];
   const pagination = eventsResponse?.pagination;
 
-  if (isLoading) return <Loader loading={isLoading} fullScreen={false} />;
   if (isError)
     return (
       <div className="p-8 text-center text-red-500">Failed to load events.</div>
     );
-  if (!events || events.length === 0)
+
+  if (isLoading) {
+    return <EventsSkeleton pageSize={PAGE_SIZE} />;
+  }
+
+  if (events.length === 0)
     return (
       <div className="p-8 text-center text-neutral-500">No events found.</div>
     );
@@ -38,13 +41,7 @@ export const EventsList: React.FC = () => {
   const currentPage = Math.min(page, totalPages);
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 py-12 md:py-24">
-      <div className="flex items-center justify-between mb-12">
-        <h2 className="text-3xl md:text-4xl text-foreground tracking-tight">
-          Upcoming Events
-        </h2>
-      </div>
-
+    <div className="w-full max-w-7xl mx-auto px-6 py-12">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {events.map((event: Event) => {
           const bannerImage = event.banner;
@@ -79,11 +76,11 @@ export const EventsList: React.FC = () => {
                   {event.title}
                 </h3>
                 {event.venueName && (
-                  <p className="text-sm text-neutral-700 line-clamp-1">
+                  <p className="text-base text-neutral-700 line-clamp-1">
                     {event.venueName}, {event.city}
                   </p>
                 )}
-                <p className="text-xs text-neutral-500 mt-1">
+                <p className="text-sm text-neutral-600">
                   {formattedDateTime} at {formattedTime}
                 </p>
               </div>

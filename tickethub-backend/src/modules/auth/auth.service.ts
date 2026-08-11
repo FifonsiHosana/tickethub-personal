@@ -3,74 +3,31 @@ import {
   users,
   roles,
   userRoles,
-  otpVerifications,
   eventStaff,
 } from '@/db/schema/index.js';
-import { eq, and, ne } from 'drizzle-orm';
+import { eq, ne } from 'drizzle-orm';
 
 import {
   hashPassword,
   comparePasswords,
-  generateOTP,
   generateAccessToken,
-  getOtpExpiry,
   verifyAccessToken,
 } from './auth.utils.js';
 import { now } from '@/utils/timeDatehelpers.js';
 
-import { sendMail } from '@/modules/emails/emails.service.js';
 import { linkOrdersByEmail } from '@/modules/attendee/attendee.service.js';
+import { getUserRoleNames } from './services/auth.registration.service.js';
+import { sendVerificationOtp, verifyEmailOtp } from './services/auth.otp.service.js';
+import { PasswordResetService } from './services/auth.password-reset.service.js';
 import type { CreateLoginInput, CreateRegisterInput } from './auth.schema.js';
 import { AppError } from '@/middleware/errorHandler.js';
 import type { Roles } from './auth.types.js';
 
 export class AuthService {
+  private passwordResetService = new PasswordResetService();
   async getUserRoles(): Promise<Roles[]> {
     const rolesResponse = await db.select().from(roles).where(ne(roles.id, 1));
     return rolesResponse;
-  }
-
-  /**
-   * Remove stale EMAIL_VERIFICATION OTPs for an email, then generate, persist,
-   * and email a fresh one.
-   */
-  private async generateAndSendVerificationOtp(email: string, userId: number) {
-    await db
-      .delete(otpVerifications)
-      .where(
-        and(
-          eq(otpVerifications.email, email),
-          eq(otpVerifications.purpose, 'EMAIL_VERIFICATION'),
-        ),
-      );
-
-    const otp = generateOTP();
-
-    const otpHash = await hashPassword(otp);
-
-    await db.insert(otpVerifications).values({
-      email,
-      otpHash,
-      purpose: 'EMAIL_VERIFICATION',
-      expiresAt: getOtpExpiry(),
-      userId,
-      isUsed: false,
-    });
-
-    await sendMail(
-      email,
-      'Verify your TicketHub account',
-      `Your verification code is ${otp}`,
-      `
-        <h2>Welcome to TicketHub</h2>
-
-        <p>Your verification code is</p>
-
-        <h1>${otp}</h1>
-
-        <p>This code expires in 10 minutes.</p>
-      `,
-    );
   }
 
   async register(payload: CreateRegisterInput) {
@@ -130,7 +87,7 @@ export class AuthService {
         })
         .where(eq(users.id, existingUser.id));
 
-      await this.generateAndSendVerificationOtp(payload.email, existingUser.id);
+      await sendVerificationOtp(payload.email, existingUser.id);
 
       return {
         success: true,
@@ -181,7 +138,7 @@ export class AuthService {
       throw new AppError(500, 'Failed to create account.');
     }
 
-    await this.generateAndSendVerificationOtp(payload.email, createdUser.id);
+    await sendVerificationOtp(payload.email, createdUser.id);
 
     return {
       success: true,
@@ -221,58 +178,29 @@ export class AuthService {
       throw new AppError(401, 'Invalid credentials.');
     }
 
-    // get specific role name of user
-    const [userRole] = await db
-      .select()
-      .from(userRoles)
-      .innerJoin(roles, eq(userRoles.roleId, roles.id))
-      .where(eq(userRoles.userId, user.id));
+    // get all role names of user
+    const roleNames = await getUserRoleNames(user.id);
 
     // Link any guest orders placed with this email to the attendee account
     // (idempotent — only touches orders with no owner yet)
-    if (userRole?.Roles.name === 'attendee') {
+    if (roleNames.includes('attendee')) {
       await linkOrdersByEmail(db, user.id, user.email);
     }
 
     const token = generateAccessToken({
       id: user.id,
-      role: userRole?.Roles.name,
+      roles: roleNames,
     });
 
     return {
       token,
       user,
+      roles: roleNames,
     };
   }
 
   async verifyOtp(email: string, otp: string) {
-    const [verification] = await db
-      .select()
-      .from(otpVerifications)
-      .where(
-        and(
-          eq(otpVerifications.email, email),
-          eq(otpVerifications.purpose, 'EMAIL_VERIFICATION'),
-          eq(otpVerifications.isUsed, false),
-        ),
-      )
-      .limit(1);
-
-    if (!verification) {
-      throw new AppError(401, 'Invalid or expired verification code.');
-    }
-
-    const isExpired = new Date(verification.expiresAt) < new Date();
-
-    if (isExpired) {
-      throw new AppError(401, 'Verification code has expired.');
-    }
-
-    const otpMatches = await comparePasswords(otp, verification.otpHash);
-
-    if (!otpMatches) {
-      throw new AppError(401, 'Invalid verification code.');
-    }
+    const verification = await verifyEmailOtp(email, otp);
 
     /**
      * Mark user as verified
@@ -286,17 +214,6 @@ export class AuthService {
         })
         .where(eq(users.id, verification.userId));
     }
-
-    /**
-     * Mark OTP as used
-     */
-    await db
-      .update(otpVerifications)
-      .set({
-        isUsed: true,
-        updatedAt: now(),
-      })
-      .where(eq(otpVerifications.id, verification.id));
 
     return {
       message: 'Email verified successfully.',
@@ -327,7 +244,7 @@ export class AuthService {
     /**
      * Generate a fresh OTP and email it
      */
-    await this.generateAndSendVerificationOtp(email, user.id);
+    await sendVerificationOtp(email, user.id);
 
     return {
       message: 'Verification code sent successfully.',
@@ -335,27 +252,10 @@ export class AuthService {
   }
 
   async forgotPassword(email: string) {
-    /**
-     * Generate reset token
-     * Store token
-     * Email user
-     */
-
-    return {
-      message: 'If the email exists, a password reset email has been sent.',
-    };
+    return this.passwordResetService.requestPasswordReset(email);
   }
 
   async resetPassword(token: string, password: string) {
-    /**
-     * Validate token
-     * Hash password
-     * Update user
-     * Delete token
-     */
-
-    return {
-      message: 'Password updated successfully.',
-    };
+    return this.passwordResetService.resetPassword(token, password);
   }
 }

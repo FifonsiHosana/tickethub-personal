@@ -6,10 +6,14 @@ import { useAuthStorage } from "@/hooks/useAuthStorage";
 import type { Role } from "@/misc/dashboardData";
 
 export default function Footer() {
-  const { role } = useAuthStorage();
+  const { token, roles } = useAuthStorage();
+  const isAuthenticated = Boolean(token);
 
   const visibleLinks = navLinks.filter(
-    (link) => !link.roles || (role && link.roles.includes(role as Role)),
+    (link) =>
+      (!link.authRequired || isAuthenticated) &&
+      (!link.roles ||
+        link.roles.some((role) => (roles as Role[]).includes(role))),
   );
   return (
     <footer className="bg-foreground w-full py-20">

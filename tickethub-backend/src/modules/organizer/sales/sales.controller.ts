@@ -81,7 +81,8 @@ export async function getSalesSummaryController(
   next: NextFunction,
 ) {
   try {
-    const summary = await getSalesSummary(req.user.id);
+    const { from, to } = req.query as { from?: string; to?: string };
+    const summary = await getSalesSummary(req.user.id, { from, to });
 
     res.status(200).json({
       success: true,
@@ -123,7 +124,8 @@ export async function getTicketSalesController(
   next: NextFunction,
 ) {
   try {
-    const data = await getTicketSalesBreakdown(req.user.id);
+    const { from, to } = req.query as { from?: string; to?: string };
+    const data = await getTicketSalesBreakdown(req.user.id, { from, to });
 
     res.status(200).json({
       success: true,

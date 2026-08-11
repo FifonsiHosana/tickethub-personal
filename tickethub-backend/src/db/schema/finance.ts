@@ -27,9 +27,15 @@ export const payments = mysqlTable('Payments', {
   currency: varchar({
     length: 3,
   }).notNull(),
-
+  feeAmount: decimal({
+    precision: 10,
+    scale: 2,
+  }).notNull(),
+  subtotal: decimal({
+    precision: 10,
+    scale: 2,
+  }).notNull(),
   status: mysqlEnum('status', ['Completed', 'Failed']).notNull(),
-
   paidAt: datetime({ mode: 'string', fsp: 3 }),
 });
 
@@ -71,7 +77,12 @@ export const refunds = mysqlTable('Refunds', {
   reason: varchar({
     length: 255,
   }).notNull(),
-  status: mysqlEnum('status', ['Pending', 'Completed', 'Failed', 'Rejected']).notNull(),
+  status: mysqlEnum('status', [
+    'Pending',
+    'Completed',
+    'Failed',
+    'Rejected',
+  ]).notNull(),
   rejectionReason: varchar({ length: 500 }),
   requestedAt: datetime({ mode: 'string', fsp: 3 })
     .default(sql`(now())`)

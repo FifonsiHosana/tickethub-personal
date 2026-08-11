@@ -1,5 +1,15 @@
 import { db } from '@/db/client.js';
-import { and, eq, sql, desc, gte, like, count } from 'drizzle-orm';
+import {
+  and,
+  eq,
+  sql,
+  desc,
+  gte,
+  like,
+  count,
+  type SQL,
+} from 'drizzle-orm';
+import { applyDateRange, toUpperBound, type DateRange } from '@/utils/dateRange.js';
 
 import {
   events,
@@ -86,8 +96,19 @@ export async function getTopSellingEvents(
   organizerId: number,
   page = 1,
   pageSize = 5,
+  range?: DateRange,
 ) {
   const offset = (page - 1) * pageSize;
+
+  const buildOrderFilters = () => {
+    const filters: any[] = [
+      eq(events.organizerId, organizerId),
+      eq(ticketOrders.status, 'Completed'),
+    ];
+    applyDateRange(filters, ticketOrders.createdAt, range);
+    return filters;
+  };
+
   const data = await db
     .select({
       eventId: events.id,
@@ -102,12 +123,7 @@ export async function getTopSellingEvents(
       eq(ticketOrderItems.eventTicketId, eventTickets.id),
     )
     .innerJoin(ticketOrders, eq(ticketOrderItems.orderId, ticketOrders.id))
-    .where(
-      and(
-        eq(events.organizerId, organizerId),
-        eq(ticketOrders.status, 'Completed'),
-      ),
-    )
+    .where(and(...buildOrderFilters()))
     .groupBy(events.id)
     .orderBy(desc(sql`COUNT(${ticketOrderItems.id})`))
     .limit(pageSize)
@@ -123,12 +139,7 @@ export async function getTopSellingEvents(
       eq(ticketOrderItems.eventTicketId, eventTickets.id),
     )
     .innerJoin(ticketOrders, eq(ticketOrderItems.orderId, ticketOrders.id))
-    .where(
-      and(
-        eq(events.organizerId, organizerId),
-        eq(ticketOrders.status, 'Completed'),
-      ),
-    )
+    .where(and(...buildOrderFilters()))
     .groupBy(events.id);
 
   const total = Number(totalResult?.total ?? 0);
@@ -149,6 +160,8 @@ export interface EventPerformanceParams {
   page?: number;
   pageSize?: number;
   search?: string | undefined;
+  from?: string | undefined;
+  to?: string | undefined;
 }
 
 /**
@@ -158,13 +171,31 @@ export interface EventPerformanceParams {
  * when an order contains items for multiple ticket types.
  */
 export async function getEventPerformance(params: EventPerformanceParams) {
-  const { organizerId, page = 1, pageSize = 10, search } = params;
+  const { organizerId, page = 1, pageSize = 10, search, from, to } = params;
   const offset = (page - 1) * pageSize;
   const filters = [eq(events.organizerId, organizerId)];
 
   if (search) {
     filters.push(like(events.title, `%${search}%`));
   }
+
+  const orderJoins: any[] = [
+    eq(ticketOrderItems.orderId, ticketOrders.id),
+    eq(ticketOrders.status, 'Completed'),
+  ];
+  applyDateRange(orderJoins, ticketOrders.createdAt, { from, to });
+
+  const paymentRangeParts: SQL[] = [];
+  if (from) {
+    paymentRangeParts.push(sql`${payments.paidAt} >= ${from}`);
+  }
+  if (to) {
+    paymentRangeParts.push(sql`${payments.paidAt} <= ${toUpperBound(to)}`);
+  }
+  const paymentRangeClause =
+    paymentRangeParts.length > 0
+      ? sql` AND ${sql.join(paymentRangeParts, sql` AND `)}`
+      : sql``;
 
   const data = await db
     .select({
@@ -176,7 +207,7 @@ export async function getEventPerformance(params: EventPerformanceParams) {
 
       revenue: sql<string>`
         COALESCE((
-          SELECT COALESCE(SUM(${payments.amount}), 0)
+          SELECT COALESCE(SUM(${payments.subtotal}), 0)
           FROM ${payments}
           INNER JOIN ${ticketOrders} ON ${payments.orderId} = ${ticketOrders.id}
           WHERE ${payments.status} = 'Completed'
@@ -186,7 +217,7 @@ export async function getEventPerformance(params: EventPerformanceParams) {
               INNER JOIN ${eventTickets} ON ${ticketOrderItems.eventTicketId} = ${eventTickets.id}
               INNER JOIN ${tickets} ON ${eventTickets.ticketId} = ${tickets.id}
               WHERE ${tickets.eventId} = ${events.id}
-            )
+            )${paymentRangeClause}
         ), 0)
       `,
     })
@@ -197,7 +228,7 @@ export async function getEventPerformance(params: EventPerformanceParams) {
       ticketOrderItems,
       eq(eventTickets.id, ticketOrderItems.eventTicketId),
     )
-    .leftJoin(ticketOrders, and(eq(ticketOrderItems.orderId, ticketOrders.id), eq(ticketOrders.status, 'Completed')))
+    .leftJoin(ticketOrders, and(...orderJoins))
     .where(and(...filters))
     .groupBy(events.id)
     .limit(pageSize)

@@ -4,6 +4,8 @@ import Home from "@/pages/Home";
 import Login from "@/pages/Auth/Login";
 import SignUp from "@/pages/Auth/SignUp";
 import VerifyEmail from "@/pages/Auth/VerifyEmail";
+import ForgotPassword from "@/pages/Auth/ForgotPassword";
+import ResetPassword from "@/pages/Auth/ResetPassword";
 import ScrollToTop from "@/components/shared/ScrollToTop";
 import HomeLayout from "@/layout/HomeLayout";
 import AuthLayout from "@/layout/AuthLayout";
@@ -32,9 +34,10 @@ import PublicTicket from "@/pages/PublicTicket/PublicTicket";
 import AdminDashboard from "@/pages/Dashboard/Admin/AdminDashboard";
 import AdminOrganizers from "@/pages/Dashboard/Admin/AdminOrganizers";
 import AdminAnalytics from "@/pages/Dashboard/Admin/AdminAnalytics";
-import AdminPayouts from "@/pages/Dashboard/Admin/AdminPayouts";
+// import AdminPayouts from "@/pages/Dashboard/Admin/AdminPayouts";
 import AdminSettings from "@/pages/Dashboard/Admin/AdminSettings";
 import TicketOrderHistory from "@/pages/Attendee/TicketOrderHistory";
+import AccountSetupPasswordPage from "@/pages/Attendee/AccountSetupPassword";
 import SuccessPage from "@/pages/Checkout/Success";
 import CancelPage from "@/pages/Checkout/Cancel";
 
@@ -77,12 +80,23 @@ export default function RouterLayout() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route
+              path="/forgot-password"
+              element={<ForgotPassword />}
+            />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route
+              path="/account/setup-password"
+              element={<AccountSetupPasswordPage />}
+            />
           </Route>
 
           <Route
             element={
-              <ProtectedRoute allowedRoles={["attendee"]}>
-                <HomeLayout />
+              <ProtectedRoute
+                allowedRoles={["admin", "organizer", "event_staff", "attendee"]}
+              >
+                <DashboardLayout />
               </ProtectedRoute>
             }
           >
@@ -153,12 +167,12 @@ export default function RouterLayout() {
             <Route path="/admin/organizers" element={<AdminOrganizers />} />
             {/* <Route path="/admin/events" element={<AdminEvents />} /> */}
             <Route path="/admin/analytics" element={<AdminAnalytics />} />
-            <Route path="/admin/payouts" element={<AdminPayouts />} />
+            {/* <Route path="/admin/payouts" element={<AdminPayouts />} /> */}
 
             <Route path="/admin/settings" element={<AdminSettings />} />
           </Route>
         </Routes>
-        <Toaster position="bottom-right" />
+        <Toaster richColors position="top-right" />
       </Router>
     </motion.div>
   );

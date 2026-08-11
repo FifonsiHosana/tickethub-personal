@@ -58,6 +58,8 @@ export interface DashboardParams {
   upcomingPageSize?: number;
   topSellingPage?: number;
   topSellingPageSize?: number;
+  from?: string;
+  to?: string;
 }
 
 export async function getOrganizerDashboardData(

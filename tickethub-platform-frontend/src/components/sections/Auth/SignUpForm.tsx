@@ -46,8 +46,8 @@ const signupSchema = z
     email: z.email("Invalid email"),
     phoneNumber: z
       .string()
-      .min(10, "Phone number must not be less than 10 digits")
-      .regex(/^\+?[0-9]+$/, "Invalid phone number"),
+      .regex(/^\d+$/, { message: "Must contain only numbers" })
+      .min(10, "Phone number must not be less than 10 digits"),
     password: passwordSchema,
     role: z.string("Please select an account type."),
   })
@@ -87,6 +87,7 @@ export function SignUpForm() {
       password: "",
       role: inviteToken ? "event_staff" : "",
     },
+    mode: "onChange",
   });
 
   if (isSubmitting) return <Loader loading={isSubmitting} fullScreen />;
@@ -140,15 +141,13 @@ export function SignUpForm() {
             alt="TicketHub Logo"
           />
         </Link>
-        <div className="mx-auto flex w-full max-w-sm flex-col gap-6 mt-2">
+        <div className="mx-auto flex w-full max-w-sm flex-col gap-2 mt-2">
           <form onSubmit={handleSubmit(onSubmit)}>
             <FieldGroup>
               <div className="flex flex-col items-center gap-2 text-center mb-2">
                 <h1 className="text-3xl font-bold">Create your account</h1>
                 <p className="text-balance text-muted-foreground text-sm">
-                  {inviteToken
-                    ? "You've been invited as event staff"
-                    : "Join TicketHub"}
+                  {inviteToken && "You've been invited as event staff"}
                 </p>
               </div>
 
@@ -247,8 +246,12 @@ export function SignUpForm() {
                     <Input
                       id="phoneNumber"
                       type="tel"
-                      placeholder="020 XXX XXXX"
+                      inputMode="numeric"
+                      placeholder="020XXXXXXX"
                       {...field}
+                      onChange={(e) =>
+                        field.onChange(e.target.value.replace(/\D/g, ""))
+                      }
                     />
                   )}
                 />
@@ -279,7 +282,7 @@ export function SignUpForm() {
               <Field>
                 <Button
                   type="submit"
-                  className="w-full mt-2"
+                  className="w-full mt-2 rounded-full"
                   disabled={isPending}
                 >
                   {isPending ? "Creating account..." : "Sign Up"}

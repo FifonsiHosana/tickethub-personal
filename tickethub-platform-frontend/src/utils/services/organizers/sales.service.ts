@@ -13,28 +13,34 @@ export type GetOrganizerSalesParams = PaginationParams & {
   search?: string;
 };
 
+export type SaleEventBreakdown = {
+  eventId: number;
+  eventTitle: string;
+  ticketType: string;
+  ticketSummary: string;
+  totalTickets: number;
+  checkedInCount: number;
+};
+
+export type OrganizerSaleRow = {
+  paymentId: number;
+  orderId: number;
+  customerFirstName: string;
+  customerLastName: string;
+  customerEmail: string;
+  phoneNumber: string;
+  quantity: number;
+  amount: string;
+  currency: string;
+  provider: "hubtel" | "paystack" | string;
+  paymentStatus: "Completed" | "Failed";
+  reference: string;
+  purchasedAt: string | null;
+  events: SaleEventBreakdown[];
+};
+
 export type GetOrganizerSalesResponse = {
-  data: {
-    paymentId: number;
-    orderId: number;
-    customerFirstName: string;
-    customerLastName: string;
-    customerEmail: string;
-    phoneNumber: string;
-    eventId: number;
-    eventTitle: string;
-    ticketType: string;
-    ticketSummary: string;
-    quantity: number;
-    amount: string;
-    currency: string;
-    provider: "hubtel" | "paystack" | string;
-    paymentStatus: "Completed" | "Failed";
-    reference: string;
-    purchasedAt: string | null;
-    totalTickets: number;
-    checkedInCount: number;
-  }[];
+  data: OrganizerSaleRow[];
   pagination: {
     page: number;
     pageSize: number;
@@ -134,10 +140,13 @@ export async function getEventSales(
   return response.data.data;
 }
 
-export async function getSalesSummary(): Promise<GetSalesSummaryResponse> {
+export async function getSalesSummary(
+  from?: string,
+  to?: string,
+): Promise<GetSalesSummaryResponse> {
   const response = await axiosInstance.get<
     ApiResponse<GetSalesSummaryResponse>
-  >("/organizer/sales/summary");
+  >("/organizer/sales/summary", { params: { from, to } });
   return response.data.data;
 }
 
@@ -151,9 +160,12 @@ export async function getRevenueBreakdown(
   return response.data.data;
 }
 
-export async function getTicketSalesBreakdown(): Promise<GetTicketSalesBreakdownResponse> {
+export async function getTicketSalesBreakdown(
+  from?: string,
+  to?: string,
+): Promise<GetTicketSalesBreakdownResponse> {
   const response = await axiosInstance.get<
     ApiResponse<GetTicketSalesBreakdownResponse>
-  >("/organizer/sales/tickets");
+  >("/organizer/sales/tickets", { params: { from, to } });
   return response.data.data;
 }

@@ -1,3 +1,4 @@
+import { type DateRange } from '@/utils/dateRange.js';
 import {
   getTotalRevenue,
   getRevenueTrend,
@@ -16,6 +17,8 @@ export interface DashboardPaginationParams {
   upcomingPageSize?: number;
   topSellingPage?: number;
   topSellingPageSize?: number;
+  from?: string;
+  to?: string;
 }
 
 /**
@@ -29,13 +32,19 @@ export async function getOrganizerDashboard(
   const upcomingPageSize = params.upcomingPageSize ?? 5;
   const topSellingPage = params.topSellingPage ?? 1;
   const topSellingPageSize = params.topSellingPageSize ?? 5;
+  const range: DateRange = { from: params.from, to: params.to };
 
   const [statistics, upcomingEvents, recentSales, topSellingEvents] =
     await Promise.all([
-      getOrganizerStatistics(organizerId),
+      getOrganizerStatistics(organizerId, range),
       getUpcomingEvents(organizerId, upcomingPage, upcomingPageSize),
-      getRecentSales(organizerId),
-      getTopSellingEvents(organizerId, topSellingPage, topSellingPageSize),
+      getRecentSales(organizerId, 5, range),
+      getTopSellingEvents(
+        organizerId,
+        topSellingPage,
+        topSellingPageSize,
+        range,
+      ),
     ]);
 
   return {
@@ -51,7 +60,10 @@ export async function getOrganizerDashboard(
 /**
  * Dashboard statistic cards — composed from shared queries
  */
-async function getOrganizerStatistics(organizerId: number) {
+async function getOrganizerStatistics(
+  organizerId: number,
+  range?: DateRange,
+) {
   const [
     eventCounts,
     ticketsSold,
@@ -61,11 +73,11 @@ async function getOrganizerStatistics(organizerId: number) {
     conversion,
   ] = await Promise.all([
     getEventCountsByStatus(organizerId),
-    getTicketsSold(organizerId),
+    getTicketsSold(organizerId, range),
     getTicketsRemaining(organizerId),
-    getCheckInCount(organizerId),
-    getTotalRevenue(organizerId),
-    getConversionRate(organizerId),
+    getCheckInCount(organizerId, range),
+    getTotalRevenue(organizerId, range),
+    getConversionRate(organizerId, range),
   ]);
 
   return {

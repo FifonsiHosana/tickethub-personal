@@ -10,9 +10,9 @@ export const getSalesSchema = z.object({
 
   status: z.enum(['Completed', 'Failed']).optional(),
 
-  from: z.iso.datetime().optional(),
+  from: z.iso.date().or(z.iso.datetime()).optional(),
 
-  to: z.iso.datetime().optional(),
+  to: z.iso.date().or(z.iso.datetime()).optional(),
 
   search: z.string().trim().optional(),
 });

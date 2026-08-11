@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { useEvents, useCategories } from "@/hooks/attendees/events/useEvent";
-import { Loader } from "@/components/ui/loader";
 import { EventsFilterBar } from "./EventsFilterBar";
 import { EventsGrid } from "./EventsGrid";
 import { PaginationSect } from "@/components/shared/Pagination";
+import { EventsSkeleton } from "@/components/shared/EventsSkeleton";
 
 const PAGE_SIZE = 6;
 
@@ -39,7 +39,7 @@ export const EventsLists: React.FC = () => {
     setPage(1);
   };
 
-  if (isLoading) return <Loader loading={isLoading} fullScreen={true} />;
+  if (isLoading) return <EventsSkeleton pageSize={PAGE_SIZE} />;
 
   if (isError) {
     return (
@@ -79,7 +79,6 @@ export const EventsLists: React.FC = () => {
 
         {/* Pagination */}
         <PaginationSect
-          
           currentPage={currentPage}
           totalPages={totalPages}
           page={page}

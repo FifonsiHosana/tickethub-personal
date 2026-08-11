@@ -5,7 +5,7 @@ import { Link } from "react-router";
 
 export default function CancelPage() {
   return (
-    <div className="py-24 md:py-36 px-6 lg:px-12 max-w-7xl mx-auto h-screen flex items-center justify-center text-center">
+    <div className="py-16 md:py-24 px-6 lg:px-12 max-w-7xl mx-auto h-screen flex items-center justify-center text-center">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

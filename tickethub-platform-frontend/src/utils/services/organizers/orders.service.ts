@@ -8,7 +8,17 @@ export type PaginationParams = {
 export type GetOrganizerOrdersParams = PaginationParams & {
   eventId?: number;
   status?: "Pending" | "Completed";
+  from?: string;
+  to?: string;
   search?: string;
+};
+
+export type OrganizerOrderEventBreakdown = {
+  eventId: number;
+  eventTitle: string;
+  ticketType: string;
+  totalTickets: number;
+  checkedInCount: number;
 };
 
 export type OrganizerOrder = {
@@ -19,9 +29,6 @@ export type OrganizerOrder = {
   customerLastName: string;
   customerEmail: string;
   phoneNumber: string;
-  eventId: number;
-  eventTitle: string;
-  ticketType: string;
   quantity: number;
   amount: string;
   currency: string | null;
@@ -31,6 +38,7 @@ export type OrganizerOrder = {
   paidAt: string | null;
   totalTickets: number;
   checkedInCount: number;
+  events: OrganizerOrderEventBreakdown[];
 };
 
 export type GetOrganizerOrdersResponse = {

@@ -14,6 +14,7 @@ import organizerRoutes from '@/modules/organizer/organizer.routes.js';
 import attendeeRoutes from '@/modules/attendee/attendee.routes.js';
 import adminRoutes from '@/modules/admin/admin.routes.js';
 import mediaRoutes from '@/modules/media/media.routes.js';
+import settingsRoutes from '@/modules/settings/settings.routes.js';
 
 const app = express();
 
@@ -42,6 +43,7 @@ app.use('/api/organizer', organizerRoutes);
 app.use('/api/attendee', attendeeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/media', mediaRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // error handling)
 

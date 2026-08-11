@@ -31,8 +31,13 @@ export type OrganizerPerf = {
   totalTicketsSold: number;
 };
 
-export async function getAdminOverview(): Promise<AdminOverview> {
-  const response = await axiosInstance.get("admin/analytics/overview");
+export async function getAdminOverview(
+  from?: string,
+  to?: string,
+): Promise<AdminOverview> {
+  const response = await axiosInstance.get("admin/analytics/overview", {
+    params: { from, to },
+  });
   return response.data.data;
 }
 

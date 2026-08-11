@@ -1,4 +1,4 @@
-import { CircularProgress } from "react-loader-spinner";
+import { Oval } from "react-loader-spinner";
 
 interface LoaderProps {
   height?: string | number;
@@ -27,11 +27,12 @@ export const Loader = ({
           : "w-full h-full"
       } ${className}`}
     >
-      <CircularProgress
+      <Oval
         height={height}
         width={width}
         color={color}
         ariaLabel={ariaLabel}
+        secondaryColor="var(--primary)"
         // radius="1"
         visible={loading}
       />

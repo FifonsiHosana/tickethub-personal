@@ -19,10 +19,16 @@ import { navByRole, type Role } from "@/misc/dashboardData";
 import { assets } from "@/assets/assets";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { role, user } = useAuthStorage();
+  const { activeRole, roles, user } = useAuthStorage();
 
-  // Dynamically load nav items based on the user's role
-  const items = navByRole[role as Role] ?? [];
+  // Use the active role, or fall back to the user's first role.
+  const userRoles = roles as Role[];
+  const activeDashboardRole =
+    activeRole && userRoles.includes(activeRole)
+      ? activeRole
+      : userRoles[0];
+
+  const items = navByRole[activeDashboardRole as Role] ?? [];
 
   return (
     <Sidebar collapsible="icon" variant="inset" {...props}>
@@ -42,7 +48,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">TicketHub</span>
                     <span className="truncate text-xs capitalize">
-                      {role || "User"}
+                      {activeDashboardRole || "User"}
                     </span>
                   </div>
                 </div>

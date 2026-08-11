@@ -5,7 +5,8 @@ import config from '@/config/config.js';
 
 interface JwtPayload {
   id: number;
-  role: string;
+  role?: string;
+  roles?: string[];
 }
 
 export function authenticate(req: Request, res: Response, next: NextFunction) {
@@ -32,7 +33,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
 
     req.user = {
       id: decoded.id,
-      role: decoded.role,
+      roles: decoded.roles ?? (decoded.role ? [decoded.role] : []),
     };
 
     next();
@@ -68,7 +69,7 @@ export function optionalAuthenticate(
 
         req.user = {
           id: decoded.id,
-          role: decoded.role,
+          roles: decoded.roles ?? (decoded.role ? [decoded.role] : []),
         };
       }
     }

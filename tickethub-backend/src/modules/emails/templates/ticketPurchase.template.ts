@@ -1,4 +1,5 @@
 import { generateQrCodeBuffer } from '@/modules/tickets/tickets.utils.js';
+import config from '@/config/config.js';
 import type { SendMailOptions } from 'nodemailer';
 
 interface TicketItem {
@@ -15,6 +16,8 @@ interface TicketPurchaseEmailData {
   orderId: number;
   total: number;
   items: TicketItem[];
+  accountCreated?: boolean;
+  email?: string;
 }
 
 interface BuildResult {
@@ -42,6 +45,8 @@ export async function buildPurchaseConfirmationEmail({
   orderId,
   total,
   items,
+  accountCreated = false,
+  email,
 }: TicketPurchaseEmailData): Promise<BuildResult> {
   const attachments: NonNullable<SendMailOptions['attachments']> = [];
   const ticketBlocks = await Promise.all(
@@ -145,6 +150,43 @@ export async function buildPurchaseConfirmationEmail({
     }),
   );
 
+  const accountSection =
+    accountCreated && email
+      ? `
+<div style="
+  margin-top:32px;
+  padding:20px;
+  background:#f0fdf4;
+  border:1px solid #bbf7d0;
+  border-radius:8px;
+">
+<h3 style="margin-top:0;font-size:14px;color:#111827;">
+  Your TicketHub account
+</h3>
+<p style="margin:0 0 16px;line-height:1.7;color:#555;font-size:13px;">
+  While checking out as a guest, we created a TicketHub account for you with
+  this email address (<strong>${email}</strong>). Set a password to see your
+  ticket history and manage your orders anytime.
+</p>
+<a
+  href="${config.appUrl}/account/setup-password?email=${encodeURIComponent(email)}"
+  style="
+    display:inline-block;
+    padding:12px 24px;
+    background:#16a34a;
+    color:#ffffff;
+    text-decoration:none;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:600;
+  "
+>
+  Set Up Your Password
+</a>
+</div>
+`
+      : '';
+
   const html = `
 <!DOCTYPE html>
 <html>
@@ -214,6 +256,8 @@ ${ticketBlocks.join('')}
   <li>Do not share your QR code with others.</li>
 </ul>
 </div>
+
+${accountSection}
 
 <p style="margin-top:40px;font-size:13px;color:#777;">
   Need help? Contact our support team.

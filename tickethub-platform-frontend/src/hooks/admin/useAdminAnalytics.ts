@@ -7,10 +7,10 @@ import {
   getOrganizerPerformance,
 } from "@/utils/services/admin/analytics.service";
 
-export function useAdminOverview() {
+export function useAdminOverview(from?: string, to?: string) {
   return useQuery({
-    queryKey: ["admin-analytics-overview"],
-    queryFn: getAdminOverview,
+    queryKey: ["admin-analytics-overview", from, to],
+    queryFn: () => getAdminOverview(from, to),
   });
 }
 

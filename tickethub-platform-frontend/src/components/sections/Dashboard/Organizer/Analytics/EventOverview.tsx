@@ -4,11 +4,16 @@ import {
   useOverviewAnalytics,
   useEventPerformance,
 } from "@/hooks/organizers/useOrganizerAnalytics";
+import { useDashboardDateRange } from "@/components/shared/date/useDashboardDateRange";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EventPerformanceTable } from "./EventPerformanceTable";
 
 export default function EventOverview() {
-  const { data: overview } = useOverviewAnalytics();
+  const { range } = useDashboardDateRange();
+  const { data: overview } = useOverviewAnalytics(
+    range?.from ?? undefined,
+    range?.to ?? undefined,
+  );
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
 
@@ -16,6 +21,8 @@ export default function EventOverview() {
     page,
     pageSize: 10,
     search: search || undefined,
+    from: range?.from ?? undefined,
+    to: range?.to ?? undefined,
   });
 
   return (

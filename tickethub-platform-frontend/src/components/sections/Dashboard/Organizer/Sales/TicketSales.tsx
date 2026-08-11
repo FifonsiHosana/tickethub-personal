@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useOrganizerSales } from "@/hooks/organizers/useOrganizerSales";
+import { useDashboardDateRange } from "@/components/shared/date/useDashboardDateRange";
 import { SalesFilterBar } from "./SalesFilterBar";
 import { SalesTable } from "./SalesTable";
 import { PaginationSect } from "@/components/shared/Pagination";
@@ -8,6 +9,7 @@ export default function TicketSales() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<"Completed" | "Failed" | "All">("All");
+  const { range } = useDashboardDateRange();
 
   const {
     data: sales,
@@ -18,6 +20,8 @@ export default function TicketSales() {
     pageSize: 10,
     search: search || undefined,
     status: status === "All" ? undefined : status,
+    from: range?.from ?? undefined,
+    to: range?.to ?? undefined,
   });
 
   return (

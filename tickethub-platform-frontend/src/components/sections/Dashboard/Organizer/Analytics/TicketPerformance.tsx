@@ -1,11 +1,16 @@
 import { useState } from "react";
 import { TicketIcon } from "lucide-react";
 import { useOverviewAnalytics, useTicketPerformance } from "@/hooks/organizers/useOrganizerAnalytics";
+import { useDashboardDateRange } from "@/components/shared/date/useDashboardDateRange";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TicketPerformanceTable } from "./TicketPerformanceTable";
 
 export default function TicketPerformance() {
-  const { data: overview } = useOverviewAnalytics();
+  const { range } = useDashboardDateRange();
+  const { data: overview } = useOverviewAnalytics(
+    range?.from ?? undefined,
+    range?.to ?? undefined,
+  );
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
 
@@ -13,6 +18,8 @@ export default function TicketPerformance() {
     page,
     pageSize: 10,
     search: search || undefined,
+    from: range?.from ?? undefined,
+    to: range?.to ?? undefined,
   });
 
   return (

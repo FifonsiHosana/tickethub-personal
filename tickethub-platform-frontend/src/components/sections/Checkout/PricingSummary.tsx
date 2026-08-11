@@ -4,14 +4,16 @@ import { PaymentCTA } from "./PaymentCTA";
 
 interface PricingSummaryProps {
   subtotal: number;
+  feeAmount?: number;
   isProcessing: boolean;
 }
 
 export const PricingSummary: React.FC<PricingSummaryProps> = ({
   subtotal,
+  feeAmount = 0,
   isProcessing,
 }) => {
-  const total = subtotal;
+  const total = subtotal + feeAmount;
 
   return (
     <div className="bg-white rounded-4xl p-6 sm:p-8 border border-neutral-100 shadow-xl shadow-neutral-200/40 flex flex-col gap-6 ">
@@ -24,12 +26,12 @@ export const PricingSummary: React.FC<PricingSummaryProps> = ({
             GH₵ {subtotal.toFixed(2)}
           </span>
         </div>
-        {/* <div className="flex justify-between items-center text-neutral-500">
-          <span>Taxes & Fees</span>
+        <div className="flex justify-between items-center text-neutral-500">
+          <span>Processing Fee</span>
           <span className="font-medium text-foreground">
-            GH₵ {fees.toFixed(2)}
+            GH₵ {feeAmount.toFixed(2)}
           </span>
-        </div> */}
+        </div>
       </div>
 
       <div className="flex justify-between items-center">

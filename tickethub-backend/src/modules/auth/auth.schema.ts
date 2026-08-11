@@ -32,6 +32,19 @@ export const resendOtpSchema = z.object({
   email: z.email().transform((email) => email.toLowerCase()),
 });
 
+export const sendOtpSchema = z.object({
+  email: z.email().transform((email) => email.toLowerCase()),
+});
+
+export const completeRegisterSchema = z.object({
+  email: z.email().transform((email) => email.toLowerCase()),
+  otp: z.string().length(6).regex(/^\d+$/),
+  password: passwordSchema,
+  firstName: z.string().trim().min(2).max(100).optional(),
+  lastName: z.string().trim().min(2).max(100).optional(),
+  roleName: z.enum(['attendee', 'organizer']).optional(),
+});
+
 export const forgotPasswordSchema = z.object({
   email: z.email().transform((email) => email.toLowerCase()),
 });
@@ -43,3 +56,5 @@ export const resetPasswordSchema = z.object({
 
 export type CreateRegisterInput = z.infer<typeof registerSchema>;
 export type CreateLoginInput = z.infer<typeof loginSchema>;
+export type SendOtpInput = z.infer<typeof sendOtpSchema>;
+export type CompleteRegisterInput = z.infer<typeof completeRegisterSchema>;

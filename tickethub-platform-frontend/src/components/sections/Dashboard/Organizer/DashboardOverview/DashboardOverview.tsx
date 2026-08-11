@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useOrganizerDashboardData } from "@/hooks/organizers/useDashboardData";
+import { useDashboardDateRange } from "@/components/shared/date/useDashboardDateRange";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   BanknoteIcon,
@@ -17,12 +18,15 @@ export default function DashboardOverview() {
   const [upcomingPageSize, setUpcomingPageSize] = useState(5);
   const [topSellingPage, setTopSellingPage] = useState(1);
   const [topSellingPageSize, setTopSellingPageSize] = useState(5);
+  const { range } = useDashboardDateRange();
 
   const { data: dashboard, isLoading } = useOrganizerDashboardData({
     upcomingPage,
     upcomingPageSize,
     topSellingPage,
     topSellingPageSize,
+    from: range?.from ?? undefined,
+    to: range?.to ?? undefined,
   });
 
   if (isLoading) {

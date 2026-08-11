@@ -1,11 +1,16 @@
 import { useAdminOverview, useEventStats, useOrganizerPerformance } from "@/hooks/admin/useAdminAnalytics";
+import { useDashboardDateRange } from "@/components/shared/date/useDashboardDateRange";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { BanknoteIcon, CalendarIcon, PercentIcon, UsersIcon } from "lucide-react";
 
 export default function AdminAnalyticsSection() {
-  const { data: overview, isLoading: ovLoading } = useAdminOverview();
+  const { range } = useDashboardDateRange();
+  const { data: overview, isLoading: ovLoading } = useAdminOverview(
+    range?.from ?? undefined,
+    range?.to ?? undefined,
+  );
   const { data: stats, isLoading: stLoading } = useEventStats();
   const { data: perf, isLoading: perfLoading } = useOrganizerPerformance();
 

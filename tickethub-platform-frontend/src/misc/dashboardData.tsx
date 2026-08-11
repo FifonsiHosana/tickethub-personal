@@ -3,13 +3,13 @@ import {
   CalendarIcon,
   TicketIcon,
   BarChart3Icon,
+  HistoryIcon,
   ListChecksIcon,
   ShieldCheckIcon,
-  SettingsIcon,
-  WalletIcon,
+  // WalletIcon,
   LayoutDashboardIcon,
   UserCheckIcon,
-  BanknoteIcon,
+  SettingsIcon,
 } from "lucide-react";
 
 export type Role = "organizer" | "event_staff" | "admin" | "attendee";
@@ -23,6 +23,12 @@ export type NavItem = {
     title: string;
     url: string;
   }[];
+};
+
+const ticketOrderHistoryNavItem: NavItem = {
+  title: "Ticket Order History",
+  url: "/ticket-order-history",
+  icon: <HistoryIcon />,
 };
 
 const organizerNav: NavItem[] = [
@@ -65,11 +71,12 @@ const organizerNav: NavItem[] = [
       { title: "Ticket Performance", url: "/organizer/analytics/tickets" },
     ],
   },
-  {
-    title: "Payout Settings",
-    url: "/organizer/payout-settings",
-    icon: <BanknoteIcon />,
-  },
+  // {
+  //   title: "Payout Settings",
+  //   url: "/organizer/payout-settings",
+  //   icon: <BanknoteIcon />,
+  // },
+  ticketOrderHistoryNavItem,
 ];
 
 const eventStaffNav: NavItem[] = [
@@ -79,6 +86,7 @@ const eventStaffNav: NavItem[] = [
     icon: <ListChecksIcon />,
     isActive: true,
   },
+  ticketOrderHistoryNavItem,
 ];
 
 const platformAdminNav: NavItem[] = [
@@ -99,21 +107,24 @@ const platformAdminNav: NavItem[] = [
     icon: <BarChart3Icon />,
   },
 
-  {
-    title: "Payouts & Settlements",
-    url: "/admin/payouts",
-    icon: <WalletIcon />,
-  },
+  // {
+  //   title: "Payouts & Settlements",
+  //   url: "/admin/payouts",
+  //   icon: <WalletIcon />,
+  // },
   {
     title: "Platform Settings",
     url: "/admin/settings",
     icon: <SettingsIcon />,
   },
+  ticketOrderHistoryNavItem,
 ];
+
+const attendeeNav: NavItem[] = [ticketOrderHistoryNavItem];
 
 export const navByRole: Record<Role, NavItem[]> = {
   organizer: organizerNav,
   event_staff: eventStaffNav,
   admin: platformAdminNav,
-  attendee: [],
+  attendee: attendeeNav,
 };

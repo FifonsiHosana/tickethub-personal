@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSalesSummary } from "@/hooks/organizers/useOrganizerSales";
+import { useDashboardDateRange } from "@/components/shared/date/useDashboardDateRange";
 import {
   BanknoteIcon,
   CreditCardIcon,
@@ -8,7 +9,11 @@ import {
 } from "lucide-react";
 
 export const AnalyticsSummaryCards = () => {
-  const { data: summary } = useSalesSummary();
+  const { range } = useDashboardDateRange();
+  const { data: summary } = useSalesSummary(
+    range?.from ?? undefined,
+    range?.to ?? undefined,
+  );
 
   const stats = summary || {
     totalRevenue: 0,

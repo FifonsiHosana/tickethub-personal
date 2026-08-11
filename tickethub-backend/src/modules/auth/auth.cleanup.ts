@@ -1,4 +1,4 @@
-import { and, lt, inArray, eq } from 'drizzle-orm';
+import { and, lt, inArray, eq, isNotNull } from 'drizzle-orm';
 
 import { db } from '@/db/client.js';
 import { users, userRoles, otpVerifications, eventStaff } from '@/db/schema/index.js';
@@ -24,7 +24,13 @@ export async function cleanupUnverifiedUsers(): Promise<number> {
   const staleUsers = await db
     .select({ id: users.id })
     .from(users)
-    .where(and(eq(users.isVerified, false), lt(users.createdAt, cutoff)));
+    .where(
+      and(
+        eq(users.isVerified, false),
+        isNotNull(users.passwordHash),
+        lt(users.createdAt, cutoff),
+      ),
+    );
 
   const ids = staleUsers.map((user) => user.id);
 

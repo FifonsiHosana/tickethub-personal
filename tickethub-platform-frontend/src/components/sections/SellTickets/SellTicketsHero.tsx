@@ -5,10 +5,9 @@ export const SellTicketsHero: React.FC = () => {
   return (
     <section
       style={{
-        backgroundSize: "center",
         backgroundImage: `url("https://cdn.ayatickets.com/uploads/homepage/marquee/69983f4d91e91919206595.webp")`,
       }}
-      className="relative min-h-screen flex flex-col w-full text-white overflow-hidden"
+      className="relative min-h-screen bg-center lg:bg-top flex flex-col w-full text-white overflow-hidden"
     >
       {/* Bottom Gradient Overlay */}
       <div className="absolute bottom-0 left-0 right-0 h-3/4 bg-linear-to-t from-black/95 via-black/60 to-transparent z-10 pointer-events-none"></div>

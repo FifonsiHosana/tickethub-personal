@@ -1,20 +1,17 @@
-import { useMemo } from "react";
-import { subDays, format } from "date-fns";
 import { BanknoteIcon, TrendingUpIcon } from "lucide-react";
 import { useOverviewAnalytics } from "@/hooks/organizers/useOrganizerAnalytics";
+import { useDashboardDateRange } from "@/components/shared/date/useDashboardDateRange";
+import { chartRange } from "@/utils/dateRanges";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RevenueChart } from "./RevenueChart";
 
 export default function RevenueAndPayouts() {
-  const { data: overview } = useOverviewAnalytics();
-
-  const { from, to } = useMemo(() => {
-    const today = new Date();
-    return {
-      from: format(subDays(today, 30), "yyyy-MM-dd"),
-      to: format(today, "yyyy-MM-dd"),
-    };
-  }, []);
+  const { range } = useDashboardDateRange();
+  const { data: overview } = useOverviewAnalytics(
+    range?.from ?? undefined,
+    range?.to ?? undefined,
+  );
+  const { from, to } = chartRange(range);
 
   return (
     <div className="flex-1 space-y-6 p-1 bg-card min-h-screen">

@@ -4,10 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
 const checkoutSchema = z.object({
-  firstName: z.string().min(2, "First name is required"),
-  lastName: z.string().min(2, "Last name is required"),
+  firstName: z.string().trim().min(2, "First name is required"),
+  lastName: z.string().trim().min(2, "Last name is required").nonempty(),
   email: z.email("Invalid email address"),
-  phone: z.string().min(10, "Valid phone number is required"),
+  phone: z.string().trim().min(10, "Valid phone number is required"),
 });
 
 export type CheckoutFormData = z.infer<typeof checkoutSchema>;
@@ -24,6 +24,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSubmit }) => {
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: { firstName: "", lastName: "", email: "", phone: "" },
+    mode: "onChange",
   });
 
   return (
