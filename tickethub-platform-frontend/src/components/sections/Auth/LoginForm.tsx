@@ -23,8 +23,8 @@ import { decodeToken } from "@/utils/token";
 import type { Role } from "@/misc/dashboardData";
 
 const loginSchema = z.object({
-  email: z.email().nonempty(),
-  password: z.string().nonempty({ error: "Field Cannot be empty" }),
+  email: z.email("Invalid email").nonempty("The email field can't be empty"),
+  password: z.string().nonempty({ error: "Password Cannot be empty" }),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
