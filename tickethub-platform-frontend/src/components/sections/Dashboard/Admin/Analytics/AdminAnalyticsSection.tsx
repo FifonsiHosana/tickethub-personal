@@ -24,9 +24,9 @@ export default function AdminAnalyticsSection() {
   ];
 
   return (
-    <div className="space-y-3 p-1">
+    <div className="flex-1 min-w-0 space-y-3 p-1">
       <h1 className="text-xl font-bold">Platform Analytics</h1>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {summaryCards.map((card) => {
           const Icon = card.icon;
           return (

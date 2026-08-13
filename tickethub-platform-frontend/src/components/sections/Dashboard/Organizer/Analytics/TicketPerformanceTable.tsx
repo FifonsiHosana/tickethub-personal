@@ -42,14 +42,14 @@ export const TicketPerformanceTable = ({
   return (
     <Card className="shadow-sm">
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex lg:flex-row lg:items-center lg:justify-between flex-col items-start gap-2">
           <div>
             <CardTitle>Ticket Tier Analytics</CardTitle>
             <CardDescription>
               Breakdown of sales volume and revenue by ticket type
             </CardDescription>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col items-start lg:flex-row lg:items-center gap-3">
             <div className="relative w-56">
               <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input

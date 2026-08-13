@@ -63,13 +63,14 @@ const organizerNav: NavItem[] = [
   },
   {
     title: "Analytics",
-    url: "/organizer/analytics/events",
+    url: "/organizer/analytics/overview",
     icon: <BarChart3Icon />,
-    items: [
-      { title: "Event Performance", url: "/organizer/analytics/events" },
-      { title: "Revenue & Payouts", url: "/organizer/analytics/revenue" },
-      { title: "Ticket Performance", url: "/organizer/analytics/tickets" },
-    ],
+    // items: [
+    //   { title: "Analytics Overview", url: "/organizer/analytics/overview" },
+    //   // { title: "Event Performance", url: "/organizer/analytics/events" },
+    //   // { title: "Revenue & Payouts", url: "/organizer/analytics/revenue" },
+    //   // { title: "Ticket Performance", url: "/organizer/analytics/tickets" },
+    // ],
   },
   // {
   //   title: "Payout Settings",

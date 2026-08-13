@@ -29,19 +29,21 @@ export default function EventsDashboard() {
     <div className="flex-1 space-y-3 p-1 min-h-screen">
       <DashboardStatistics statistics={dashboardData?.statistics} />
 
-      <EventsTable
-        events={events}
-        isLoading={isEventsLoading}
-        isError={isEventsError}
-        search={search}
-        onSearchChange={(val) => {
-          setSearch(val);
-          setPage(1);
-        }}
-        page={page}
-        onPageChange={setPage}
-        pagination={pagination}
-      />
+      <div className="grid">
+        <EventsTable
+          events={events}
+          isLoading={isEventsLoading}
+          isError={isEventsError}
+          search={search}
+          onSearchChange={(val) => {
+            setSearch(val);
+            setPage(1);
+          }}
+          page={page}
+          onPageChange={setPage}
+          pagination={pagination}
+        />
+      </div>
     </div>
   );
 }

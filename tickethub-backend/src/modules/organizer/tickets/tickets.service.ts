@@ -13,6 +13,7 @@ import type {
   UpdateTicketType,
   CreateTicketTypeType,
 } from './tickets.schema.js';
+import { formatDateForMySQL } from '@/utils/timeDatehelpers.js';
 
 /**
  * Get all ticket types
@@ -127,7 +128,10 @@ export async function createOrganizerTicket(
 
       ticketTypeId = type.id;
     } else {
-      throw new AppError(400, 'Either ticketTypeId or ticketTypeName is required');
+      throw new AppError(
+        400,
+        'Either ticketTypeId or ticketTypeName is required',
+      );
     }
 
     // 3. Create Ticket
@@ -217,7 +221,10 @@ export async function updateOrganizerTicket(
   const updateValues: Record<string, unknown> = {};
 
   if (data.name !== undefined) {
-    await db.update(tickets).set({ name: data.name }).where(eq(tickets.id, ticketId));
+    await db
+      .update(tickets)
+      .set({ name: data.name })
+      .where(eq(tickets.id, ticketId));
   }
 
   if (data.price !== undefined) {
@@ -236,11 +243,13 @@ export async function updateOrganizerTicket(
   }
 
   if (data.salesStartDate !== undefined) {
-    updateValues.salesStartDate = data.salesStartDate;
+    updateValues.salesStartDate = formatDateForMySQL(
+      new Date(data.salesStartDate),
+    );
   }
 
   if (data.salesEndDate !== undefined) {
-    updateValues.salesEndDate = data.salesEndDate;
+    updateValues.salesEndDate = formatDateForMySQL(new Date(data.salesEndDate));
   }
 
   if (data.benefits !== undefined) {

@@ -18,7 +18,7 @@ export default function TicketOrderHistoryPage() {
   const pagination = orderHistory?.pagination;
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6">
+    <div className="flex-1 min-w-0 w-full px-4 py-6 sm:px-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Ticket Order History

@@ -61,26 +61,36 @@ export async function getConversionRate(
 /**
  * Sales summary card data
  */
-export async function getSalesSummary(organizerId: number, range?: DateRange) {
+export async function getSalesSummary(
+  organizerId: number,
+  range?: DateRange,
+  filters?: { eventId?: number | undefined; ticketId?: number | undefined },
+) {
+  const orderScopes = [eq(events.organizerId, organizerId)];
+
+  if (filters?.eventId) {
+    orderScopes.push(eq(events.id, filters.eventId));
+  }
+
+  if (filters?.ticketId) {
+    orderScopes.push(eq(tickets.id, filters.ticketId));
+  }
+
+  const orderScope = db
+    .select({ id: ticketOrders.id })
+    .from(ticketOrders)
+    .innerJoin(
+      ticketOrderItems,
+      eq(ticketOrderItems.orderId, ticketOrders.id),
+    )
+    .innerJoin(eventTickets, eq(ticketOrderItems.eventTicketId, eventTickets.id))
+    .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
+    .innerJoin(events, eq(tickets.eventId, events.id))
+    .where(and(...orderScopes));
+
   const paymentFilters: any[] = [
     eq(payments.status, 'Completed'),
-    inArray(
-      ticketOrders.id,
-      db
-        .select({ id: ticketOrders.id })
-        .from(ticketOrders)
-        .innerJoin(
-          ticketOrderItems,
-          eq(ticketOrderItems.orderId, ticketOrders.id),
-        )
-        .innerJoin(
-          eventTickets,
-          eq(ticketOrderItems.eventTicketId, eventTickets.id),
-        )
-        .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
-        .innerJoin(events, eq(tickets.eventId, events.id))
-        .where(eq(events.organizerId, organizerId)),
-    ),
+    inArray(ticketOrders.id, orderScope),
   ];
   applyDateRange(paymentFilters, payments.paidAt, range);
 
@@ -97,7 +107,7 @@ export async function getSalesSummary(organizerId: number, range?: DateRange) {
     .innerJoin(ticketOrders, eq(payments.orderId, ticketOrders.id))
     .where(and(...paymentFilters));
 
-  const ticketFilters: any[] = [eq(events.organizerId, organizerId)];
+  const ticketFilters: any[] = [...orderScopes];
   applyDateRange(ticketFilters, ticketOrders.createdAt, range);
 
   const [ticketsSoldResult] = await db
@@ -110,6 +120,7 @@ export async function getSalesSummary(organizerId: number, range?: DateRange) {
       eventTickets,
       eq(ticketOrderItems.eventTicketId, eventTickets.id),
     )
+    .innerJoin(payments, eq(ticketOrderItems.orderId, payments.orderId))
     .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
     .innerJoin(events, eq(tickets.eventId, events.id))
     .where(and(...ticketFilters));

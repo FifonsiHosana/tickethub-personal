@@ -31,12 +31,24 @@ export async function getRevenueTrendController(
   res: Response,
   next: NextFunction,
 ) {
-  const { from, to } = req.query;
+  const { from, to, eventId, ticketId } = req.query as {
+    from?: string;
+    to?: string;
+    eventId?: string;
+    ticketId?: string;
+  };
   try {
-    const data = await getRevenueTrend(req.user.id, {
-      from,
-      to,
-    });
+    const data = await getRevenueTrend(
+      req.user.id,
+      {
+        from,
+        to,
+      },
+      {
+        eventId: eventId ? Number(eventId) : undefined,
+        ticketId: ticketId ? Number(ticketId) : undefined,
+      },
+    );
 
     res.status(200).json({
       success: true,

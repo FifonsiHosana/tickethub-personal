@@ -42,8 +42,8 @@ export default function AdminDashboardSection() {
   ];
 
   return (
-    <div className="space-y-3 p-1">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+    <div className="flex-1 min-w-0 space-y-3 p-1">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {cards.map((card) => {
           const Icon = card.icon;
           return (

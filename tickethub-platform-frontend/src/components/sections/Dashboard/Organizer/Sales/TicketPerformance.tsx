@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import {
   Card,
   CardContent,
-  CardDescription,
+  // CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -20,11 +20,20 @@ import {
 export const TicketPerformanceChart = ({
   from,
   to,
+  eventId,
+  ticketId,
 }: {
   from?: string;
   to?: string;
+  eventId?: number;
+  ticketId?: number;
 }) => {
-  const { data, isLoading } = useTicketSalesBreakdown(from, to);
+  const { data, isLoading } = useTicketSalesBreakdown({
+    from,
+    to,
+    eventId,
+    ticketId,
+  });
 
   const formattedData = useMemo(() => {
     if (!data) return [];
@@ -33,18 +42,18 @@ export const TicketPerformanceChart = ({
   }, [data]);
 
   return (
-    <Card className="col-span-1 lg:col-span-5 shadow-sm">
+    <Card className="col-span-1 lg:col-span-5 shadow-sm h-full">
       <CardHeader>
         <CardTitle>Sales by Ticket Tier</CardTitle>
-        <CardDescription>Volume of tickets sold per category</CardDescription>
+        {/* <CardDescription>Volume of tickets sold per category</CardDescription> */}
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="h-87.5 flex items-center justify-center text-muted-foreground">
+          <div className="h-36 flex items-center justify-center text-muted-foreground">
             Loading chart...
           </div>
         ) : (
-          <div className="h-87.5 w-full">
+          <div className="h-36 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={formattedData}
@@ -63,7 +72,7 @@ export const TicketPerformanceChart = ({
                   type="category"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fontSize: 12, fill: "#1a201c", fontWeight: 500 }}
+                  tick={{ fontSize: 12, fill: "var(--muted-foreground)", fontWeight: 500 }}
                   width={90}
                 />
                 <Tooltip

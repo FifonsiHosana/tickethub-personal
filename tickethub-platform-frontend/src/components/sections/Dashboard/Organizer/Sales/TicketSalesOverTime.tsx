@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -22,18 +21,25 @@ import { Loader2Icon } from "lucide-react";
 export const TicketSalesOverTime = ({
   from,
   to,
+  eventId,
+  ticketId,
 }: {
   from: string;
   to: string;
+  eventId?: number;
+  ticketId?: number;
 }) => {
-  const { data, isLoading } = useRevenueBreakdown(from, to);
+  const {
+    data,
+    isLoading,
+  } = useRevenueBreakdown(from, to, { eventId, ticketId });
 
   const chartData = useMemo(() => {
     if (!data) return [];
     return data.map((item) => ({
       ...item,
       displayDate: format(parseISO(item.date), "MMM dd"),
-      sales: Number(item.transactions),
+      sales: Number(item.ticketsSold ?? 0),
     }));
   }, [data]);
 
@@ -41,17 +47,15 @@ export const TicketSalesOverTime = ({
     <Card className="col-span-1 lg:col-span-7 shadow-sm">
       <CardHeader>
         <CardTitle>Ticket Sales Over Time</CardTitle>
-        <CardDescription>
-          Daily transaction volume over the selected period
-        </CardDescription>
+      
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="h-87.5 flex items-center justify-center text-muted-foreground">
+          <div className="h-44 flex items-center justify-center text-muted-foreground">
             <Loader2Icon className="h-8 w-8 animate-spin" />
           </div>
         ) : (
-          <div className="h-87.5 w-full">
+          <div className="h-44 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={chartData}
@@ -83,7 +87,7 @@ export const TicketSalesOverTime = ({
                     boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                   }}
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  formatter={(value: any) => [`${value} transactions`, "Sales"]}
+                  formatter={(value: any) => [`${value} tickets`, "Sold"]}
                   labelStyle={{
                     color: "#1a201c",
                     fontWeight: "bold",

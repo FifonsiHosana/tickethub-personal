@@ -25,7 +25,7 @@ export default function Attendees() {
   }, [queryClient, eventId]);
 
   return (
-    <div className="flex-1 space-y-6 p-1">
+    <div className="flex-1 min-w-0 space-y-6 p-1">
       <div>
         <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
           Attendees
@@ -35,46 +35,48 @@ export default function Attendees() {
         </p>
       </div>
 
-      <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-        <EventSelectDropdown
-          value={eventId}
-          onChange={(val) => {
-            setEventId(val);
-            setPage(1);
-          }}
-        />
-        {eventId && (
-          <Button
-            onClick={() => setScannerOpen(true)}
-            className="bg-primary text-white hover:bg-primary/60"
-          >
-            <ScanIcon className="h-4 w-4" />
-            Start Scanner
-          </Button>
-        )}
-      </div>
-
-      {!eventId && (
-        <div className="flex flex-col bg-card text-center rounded border border-border items-center justify-center py-32">
-          <Calendars className="h-10 w-10 text-muted-foreground mb-3" />
-          <h3 className="text-lg font-semibold">Kindly select an event</h3>
+      <div className="flex-1 min-w-0 space-y-2">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+          <EventSelectDropdown
+            value={eventId}
+            onChange={(val) => {
+              setEventId(val);
+              setPage(1);
+            }}
+          />
+          {eventId && (
+            <Button
+              onClick={() => setScannerOpen(true)}
+              className="bg-primary text-white hover:bg-primary/60"
+            >
+              <ScanIcon className="h-4 w-4" />
+              Start Scanner
+            </Button>
+          )}
         </div>
-      )}
 
-      {eventId && (
-        <AttendeesTable
-          data={data}
-          isLoading={isLoading}
-          page={page}
-          onPageChange={setPage}
+        {!eventId && (
+          <div className="flex flex-col bg-card text-center rounded border border-border items-center justify-center py-32">
+            <Calendars className="h-10 w-10 text-muted-foreground mb-3" />
+            <h3 className="text-lg font-semibold">Kindly select an event</h3>
+          </div>
+        )}
+
+        {eventId && (
+          <AttendeesTable
+            data={data}
+            isLoading={isLoading}
+            page={page}
+            onPageChange={setPage}
+          />
+        )}
+
+        <ScannerDialog
+          open={scannerOpen}
+          onOpenChange={setScannerOpen}
+          onScanned={handleScanned}
         />
-      )}
-
-      <ScannerDialog
-        open={scannerOpen}
-        onOpenChange={setScannerOpen}
-        onScanned={handleScanned}
-      />
+      </div>
     </div>
   );
 }

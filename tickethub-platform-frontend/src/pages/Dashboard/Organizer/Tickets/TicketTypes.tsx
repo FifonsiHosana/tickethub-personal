@@ -49,12 +49,14 @@ export default function TicketTypes() {
       )}
 
       {eventId && (
-        <TicketTypesTable
+        <div className="grid">
+          <TicketTypesTable
           tickets={tickets}
           isLoading={isLoading}
           onEdit={setEditingTicket}
           onDelete={setDeletingTicket}
         />
+        </div>
       )}
 
       <TicketFormDialog

@@ -31,7 +31,7 @@ export default function AdminOrganizersSection() {
   };
 
   return (
-    <div className="space-y-3 p-1">
+    <div className="flex-1 min-w-0 space-y-3 p-1">
       <h1 className="text-xl font-bold">Organizer Management</h1>
       <Tabs value={tab} onValueChange={(v) => { setTab(v); setVqPage(1); }}>
         <TabsList>

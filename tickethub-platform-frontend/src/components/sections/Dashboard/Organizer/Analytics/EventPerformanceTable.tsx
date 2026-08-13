@@ -43,14 +43,14 @@ export const EventPerformanceTable = ({
   return (
     <Card className="shadow-sm">
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col items-start  lg:flex-row lg:items-center lg:justify-between gap-2">
           <div>
             <CardTitle>Event Occupancy & Revenue</CardTitle>
             <CardDescription>
               Track the health and fill rate of your individual events
             </CardDescription>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col items-start lg:flex-row lg:items-center gap-3">
             <div className="relative w-56">
               <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
@@ -135,7 +135,12 @@ export const EventPerformanceTable = ({
             </div>
 
             {pagination && pagination.totalPages > 1 && (
-              <PaginationSect page={page} currentPage={page} totalPages={pagination.totalPages} setPage={onPageChange} />
+              <PaginationSect
+                page={page}
+                currentPage={page}
+                totalPages={pagination.totalPages}
+                setPage={onPageChange}
+              />
             )}
           </>
         )}

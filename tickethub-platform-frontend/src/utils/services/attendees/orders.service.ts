@@ -5,6 +5,16 @@ export interface OrderHistoryParams {
   pageSize?: number;
 }
 
+export type OrderHistoryEventBreakdown = {
+  eventId: number;
+  eventTitle: string;
+  eventDate: string | null;
+  ticketSummary: string;
+  ticketType: string;
+  totalTickets: number;
+  checkedInCount: number;
+};
+
 export type OrderHistoryOrder = {
   orderId: number;
   status: "Pending" | "Completed";
@@ -13,11 +23,6 @@ export type OrderHistoryOrder = {
   customerFirstName: string;
   customerLastName: string;
   customerEmail: string;
-  eventId: number;
-  eventTitle: string;
-  eventDate: string;
-  ticketSummary: string;
-  ticketType: string;
   totalTickets: number;
   checkedInCount: number;
   amount: string | null;
@@ -26,6 +31,7 @@ export type OrderHistoryOrder = {
   paymentStatus: "Completed" | "Failed" | null;
   reference: string | null;
   paidAt: string | null;
+  events: OrderHistoryEventBreakdown[];
 };
 
 export type OrderHistoryResponse = {

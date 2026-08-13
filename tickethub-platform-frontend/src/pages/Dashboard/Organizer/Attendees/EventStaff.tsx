@@ -5,13 +5,21 @@ import { LinkIcon, Calendars, CopyIcon, UserPlusIcon } from "lucide-react";
 import EventSelectDropdown from "@/components/sections/Dashboard/Organizer/Shared/EventSelectDropdown";
 import StaffTable from "@/components/sections/Dashboard/Organizer/Attendees/StaffTable";
 import AssignStaffDialog from "@/components/sections/Dashboard/Organizer/Attendees/AssignStaffDialog";
-import { useEventStaff, useGenerateStaffInvite } from "@/hooks/organizers/useOrganizerStaff";
+import {
+  useEventStaff,
+  useGenerateStaffInvite,
+} from "@/hooks/organizers/useOrganizerStaff";
 
 export default function EventStaff() {
   const [eventId, setEventId] = useState<string>("");
   const [assignOpen, setAssignOpen] = useState(false);
-  const { data: staff = [], isLoading, refetch } = useEventStaff(eventId ? Number(eventId) : null);
-  const { mutateAsync: generateInvite, isPending: isGenerating } = useGenerateStaffInvite();
+  const {
+    data: staff = [],
+    isLoading,
+    refetch,
+  } = useEventStaff(eventId ? Number(eventId) : null);
+  const { mutateAsync: generateInvite, isPending: isGenerating } =
+    useGenerateStaffInvite();
 
   async function handleGenerateInvite() {
     if (!eventId) return;
@@ -25,7 +33,7 @@ export default function EventStaff() {
   }
 
   return (
-    <div className="flex-1 space-y-6 p-1">
+    <div className="flex-1 min-w-0 space-y-6 p-1">
       <div>
         <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
           Event Staff
@@ -35,53 +43,52 @@ export default function EventStaff() {
         </p>
       </div>
 
-      <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-        <EventSelectDropdown
-          value={eventId}
-          onChange={(val) => setEventId(val)}
-        />
+      <div className="flex-1 min-w-0 space-y-1">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+          <EventSelectDropdown
+            value={eventId}
+            onChange={(val) => setEventId(val)}
+          />
+          {eventId && (
+            <>
+              <Button
+                onClick={handleGenerateInvite}
+                disabled={isGenerating}
+                className="bg-primary text-white hover:bg-primary/60"
+              >
+                {isGenerating ? (
+                  <CopyIcon className="h-4 w-4 mr-1" />
+                ) : (
+                  <LinkIcon className="h-4 w-4 mr-1" />
+                )}
+                {isGenerating ? "Generating..." : "Generate Invite Link"}
+              </Button>
+              <Button onClick={() => setAssignOpen(true)} variant="outline">
+                <UserPlusIcon className="h-4 w-4 mr-1" />
+                <span className="hidden lg:block">Assign Staff</span>{" "}
+              </Button>
+            </>
+          )}
+        </div>
+
+        {!eventId && (
+          <div className="flex flex-col bg-card text-center rounded border border-border items-center justify-center py-32">
+            <Calendars className="h-10 w-10 text-muted-foreground mb-3" />
+            <h3 className="text-lg font-semibold">Kindly select an event</h3>
+          </div>
+        )}
+
+        {eventId && <StaffTable data={staff} isLoading={isLoading} />}
+
         {eventId && (
-          <>
-            <Button
-              onClick={handleGenerateInvite}
-              disabled={isGenerating}
-              className="bg-primary text-white hover:bg-primary/60"
-            >
-              {isGenerating ? (
-                <CopyIcon className="h-4 w-4 mr-1" />
-              ) : (
-                <LinkIcon className="h-4 w-4 mr-1" />
-              )}
-              {isGenerating ? "Generating..." : "Generate Invite Link"}
-            </Button>
-            <Button
-              onClick={() => setAssignOpen(true)}
-              variant="outline"
-            >
-              <UserPlusIcon className="h-4 w-4 mr-1" />
-              Assign Staff
-            </Button>
-          </>
+          <AssignStaffDialog
+            open={assignOpen}
+            onOpenChange={setAssignOpen}
+            eventId={Number(eventId)}
+            onSuccess={() => refetch()}
+          />
         )}
       </div>
-
-      {!eventId && (
-        <div className="flex flex-col bg-card text-center rounded border border-border items-center justify-center py-32">
-          <Calendars className="h-10 w-10 text-muted-foreground mb-3" />
-          <h3 className="text-lg font-semibold">Kindly select an event</h3>
-        </div>
-      )}
-
-      {eventId && <StaffTable data={staff} isLoading={isLoading} />}
-
-      {eventId && (
-        <AssignStaffDialog
-          open={assignOpen}
-          onOpenChange={setAssignOpen}
-          eventId={Number(eventId)}
-          onSuccess={() => refetch()}
-        />
-      )}
     </div>
   );
 }

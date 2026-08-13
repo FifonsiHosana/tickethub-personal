@@ -90,7 +90,7 @@ export default function CreateEvent() {
           onSubmit={form.handleSubmit(onSubmit)}
           className="flex-1 overflow-y-auto"
         >
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 p-2">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 p-2">
             <div className="space-y-4 md:col-span-2">
               <Card>
                 <CardContent className="pt-4">

@@ -419,8 +419,12 @@ export async function getEventSales(organizerId: number, eventId: number) {
  * - failed payments
  * - tickets sold
  */
-export async function getSalesSummary(organizerId: number, range?: DateRange) {
-  return getSharedSalesSummary(organizerId, range);
+export async function getSalesSummary(
+  organizerId: number,
+  range?: DateRange,
+  filters?: { eventId?: number | undefined; ticketId?: number | undefined },
+) {
+  return getSharedSalesSummary(organizerId, range, filters);
 }
 
 /**
@@ -430,8 +434,9 @@ export async function getRevenueBreakdown(
   organizerId: number,
   from: string,
   to: string,
+  filters?: { eventId?: number | undefined; ticketId?: number | undefined },
 ) {
-  return getRevenueTrend(organizerId, { from, to });
+  return getRevenueTrend(organizerId, { from, to }, filters);
 }
 
 /**
@@ -440,6 +445,7 @@ export async function getRevenueBreakdown(
 export async function getTicketSalesBreakdown(
   organizerId: number,
   range?: DateRange,
+  filters?: { eventId?: number | undefined; ticketId?: number | undefined },
 ) {
-  return getSharedTicketSalesBreakdown(organizerId, range);
+  return getSharedTicketSalesBreakdown(organizerId, range, filters);
 }

@@ -26,7 +26,7 @@ export default function EventOverview() {
   });
 
   return (
-    <div className="flex-1 space-y-6 p-1 bg-card min-h-screen">
+    <div className="flex-1 min-w-0 space-y-6 p-2 min-h-screen">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
         <Card className="shadow-sm md:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between pb-2">

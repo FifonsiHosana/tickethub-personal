@@ -35,10 +35,7 @@ export default function DashboardOverview() {
         <div className="h-8 w-48 bg-muted animate-pulse rounded" />
         <div className="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-28 bg-muted animate-pulse rounded-xl"
-            />
+            <div key={i} className="h-28 bg-muted animate-pulse rounded-xl" />
           ))}
         </div>
       </div>
@@ -104,29 +101,29 @@ export default function DashboardOverview() {
                 <Icon className="h-4 w-4" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
-                  {card.value}
-                </div>
+                <div className="text-2xl font-bold">{card.value}</div>
               </CardContent>
             </Card>
           );
         })}
-      </div>
 
-      <OverviewTabs
-        upcomingEvents={dashboard?.upcomingEvents ?? []}
-        upcomingPagination={dashboard?.upcomingPagination}
-        upcomingPage={upcomingPage}
-        setUpcomingPage={setUpcomingPage}
-        upcomingPageSize={upcomingPageSize}
-        setUpcomingPageSize={setUpcomingPageSize}
-        topSellingEvents={dashboard?.topSellingEvents ?? []}
-        topSellingPagination={dashboard?.topSellingPagination}
-        topSellingPage={topSellingPage}
-        setTopSellingPage={setTopSellingPage}
-        topSellingPageSize={topSellingPageSize}
-        setTopSellingPageSize={setTopSellingPageSize}
-      />
+        <div className="col-span-full">
+          <OverviewTabs
+          upcomingEvents={dashboard?.upcomingEvents ?? []}
+          upcomingPagination={dashboard?.upcomingPagination}
+          upcomingPage={upcomingPage}
+          setUpcomingPage={setUpcomingPage}
+          upcomingPageSize={upcomingPageSize}
+          setUpcomingPageSize={setUpcomingPageSize}
+          topSellingEvents={dashboard?.topSellingEvents ?? []}
+          topSellingPagination={dashboard?.topSellingPagination}
+          topSellingPage={topSellingPage}
+          setTopSellingPage={setTopSellingPage}
+          topSellingPageSize={topSellingPageSize}
+          setTopSellingPageSize={setTopSellingPageSize}
+        />
+        </div>
+      </div>
     </div>
   );
 }

@@ -14,7 +14,7 @@ export default function RevenueAndPayouts() {
   const { from, to } = chartRange(range);
 
   return (
-    <div className="flex-1 space-y-6 p-1 bg-card min-h-screen">
+    <div className="flex-1 min-w-0 space-y-6 p-1 min-h-screen">
       <div className="mb-2">
         <h2 className="text-3xl font-bold tracking-tight text-foreground">
           Revenue & Payouts
@@ -28,12 +28,12 @@ export default function RevenueAndPayouts() {
         <Card className="shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Revenue (All Time)
+              Total Revenue
             </CardTitle>
             <BanknoteIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground">
+            <div className="text-2xl font-bold text-foreground">
               GH₵ {overview?.totalRevenue?.toLocaleString() ?? "0.00"}
             </div>
           </CardContent>
@@ -47,7 +47,7 @@ export default function RevenueAndPayouts() {
             <TrendingUpIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground">
+            <div className="text-2xl font-bold text-foreground">
               {overview?.totalOrders?.toLocaleString() ?? "0"}
             </div>
           </CardContent>

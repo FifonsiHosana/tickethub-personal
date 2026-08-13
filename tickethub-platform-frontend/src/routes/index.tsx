@@ -25,6 +25,7 @@ import SalesAnalyticsPage from "@/pages/Dashboard/Organizer/SalesAnalytics";
 import TicketPerformancePage from "@/pages/Dashboard/Organizer/TicketPerformance";
 import EventPerformancePage from "@/pages/Dashboard/Organizer/EventPerformance";
 import RevenueAndPayoutsPage from "@/pages/Dashboard/Organizer/RevenueAndPayouts";
+import AnalyticsOverviewPage from "@/pages/Dashboard/Organizer/AnalyticsOverview";
 import PayoutSettingsPage from "@/pages/Dashboard/Organizer/PayoutSettings/PayoutSettingsPage";
 import DashboardOverview from "@/pages/Dashboard/Organizer/DashboardOverview/DashboardOverview";
 import TicketTypes from "@/pages/Dashboard/Organizer/Tickets/TicketTypes";
@@ -149,6 +150,10 @@ export default function RouterLayout() {
 
             {/* Analytics */}
 
+            <Route
+              path="/organizer/analytics/overview"
+              element={<AnalyticsOverviewPage />}
+            />
             <Route
               path="/organizer/analytics/events"
               element={<EventPerformancePage />}

@@ -25,7 +25,7 @@ export default function TicketSales() {
   });
 
   return (
-    <div className="flex-1 space-y-6 p-8 pt-6 bg-card min-h-screen">
+    <div className="flex-1 min-w-0 space-y-6 p-1 min-h-screen">
       <div className="flex flex-col gap-2 mb-8">
         <h2 className="text-3xl font-bold tracking-tight text-foreground">
           Ticket Sales
@@ -35,24 +35,31 @@ export default function TicketSales() {
         </p>
       </div>
 
-      <SalesFilterBar
-        search={search}
-        setSearch={(val) => {
-          setSearch(val);
-          setPage(1);
-        }}
-        status={status}
-        setStatus={(val) => {
-          setStatus(val as "Completed" | "Failed" | "All");
-          setPage(1);
-        }}
-      />
+      <div className="flex-1 min-w-0">
+        <SalesFilterBar
+          search={search}
+          setSearch={(val) => {
+            setSearch(val);
+            setPage(1);
+          }}
+          status={status}
+          setStatus={(val) => {
+            setStatus(val as "Completed" | "Failed" | "All");
+            setPage(1);
+          }}
+        />
 
-      <SalesTable sales={sales} isLoading={isLoading} isError={isError} />
+        <SalesTable sales={sales} isLoading={isLoading} isError={isError} />
 
-      {sales?.pagination && sales.pagination.totalPages > 1 && (
-        <PaginationSect page={page} currentPage={page} totalPages={sales.pagination.totalPages} setPage={setPage} />
-      )}
+        {sales?.pagination && sales.pagination.totalPages > 1 && (
+          <PaginationSect
+            page={page}
+            currentPage={page}
+            totalPages={sales.pagination.totalPages}
+            setPage={setPage}
+          />
+        )}
+      </div>
     </div>
   );
 }

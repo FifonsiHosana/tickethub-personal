@@ -86,6 +86,13 @@ export type GetEventSalesResponse = {
   purchasedAt: string | null;
 }[];
 
+export type GetSalesSummaryParams = {
+  from?: string;
+  to?: string;
+  eventId?: number;
+  ticketId?: number;
+};
+
 export type GetSalesSummaryResponse = {
   totalRevenue: number;
   completedOrders: number;
@@ -94,11 +101,16 @@ export type GetSalesSummaryResponse = {
   failedPayments: number;
 };
 
-export type GetRevenueBreakdownResponse = {
+export type RevenueBreakdownItem = {
   date: string;
   revenue: string | number;
   transactions: number;
-}[];
+  ticketsSold?: number;
+};
+
+export type GetRevenueBreakdownResponse = RevenueBreakdownItem[];
+
+export type GetTicketSalesBreakdownParams = GetSalesSummaryParams;
 
 export type GetTicketSalesBreakdownResponse = {
   ticketName: string;
@@ -141,31 +153,30 @@ export async function getEventSales(
 }
 
 export async function getSalesSummary(
-  from?: string,
-  to?: string,
+  params?: GetSalesSummaryParams,
 ): Promise<GetSalesSummaryResponse> {
   const response = await axiosInstance.get<
     ApiResponse<GetSalesSummaryResponse>
-  >("/organizer/sales/summary", { params: { from, to } });
+  >("/organizer/sales/summary", { params });
   return response.data.data;
 }
 
 export async function getRevenueBreakdown(
   from: string,
   to: string,
+  filters?: Pick<GetSalesSummaryParams, "eventId" | "ticketId">,
 ): Promise<GetRevenueBreakdownResponse> {
   const response = await axiosInstance.get<
     ApiResponse<GetRevenueBreakdownResponse>
-  >("/organizer/sales/revenue", { params: { from, to } });
+  >("/organizer/sales/revenue", { params: { from, to, ...filters } });
   return response.data.data;
 }
 
 export async function getTicketSalesBreakdown(
-  from?: string,
-  to?: string,
+  params?: GetTicketSalesBreakdownParams,
 ): Promise<GetTicketSalesBreakdownResponse> {
   const response = await axiosInstance.get<
     ApiResponse<GetTicketSalesBreakdownResponse>
-  >("/organizer/sales/tickets", { params: { from, to } });
+  >("/organizer/sales/tickets", { params });
   return response.data.data;
 }

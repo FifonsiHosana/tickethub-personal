@@ -96,12 +96,22 @@ export async function getTicketsRemaining(organizerId: number) {
 export async function getTicketSalesBreakdown(
   organizerId: number,
   range?: DateRange,
+  filters?: { eventId?: number | undefined; ticketId?: number | undefined },
 ) {
-  const filters: any[] = [
+  const filtersList: any[] = [
     eq(events.organizerId, organizerId),
     eq(ticketOrders.status, 'Completed'),
   ];
-  applyDateRange(filters, ticketOrders.createdAt, range);
+
+  if (filters?.eventId) {
+    filtersList.push(eq(events.id, filters.eventId));
+  }
+
+  if (filters?.ticketId) {
+    filtersList.push(eq(tickets.id, filters.ticketId));
+  }
+
+  applyDateRange(filtersList, ticketOrders.createdAt, range);
 
   return db
     .select({
@@ -122,7 +132,7 @@ export async function getTicketSalesBreakdown(
     )
     .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
     .innerJoin(events, eq(tickets.eventId, events.id))
-    .where(and(...filters))
+    .where(and(...filtersList))
     .groupBy(tickets.id);
 }
 

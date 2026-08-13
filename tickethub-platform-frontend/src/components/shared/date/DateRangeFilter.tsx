@@ -35,15 +35,19 @@ export function DateRangeFilter() {
 
   return (
     <>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         <Select
           items={DATE_FILTER_OPTIONS}
           value={preset}
           onValueChange={handleValueChange}
         >
-          <SelectTrigger>
-            <CalendarDays className="size-4 text-muted-foreground" />
-            <SelectValue />
+          <SelectTrigger className="w-auto gap-1.5 px-2 sm:px-3">
+            <CalendarDays className="size-4 text-muted-foreground shrink-0" />
+            <SelectValue>
+              <span className="hidden sm:inline">
+                {preset ? labelForPreset(preset) : ""}
+              </span>
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
@@ -65,8 +69,14 @@ export function DateRangeFilter() {
             initial={customRange}
             onApply={applyCustomRange}
           >
-            <Button variant="outline" size="sm">
-              Set Dates
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 px-2 sm:px-3"
+              aria-label="Set custom date range"
+            >
+              <CalendarDays className="size-4 sm:hidden" />
+              <span className="hidden sm:inline">Set Dates</span>
             </Button>
           </CustomRangePopover>
         )}

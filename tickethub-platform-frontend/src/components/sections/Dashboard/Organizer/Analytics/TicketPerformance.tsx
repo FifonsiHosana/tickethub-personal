@@ -23,7 +23,7 @@ export default function TicketPerformance() {
   });
 
   return (
-    <div className="flex-1 space-y-6 p-1 bg-card min-h-screen">
+    <div className="flex-1 min-w-0 space-y-6 p-1 min-h-screen">
       <div className="mb-4">
         <h2 className="text-3xl font-bold tracking-tight text-foreground">
           Ticket Performance
@@ -34,7 +34,7 @@ export default function TicketPerformance() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3 mb-4">
-        <Card className="shadow-sm md:col-span-1">
+        <Card className="shadow-sm md:col-span-full">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Total Ticket Orders Made
@@ -42,7 +42,7 @@ export default function TicketPerformance() {
             <TicketIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-foreground">
+            <div className="text-2xl font-bold text-foreground">
               {overview?.ticketsSold?.toLocaleString() ?? "0"}
             </div>
             <p className="text-xs text-muted-foreground mt-1">

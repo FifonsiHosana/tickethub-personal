@@ -7,6 +7,7 @@ import {
   getRevenueBreakdown,
   getTicketSalesBreakdown,
   type GetOrganizerSalesParams,
+  type GetSalesSummaryParams,
 } from "@/utils/services/organizers/sales.service";
 
 export const organizerSalesKeys = {
@@ -27,12 +28,12 @@ export const organizerSalesKeys = {
     [...organizerSalesKeys.all, "event", eventId] as const,
 
   // Dashboards & Summaries
-  summary: (from?: string, to?: string) =>
-    [...organizerSalesKeys.all, "summary", { from, to }] as const,
-  revenue: (from: string, to: string) =>
-    [...organizerSalesKeys.all, "revenue", { from, to }] as const,
-  ticketBreakdown: (from?: string, to?: string) =>
-    [...organizerSalesKeys.all, "ticket-breakdown", { from, to }] as const,
+  summary: (params: GetSalesSummaryParams) =>
+    [...organizerSalesKeys.all, "summary", params] as const,
+  revenue: (from: string, to: string, filters?: GetSalesSummaryParams) =>
+    [...organizerSalesKeys.all, "revenue", { from, to, ...filters }] as const,
+  ticketBreakdown: (params: GetSalesSummaryParams) =>
+    [...organizerSalesKeys.all, "ticket-breakdown", params] as const,
 };
 
 export function useOrganizerSales(params: GetOrganizerSalesParams = {}) {
@@ -59,24 +60,28 @@ export function useEventSales(eventId: number) {
   });
 }
 
-export function useSalesSummary(from?: string, to?: string) {
+export function useSalesSummary(params: GetSalesSummaryParams = {}) {
   return useQuery({
-    queryKey: organizerSalesKeys.summary(from, to),
-    queryFn: () => getSalesSummary(from, to),
+    queryKey: organizerSalesKeys.summary(params),
+    queryFn: () => getSalesSummary(params),
   });
 }
 
-export function useRevenueBreakdown(from: string, to: string) {
+export function useRevenueBreakdown(
+  from: string,
+  to: string,
+  filters?: GetSalesSummaryParams,
+) {
   return useQuery({
-    queryKey: organizerSalesKeys.revenue(from, to),
-    queryFn: () => getRevenueBreakdown(from, to),
+    queryKey: organizerSalesKeys.revenue(from, to, filters),
+    queryFn: () => getRevenueBreakdown(from, to, filters),
     enabled: !!from && !!to,
   });
 }
 
-export function useTicketSalesBreakdown(from?: string, to?: string) {
+export function useTicketSalesBreakdown(params: GetSalesSummaryParams = {}) {
   return useQuery({
-    queryKey: organizerSalesKeys.ticketBreakdown(from, to),
-    queryFn: () => getTicketSalesBreakdown(from, to),
+    queryKey: organizerSalesKeys.ticketBreakdown(params),
+    queryFn: () => getTicketSalesBreakdown(params),
   });
 }

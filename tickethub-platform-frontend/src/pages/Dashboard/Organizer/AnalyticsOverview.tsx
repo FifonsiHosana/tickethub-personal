@@ -1,5 +1,5 @@
-// import AnalyticsOverviewSection from "@/components/sections/Dashboard/Organizer/Analytics/AnalyticsOverview";
+import AnalyticsOverview from "@/components/sections/Dashboard/Organizer/Analytics/AnalyticsOverview";
 
-// export default function AnalyticsOverview() {
-//   return <AnalyticsOverviewSection />;
-// }
+export default function AnalyticsOverviewPage() {
+  return <AnalyticsOverview />;
+}

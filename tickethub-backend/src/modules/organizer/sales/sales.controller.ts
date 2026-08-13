@@ -81,8 +81,20 @@ export async function getSalesSummaryController(
   next: NextFunction,
 ) {
   try {
-    const { from, to } = req.query as { from?: string; to?: string };
-    const summary = await getSalesSummary(req.user.id, { from, to });
+    const { from, to, eventId, ticketId } = req.query as {
+      from?: string;
+      to?: string;
+      eventId?: string;
+      ticketId?: string;
+    };
+    const summary = await getSalesSummary(
+      req.user.id,
+      { from, to },
+      {
+        eventId: eventId ? Number(eventId) : undefined,
+        ticketId: ticketId ? Number(ticketId) : undefined,
+      },
+    );
 
     res.status(200).json({
       success: true,
@@ -100,12 +112,23 @@ export async function getRevenueController(
   next: NextFunction,
 ) {
   try {
+    const { from, to, eventId, ticketId } = req.query as {
+      from?: string;
+      to?: string;
+      eventId?: string;
+      ticketId?: string;
+    };
     const revenue = await getRevenueBreakdown(
       req.user.id,
 
-      req.query.from as string,
+      from as string,
 
-      req.query.to as string,
+      to as string,
+
+      {
+        eventId: eventId ? Number(eventId) : undefined,
+        ticketId: ticketId ? Number(ticketId) : undefined,
+      },
     );
 
     res.status(200).json({
@@ -124,8 +147,20 @@ export async function getTicketSalesController(
   next: NextFunction,
 ) {
   try {
-    const { from, to } = req.query as { from?: string; to?: string };
-    const data = await getTicketSalesBreakdown(req.user.id, { from, to });
+    const { from, to, eventId, ticketId } = req.query as {
+      from?: string;
+      to?: string;
+      eventId?: string;
+      ticketId?: string;
+    };
+    const data = await getTicketSalesBreakdown(
+      req.user.id,
+      { from, to },
+      {
+        eventId: eventId ? Number(eventId) : undefined,
+        ticketId: ticketId ? Number(ticketId) : undefined,
+      },
+    );
 
     res.status(200).json({
       success: true,

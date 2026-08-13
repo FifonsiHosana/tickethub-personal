@@ -59,8 +59,8 @@ export const RevenueChart = ({ from, to }: { from: string; to: string }) => {
                     x2="0"
                     y2="1"
                   >
-                    <stop offset="5%" stopColor="#1a201c" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#1a201c" stopOpacity={0} />
+                    <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="var(--chart-2)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid

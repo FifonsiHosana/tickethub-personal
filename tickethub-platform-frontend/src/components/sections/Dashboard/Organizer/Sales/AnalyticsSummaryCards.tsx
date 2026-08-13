@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSalesSummary } from "@/hooks/organizers/useOrganizerSales";
 import { useDashboardDateRange } from "@/components/shared/date/useDashboardDateRange";
 import {
@@ -8,12 +8,22 @@ import {
   XCircleIcon,
 } from "lucide-react";
 
-export const AnalyticsSummaryCards = () => {
+interface AnalyticsSummaryCardsProps {
+  eventId?: number;
+  ticketId?: number;
+}
+
+export const AnalyticsSummaryCards = ({
+  eventId,
+  ticketId,
+}: AnalyticsSummaryCardsProps = {}) => {
   const { range } = useDashboardDateRange();
-  const { data: summary } = useSalesSummary(
-    range?.from ?? undefined,
-    range?.to ?? undefined,
-  );
+  const { data: summary } = useSalesSummary({
+    from: range?.from ?? undefined,
+    to: range?.to ?? undefined,
+    eventId,
+    ticketId,
+  });
 
   const stats = summary || {
     totalRevenue: 0,
@@ -46,21 +56,37 @@ export const AnalyticsSummaryCards = () => {
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-      {cards.map((card, idx) => (
-        <Card key={idx} className="shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+    <div className="grid gap-1 grid-cols-2 lg:grid-cols-4">
+      {/* {cards.map((card, idx) => (
+        <Card size="sm" key={idx} className="shadow-sm lg:h-22">
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               {card.title}
             </CardTitle>
             <card.icon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">
+            <div className="text-xl font-bold text-foreground">
               {card.value}
             </div>
           </CardContent>
         </Card>
+      ))} */}
+      {cards.map((card, idx) => (
+        <div
+          key={`${card.title}-${idx}`}
+          className="flex items-center gap-2.5 rounded-lg border border-gray-300 dark:border-none bg-card px-3 py-2"
+        >
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md">
+            <card.icon className="text-muted-foreground" />
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
+              {card.title}
+            </p>
+            <p className="text-sm leading-tight font-semibold">{card.value}</p>
+          </div>
+        </div>
       ))}
     </div>
   );
