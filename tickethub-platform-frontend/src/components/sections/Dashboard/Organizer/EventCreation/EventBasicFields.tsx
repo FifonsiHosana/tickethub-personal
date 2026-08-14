@@ -16,6 +16,7 @@ import {
   ComboboxList,
 } from "@/components/ui/combobox";
 import { AddVenueDialog } from "./AddVenueDialog";
+import { CategorySelect } from "./CategorySelect";
 
 type Venue = { id: number; venue_name: string };
 
@@ -42,6 +43,8 @@ export function EventBasicFields() {
         <Textarea {...register("description")} id="description" placeholder="Tell attendees what to expect..." className="min-h-16" />
         {errors.description && <FieldError errors={[errors.description]} />}
       </Field>
+
+      <CategorySelect />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Field data-invalid={!!errors.dateAndTime}>

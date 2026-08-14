@@ -55,6 +55,7 @@ export const createEventWithTicketsSchema = z.object({
   dateAndTime: z.iso.datetime(),
   capacity: z.number().int().positive(),
   termsAndConditions: z.string().max(5000).optional(),
+  categoryIds: z.array(z.number().int().positive()).optional(),
   tickets: z
     .array(
       z.object({

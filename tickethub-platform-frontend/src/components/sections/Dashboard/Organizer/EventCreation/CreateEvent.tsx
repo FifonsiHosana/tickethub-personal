@@ -38,6 +38,7 @@ export default function CreateEvent() {
       capacity: undefined,
       dateAndTime: "",
       termsAndConditions: "",
+      categoryIds: [],
       bannerImage: undefined,
       tickets: [],
     },
@@ -72,6 +73,7 @@ export default function CreateEvent() {
         dateAndTime: new Date(values.dateAndTime)
           .toISOString(),
         termsAndConditions: values.termsAndConditions,
+        categoryIds: values.categoryIds,
         media: [{ imageUrl: url, type: "Banner" }],
         tickets,
       });

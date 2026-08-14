@@ -9,11 +9,13 @@ import {
   ticketConfigurations,
   ticketTypes,
   eventStaff,
+  category,
+  categorizedEvents,
 } from '@/db/schema/index.js';
 import { AppError } from '@/middleware/errorHandler.js';
 import { now } from '@/utils/timeDatehelpers.js';
 
-import { and, eq, like, desc, count } from 'drizzle-orm';
+import { and, eq, like, desc, count, inArray } from 'drizzle-orm';
 
 import { formatDateForMySQL } from '@/utils/timeDatehelpers.js';
 import logger from '@/utils/logger/index.js';
@@ -242,6 +244,7 @@ export async function createOrganizerEventWithTickets(
     dateAndTime: string;
     capacity: number;
     termsAndConditions?: string;
+    categoryIds?: number[];
     tickets: {
       name: string;
       ticketTypeId?: number;
@@ -283,6 +286,26 @@ export async function createOrganizerEventWithTickets(
           eventId,
           imageUrl: m.imageUrl,
           type: m.type,
+        })),
+      );
+    }
+
+    const categoryIds = [...new Set(data.categoryIds ?? [])];
+
+    if (categoryIds.length) {
+      const existingCategories = await tx
+        .select({ id: category.id })
+        .from(category)
+        .where(inArray(category.id, categoryIds));
+
+      if (existingCategories.length !== categoryIds.length) {
+        throw new AppError(400, 'One or more categories are invalid.');
+      }
+
+      await tx.insert(categorizedEvents).values(
+        categoryIds.map((categoryId) => ({
+          event_id: eventId,
+          category_id: categoryId,
         })),
       );
     }

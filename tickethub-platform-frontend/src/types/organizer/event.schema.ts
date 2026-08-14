@@ -46,6 +46,8 @@ export const createEventSchema = z.object({
 
   termsAndConditions: z.string().min(1, "Please enter terms and conditions"),
 
+  categoryIds: z.array(z.number().int().positive()).optional(),
+
   bannerImage: imageSchema,
 
   tickets: z.array(ticketSchema).min(1, "Add at least one ticket"),

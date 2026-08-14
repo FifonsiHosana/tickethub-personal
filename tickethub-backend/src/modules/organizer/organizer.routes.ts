@@ -25,6 +25,8 @@ import { authenticate } from '@/middleware/auth/auth.middleware.js';
 import { authorize } from '@/middleware/auth/role.middleware.js';
 import { validate, validateQuery } from '@/middleware/validate.js';
 import { setPayoutDetailsSchema } from '@/modules/admin/payouts/payouts.schema.js';
+import categoriesController from '@/modules/events/categories.controller.js';
+import { createCategorySchema } from '@/modules/events/events.schema.js';
 
 import organizerTicketsRoutes from './tickets/tickets.routes.js';
 import organizerSalesRoutes from './sales/sales.routes.js';
@@ -117,6 +119,14 @@ router.patch(
   authenticate,
   authorize('organizer'),
   cancelEvent,
+);
+
+router.post(
+  '/categories',
+  authenticate,
+  authorize('organizer'),
+  validate(createCategorySchema),
+  categoriesController.createCategory,
 );
 
 router.get(

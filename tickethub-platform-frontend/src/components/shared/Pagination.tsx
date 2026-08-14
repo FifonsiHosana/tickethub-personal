@@ -1,6 +1,7 @@
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationNext,
   PaginationPrevious,
@@ -25,6 +26,26 @@ type Props = {
 };
 
 const DEFAULT_PAGE_SIZE_OPTIONS = [10, 20, 25, 50];
+
+function getPageItems(
+  currentPage: number,
+  totalPages: number,
+): (number | "ellipsis")[] {
+  if (totalPages <= 3) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  const items: (number | "ellipsis")[] = [1];
+  const windowStart = Math.max(2, currentPage - 1);
+  const windowEnd = Math.min(totalPages - 1, currentPage + 1);
+
+  if (windowStart > 2) items.push("ellipsis");
+  for (let p = windowStart; p <= windowEnd; p++) items.push(p);
+  if (windowEnd < totalPages - 1) items.push("ellipsis");
+  items.push(totalPages);
+
+  return items;
+}
 
 export const PaginationSect = ({
   page,
@@ -87,16 +108,20 @@ export const PaginationSect = ({
                 }
               />
             </PaginationItem>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-              <PaginationItem key={p}>
-                <Button
-                  variant={p === currentPage ? "outline" : "ghost"}
-                  size="icon"
-                  className="h-8 w-8 text-sm"
-                  onClick={() => handlePageChange(p)}
-                >
-                  {p}
-                </Button>
+            {getPageItems(currentPage, totalPages).map((item, index) => (
+              <PaginationItem key={item === "ellipsis" ? `ellipsis-${index}` : item}>
+                {item === "ellipsis" ? (
+                  <PaginationEllipsis />
+                ) : (
+                  <Button
+                    variant={item === currentPage ? "outline" : "ghost"}
+                    size="icon"
+                    className="h-8 w-8 text-sm"
+                    onClick={() => handlePageChange(item)}
+                  >
+                    {item}
+                  </Button>
+                )}
               </PaginationItem>
             ))}
             <PaginationItem>

@@ -10,17 +10,30 @@ import {
   cancelOrganizerEvent,
   getEventVenues,
   createEventVenue,
+  createCategory,
   type CreateEventPayload,
   type CreateEventWithTicketsPayload,
   type UpdateEventPayload,
   type GetOrganizerEventsParams,
   type CreateVenuePayload,
+  type CreateCategoryPayload,
 } from "@/utils/services/organizers/events.service";
 
 export function useEventVenues() {
   return useQuery({
     queryKey: ["organizer-event-venues"],
     queryFn: getEventVenues,
+  });
+}
+
+export function useCreateCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: CreateCategoryPayload) => createCategory(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+    },
   });
 }
 

@@ -12,6 +12,7 @@ import {
 import { useAuthStorage } from "@/hooks/useAuthStorage";
 import type { Role } from "@/misc/dashboardData";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
+import { CreateEventButton } from "@/components/shared/CreateEventButton";
 import { ThemeProvider } from "@/components/shared/Theme/ThemeContext";
 import { DashboardDateRangeProvider } from "@/components/shared/date/DashboardDateRangeProvider";
 import { DateRangeFilter } from "@/components/shared/date/DateRangeFilter";
@@ -78,6 +79,7 @@ export default function DashboardLayout() {
                   <div className="flex items-center gap-1 mx-2">
                     <RoleSwitcher className="bg-muted border-border" />
                     {activeRole !== "attendee" && <DateRangeFilter />}
+                    <CreateEventButton />
                     <ThemeToggle />
                   </div>
                 </header>

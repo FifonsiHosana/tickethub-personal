@@ -10,3 +10,9 @@ export const getPublishedEventsQuerySchema = z.object({
 });
 
 export type GetPublishedEventsQuery = z.infer<typeof getPublishedEventsQuerySchema>;
+
+export const createCategorySchema = z.object({
+  name: z.string().trim().min(1, 'Category name is required').max(255),
+});
+
+export type CreateCategoryInput = z.infer<typeof createCategorySchema>;

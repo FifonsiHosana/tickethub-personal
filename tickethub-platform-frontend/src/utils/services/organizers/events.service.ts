@@ -1,4 +1,5 @@
 import { axiosInstance } from "@/utils/api/axiosInstance";
+import type { Category } from "@/types/event.types";
 
 export interface CreateEventPayload {
   title: string;
@@ -82,6 +83,7 @@ export interface CreateEventWithTicketsPayload {
   capacity: number;
   dateAndTime: string;
   termsAndConditions?: string;
+  categoryIds?: number[];
   media?: { imageUrl: string; type: "Banner" | "Gallery" | "Sponsor" }[];
   tickets: TicketPayload[];
 }
@@ -134,5 +136,17 @@ export interface CreateVenuePayload {
 
 export async function createEventVenue(payload: CreateVenuePayload) {
   const response = await axiosInstance.post("/organizer/event-venues", payload);
+  return response.data.data;
+}
+
+export interface CreateCategoryPayload {
+  name: string;
+}
+
+export async function createCategory(payload: CreateCategoryPayload) {
+  const response = await axiosInstance.post<{ success: boolean; data: Category }>(
+    "/organizer/categories",
+    payload,
+  );
   return response.data.data;
 }
