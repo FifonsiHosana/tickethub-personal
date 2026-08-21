@@ -1,5 +1,5 @@
 import { db } from '@/db/client.js';
-import { and, eq, desc, count } from 'drizzle-orm';
+import { and, eq, desc, count, like, or, sql } from 'drizzle-orm';
 import {
   tickets,
   ticketOrders,
@@ -14,14 +14,36 @@ interface GetAttendeesParams {
   eventId: number;
   page: number;
   pageSize: number;
+  search: string;
 }
 
 export async function getEventAttendees(params: GetAttendeesParams) {
-  const { eventId, page = 1, pageSize = 10 } = params;
+  const { eventId, page = 1, pageSize = 10, search } = params;
   const offset = (page - 1) * pageSize;
+
+  const filters: any[] = [];
+
+  if (search) {
+    filters.push(
+      or(
+        like(ticketOrderUserDetails.firstName, `%${search}%`),
+        like(ticketOrderUserDetails.lastName, `%${search}%`),
+        like(ticketOrderUserDetails.email, `%${search}%`),
+        like(
+          sql`CONCAT(${ticketOrderUserDetails.firstName}, ' ', ${ticketOrderUserDetails.lastName})`,
+          `%${search}%`,
+        ),
+        like(
+          sql`CONCAT(${ticketOrderUserDetails.lastName}, ' ', ${ticketOrderUserDetails.firstName})`,
+          `%${search}%`,
+        ),
+      ),
+    );
+  }
 
   const data = await db
     .select({
+      orderId: ticketOrders.id,
       firstName: ticketOrderUserDetails.firstName,
       lastName: ticketOrderUserDetails.lastName,
       email: ticketOrderUserDetails.email,
@@ -52,6 +74,7 @@ export async function getEventAttendees(params: GetAttendeesParams) {
       and(
         eq(tickets.eventId, eventId),
         eq(ticketOrders.status, 'Completed'),
+        ...filters,
       ),
     )
     .orderBy(desc(ticketOrders.createdAt))
@@ -68,10 +91,7 @@ export async function getEventAttendees(params: GetAttendeesParams) {
     )
     .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
     .where(
-      and(
-        eq(tickets.eventId, eventId),
-        eq(ticketOrders.status, 'Completed'),
-      ),
+      and(eq(tickets.eventId, eventId), eq(ticketOrders.status, 'Completed')),
     );
 
   return {

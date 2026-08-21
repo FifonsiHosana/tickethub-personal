@@ -10,7 +10,10 @@ import {
   LayoutDashboardIcon,
   UserCheckIcon,
   SettingsIcon,
+  Mailbox,
 } from "lucide-react";
+import { GiChatBubble } from "react-icons/gi";
+import { FaLetterboxd } from "react-icons/fa6";
 
 export type Role = "organizer" | "event_staff" | "admin" | "attendee";
 
@@ -71,6 +74,16 @@ const organizerNav: NavItem[] = [
     //   // { title: "Revenue & Payouts", url: "/organizer/analytics/revenue" },
     //   // { title: "Ticket Performance", url: "/organizer/analytics/tickets" },
     // ],
+  },
+  {
+    title: "SMS",
+    url: "/organizer/sms",
+    icon: <Mailbox /> ,
+    items: [
+      { title: "SMS Campaign", url: "/organizer/sms" },
+      { title: "SMS History", url: "/organizer/sms/history" },
+      { title: "SMS Credits", url: "/organizer/sms/credits" },
+    ],
   },
   // {
   //   title: "Payout Settings",

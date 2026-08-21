@@ -5,9 +5,11 @@ import { assets } from "@/assets/assets";
 import { SignUpEmailStep } from "./SignUpEmailStep";
 import { SignUpOtpStep } from "./SignUpOtpStep";
 import { SignUpProfileStep } from "./SignUpProfileStep";
+import useSessionStorage from "@/hooks/useSessionStorage";
 
 export function SignUpWizard() {
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useSessionStorage<number>("signup_step", 0);
+  // const [step, setStep] = useState(0);
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
 

@@ -2,7 +2,7 @@ import { generateQrCodeBuffer } from '@/modules/tickets/tickets.utils.js';
 import config from '@/config/config.js';
 import type { SendMailOptions } from 'nodemailer';
 
-interface TicketItem {
+export interface TicketItem {
   ticketIdentifier: string;
   ticketType: string;
   price: string;

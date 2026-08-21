@@ -5,6 +5,10 @@ dotenv.config();
 interface Config {
   port: number;
   nodeEnv: string;
+  sms: {
+    mnotify_api_key: string;
+    sender_id: string;
+  };
   database: {
     user: string;
     password: string;
@@ -38,6 +42,10 @@ const config: Config = {
     password: process.env.DB_PASSWORD as string,
     database: process.env.DB_NAME as string,
     host: process.env.DB_HOST as string,
+  },
+  sms: {
+    mnotify_api_key: process.env.MNOTIFY_API_KEY as string,
+    sender_id: process.env.MNOTIFY_SENDER_ID || 'mNotify',
   },
   email: {
     from_email: process.env.EMAIL_SENDER as string,

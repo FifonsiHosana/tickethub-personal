@@ -1,6 +1,8 @@
 import { useLocation, useNavigate } from "react-router";
 import { useAuthStorage } from "@/hooks/useAuthStorage";
 import { navByRole, type Role } from "@/misc/dashboardData";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { useState } from "react";
 
 const ROLE_LABELS: Partial<Record<Role, string>> = {
   organizer: "Organizer",
@@ -37,27 +39,27 @@ export function RoleSwitcher({ className }: Props = {}) {
 
   return (
     <div
-      className={
-        `flex items-center gap-1 rounded-full p-1 text-xs font-medium border ${className ?? ""}`
-      }
+      className={`flex items-center gap-1 rounded-full p-1 text-xs font-medium border ${className ?? ""}`}
     >
       {roles.map((role) => {
         const label = ROLE_LABELS[role as Role] ?? role;
         const isActive = role === activeRole;
 
         return (
-          <button
-            key={role}
-            type="button"
-            onClick={() => handleSwitch(role as Role)}
-            className={`px-3 py-1 rounded-full transition-colors hover:cursor-pointer ${
-              isActive
-                ? "bg-primary text-primary-foreground"
-                : "opacity-70 hover:opacity-100"
-            }`}
-          >
-            {label}
-          </button>
+          <>
+            <button
+              key={role}
+              type="button"
+              onClick={() => handleSwitch(role as Role)}
+              className={`px-3 py-1 rounded-full transition-colors hover:cursor-pointer ${
+                isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "opacity-70 hover:opacity-100"
+              }`}
+            >
+              {label}
+            </button>
+          </>
         );
       })}
     </div>

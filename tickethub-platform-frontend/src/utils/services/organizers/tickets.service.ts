@@ -112,3 +112,25 @@ export async function checkInTicket(
   >("/tickets/check-in", { ticketIdentifier });
   return response.data.data;
 }
+
+export async function resendTicketEmail(orderId: string) {
+  const response = await axiosInstance.post("/tickets/resend-mail", {
+    orderId,
+  });
+  return response.data.data;
+}
+
+export async function getTicketHoldersPhoneNumbers(
+  eventId: number,
+  groupIds: number[] = [],
+): Promise<string[]> {
+  const response = await axiosInstance.get<ApiResponse<string[]>>(
+    `/tickets/events/${eventId}/phone-numbers`,
+    {
+      params:
+        groupIds.length > 0 ? { groupIds: groupIds.join(",") } : undefined,
+    },
+  );
+
+  return response.data.data;
+}

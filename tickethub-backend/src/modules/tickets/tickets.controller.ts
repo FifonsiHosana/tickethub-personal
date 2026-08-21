@@ -53,6 +53,23 @@ class TicketsController {
       next(error);
     }
   }
+
+
+  async resendEmail(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await ticketsService.resendEmail(
+        req.body.orderId,
+        // req.user.id,
+      );
+
+      return res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new TicketsController();

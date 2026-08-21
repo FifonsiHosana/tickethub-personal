@@ -65,7 +65,7 @@ export const PaginationSect = ({
   };
 
   return (
-    <div className="flex items-center justify-center mt-12 px-1 gap-2 flex-wrap">
+    <div className="flex items-center justify-center px-1 gap-2 flex-wrap">
       {showPageSize ? (
         <div className="flex items-center gap-2">
           <span className="text-xs md:text-sm text-muted-foreground">

@@ -10,5 +10,6 @@ export function useEventAttendees(
     queryKey: ["organizer-event-attendees", eventId, params],
     queryFn: () => getEventAttendees(eventId!, params),
     enabled: !!eventId,
+    placeholderData: (prev) => prev,
   });
 }

@@ -1,8 +1,15 @@
 import { Router } from 'express';
 import controller from './tickets.controller.js';
 import { validate } from '@/middleware/validate.js';
-import { purchaseTicketSchema, checkInTicketSchema } from './tickets.schema.js';
-import { authenticate, optionalAuthenticate } from '@/middleware/auth/auth.middleware.js';
+import {
+  purchaseTicketSchema,
+  checkInTicketSchema,
+  resendMailSchema,
+} from './tickets.schema.js';
+import {
+  authenticate,
+  optionalAuthenticate,
+} from '@/middleware/auth/auth.middleware.js';
 import { authorize } from '@/middleware/auth/role.middleware.js';
 
 const router = Router();
@@ -34,4 +41,15 @@ router.post(
   controller.checkInTicket,
 );
 
+/**
+ * Staff/organizer resends ticket email
+ */
+router.post(
+  '/resend-mail',
+  authenticate,
+  authorize('organizer', 'event_staff'),
+  validate(resendMailSchema),
+
+  controller.resendEmail,
+);
 export default router;

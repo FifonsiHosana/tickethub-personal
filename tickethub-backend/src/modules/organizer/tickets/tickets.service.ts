@@ -14,6 +14,7 @@ import type {
   CreateTicketTypeType,
 } from './tickets.schema.js';
 import { formatDateForMySQL } from '@/utils/timeDatehelpers.js';
+import { string } from 'zod';
 
 /**
  * Get all ticket types
@@ -160,8 +161,12 @@ export async function createOrganizerTicket(
         totalCount,
         totalSold: 0,
         totalRemaining: totalCount,
-        salesStartDate: data.salesStartDate ?? event.dateAndTime,
-        salesEndDate: data.salesEndDate ?? event.dateAndTime,
+        salesStartDate:
+          formatDateForMySQL(new Date(data.salesStartDate as string)) ??
+          event.dateAndTime,
+        salesEndDate:
+          formatDateForMySQL(new Date(data.salesEndDate as string)) ??
+          event.dateAndTime,
         benefits: data.benefits,
       })
       .$returningId();

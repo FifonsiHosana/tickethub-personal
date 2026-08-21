@@ -1,6 +1,7 @@
 import { axiosInstance } from "@/utils/api/axiosInstance";
 
 export interface AttendeeResponse {
+  orderId: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -15,6 +16,7 @@ export interface AttendeeResponse {
 export interface GetAttendeesParams {
   page?: number;
   pageSize?: number;
+  search?: string;
 }
 
 export interface GetAttendeesResponse {

@@ -18,6 +18,8 @@ import { toast } from "sonner";
 
 export default function AdminSettingsSection() {
   const { data: settings, isLoading } = useAdminSettings();
+  // console.log(settings);
+
   const updateMutation = useUpdateSettings();
   const [values, setValues] = useState<Record<string, string>>({});
 
@@ -78,6 +80,7 @@ export default function AdminSettingsSection() {
             <CardContent className="px-4 pb-3">
               {setting.key === "payment_provider" ? (
                 <Select
+                  disabled
                   value={values[setting.key] ?? setting.value}
                   onValueChange={(v) => {
                     if (v) setValues((prev) => ({ ...prev, [setting.key]: v }));
@@ -112,6 +115,10 @@ export default function AdminSettingsSection() {
               ) : (
                 <Input
                   value={values[setting.key] ?? setting.value}
+                  disabled={
+                    setting.key.includes("currency") ||
+                    setting.key.includes("min_payout_amount")
+                  }
                   onChange={(e) =>
                     setValues((prev) => ({
                       ...prev,

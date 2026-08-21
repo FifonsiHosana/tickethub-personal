@@ -13,9 +13,12 @@ export default function Attendees() {
   const [page, setPage] = useState(1);
   const [scannerOpen, setScannerOpen] = useState(false);
 
+  const [search, setSearch] = useState("");
+
+
   const { data, isLoading } = useEventAttendees(
     eventId ? Number(eventId) : null,
-    { page, pageSize: 5 },
+    { page, pageSize: 5, search },
   );
 
   const handleScanned = useCallback(() => {
@@ -68,6 +71,11 @@ export default function Attendees() {
             isLoading={isLoading}
             page={page}
             onPageChange={setPage}
+            search={search}
+            onSearchChange={(val:string) => {
+              setSearch(val);
+              setPage(1);
+            }}
           />
         )}
 

@@ -41,6 +41,9 @@ import TicketOrderHistory from "@/pages/Attendee/TicketOrderHistory";
 import AccountSetupPasswordPage from "@/pages/Attendee/AccountSetupPassword";
 import SuccessPage from "@/pages/Checkout/Success";
 import CancelPage from "@/pages/Checkout/Cancel";
+import SmsCampaign from "@/pages/Dashboard/Organizer/SMS/SmsCampaign";
+import SmsHistory from "@/pages/Dashboard/Organizer/SMS/SmsHistory";
+import SmsCredits from "@/pages/Dashboard/Organizer/SMS/SmsCredits";
 
 export default function RouterLayout() {
   return (
@@ -81,10 +84,7 @@ export default function RouterLayout() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
-            <Route
-              path="/forgot-password"
-              element={<ForgotPassword />}
-            />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route
               path="/account/setup-password"
@@ -136,6 +136,11 @@ export default function RouterLayout() {
               path="/organizer/sales/analytics"
               element={<SalesAnalyticsPage />}
             />
+
+{/* Sms */}
+            <Route path="/organizer/sms" element={<SmsCampaign />} />
+            <Route path="/organizer/sms/history" element={<SmsHistory />} />
+            <Route path="/organizer/sms/credits" element={<SmsCredits />} />
 
             {/* Attendees */}
             <Route path="/organizer/attendees" element={<Attendees />} />

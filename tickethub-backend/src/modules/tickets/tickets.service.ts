@@ -18,6 +18,9 @@ import { AppError } from '@/middleware/errorHandler.js';
 import type { PurchaseTicketType } from './tickets.schema.js';
 import { generateTicketIdentifier } from './tickets.utils.js';
 import config from '@/config/config.js';
+import { buildPurchaseConfirmationEmail } from '../emails/templates/ticketPurchase.template.js';
+import { getOrderForResend } from './tickets.query.js';
+import { sendMail } from '../emails/emails.service.js';
 
 class TicketsService {
   async purchaseTickets(payload: PurchaseTicketType, userId: number | null) {
@@ -242,6 +245,34 @@ class TicketsService {
       message: 'Ticket checked in successfully.',
       ticketIdentifier: ticket.ticketIdentifier,
     };
+  }
+
+  async resendEmail(orderId: number) {
+    const {
+      orderId: id,
+      orderItems,
+      amount,
+      customerEmail,
+      accountCreated,
+    } = await getOrderForResend(orderId);
+
+    const { html: emailHtml, attachments } =
+      await buildPurchaseConfirmationEmail({
+        orderId: id,
+        items: orderItems ,
+        total: Number(amount),
+        accountCreated,
+        email: customerEmail,
+      });
+
+    await sendMail(
+      customerEmail,
+      'Your TicketHub Tickets',
+      'Your ticket purchase has been confirmed',
+      emailHtml,
+      undefined,
+      attachments,
+    );
   }
 }
 

@@ -10,7 +10,9 @@ import {
   type CreateTicketPayload,
   type UpdateTicketPayload,
   type CreateTicketTypePayload,
+  resendTicketEmail,
 } from "@/utils/services/organizers/tickets.service";
+import { toast } from "sonner";
 
 export function useEventTickets(eventId: number | null) {
   return useQuery({
@@ -82,7 +84,22 @@ export function useCreateTicketType() {
 }
 
 export function useCheckInTicket() {
+  const qc = useQueryClient();
+
   return useMutation({
     mutationFn: (ticketIdentifier: string) => checkInTicket(ticketIdentifier),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["organizer-event-attendees"] });
+      toast.success("Attendee manually checked-in");
+    },
+  });
+}
+
+export function useResendTicketEmail() {
+  return useMutation({
+    mutationFn: (orderId: string) => resendTicketEmail(orderId),
+    onSuccess: () => {
+      toast.success("Ticket email resent");
+    },
   });
 }

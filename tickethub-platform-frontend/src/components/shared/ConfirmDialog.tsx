@@ -9,6 +9,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import type { ComponentProps } from "react";
+import { DialogContent } from "../ui/dialog";
 
 type Props = {
   open: boolean;
@@ -19,6 +20,7 @@ type Props = {
   confirmText?: string;
   onConfirm: () => void;
   variant?: ComponentProps<typeof AlertDialogAction>["variant"];
+  dialogHasCancel?: boolean;
 };
 
 export function ConfirmDialog({
@@ -30,6 +32,7 @@ export function ConfirmDialog({
   confirmText = "Confirm",
   onConfirm,
   variant = "default",
+  dialogHasCancel = true,
 }: Props) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -38,11 +41,20 @@ export function ConfirmDialog({
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
+        <AlertDialogFooter
+          className={
+            !dialogHasCancel
+              ? "flex sm:items-center sm:justify-center"
+              : undefined
+          }
+        >
           <AlertDialogCancel>{cancelText}</AlertDialogCancel>
-          <AlertDialogAction variant={variant} onClick={onConfirm}>
-            {confirmText}
-          </AlertDialogAction>
+
+          {dialogHasCancel && (
+            <AlertDialogAction variant={variant} onClick={onConfirm}>
+              {confirmText}
+            </AlertDialogAction>
+          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

@@ -112,7 +112,7 @@ export function SignUpEmailStep({ onNext }: Props) {
       </form>
 
       <p className="text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
+        Already have an account?
         <Link
           to="/login"
           className="underline underline-offset-4 hover:text-primary font-medium"

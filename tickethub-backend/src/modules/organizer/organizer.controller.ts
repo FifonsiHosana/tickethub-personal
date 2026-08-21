@@ -237,8 +237,9 @@ export async function eventAttendees(
     const eventId = Number(req.params.eventId);
     const page = Number(req.query.page) || 1;
     const pageSize = Number(req.query.pageSize) || 10;
+    const search = String(req.query.search);
 
-    const result = await getEventAttendees({ eventId, page, pageSize });
+    const result = await getEventAttendees({ eventId, page, pageSize, search });
 
     res.status(200).json({ success: true, ...result });
   } catch (error) {

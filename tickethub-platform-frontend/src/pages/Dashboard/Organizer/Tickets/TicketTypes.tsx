@@ -16,6 +16,8 @@ export default function TicketTypes() {
 
   const numericEventId = eventId ? Number(eventId) : null;
   const { data: tickets, isLoading } = useEventTickets(numericEventId);
+  console.log(tickets);
+  
 
   return (
     <div className="flex-1 space-y-6 p-1">
@@ -46,6 +48,7 @@ export default function TicketTypes() {
           <TicketIcon className="h-10 w-10 text-muted-foreground mb-3" />
           <h3 className="text-lg font-semibold">Kindly select an event</h3>
         </div>
+        
       )}
 
       {eventId && (
@@ -71,6 +74,7 @@ export default function TicketTypes() {
         ticket={editingTicket}
       />
       <DeleteTicketDialog
+      
         open={!!deletingTicket}
         onOpenChange={(open) => {
           if (!open) setDeletingTicket(null);

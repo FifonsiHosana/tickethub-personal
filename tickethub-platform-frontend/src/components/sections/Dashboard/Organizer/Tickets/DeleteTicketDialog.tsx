@@ -12,6 +12,15 @@ interface Props {
 export function DeleteTicketDialog({ open, onOpenChange, ticket }: Props) {
   const deleteMutation = useDeleteTicket();
 
+  const ExistingSales =
+    (ticket?.remaining as number) < (ticket?.totalCount as number);
+
+  const deleteDescription = ExistingSales
+    ? "Tickets with existing sales cannot be deleted."
+    : `Delete "${ticket?.name}"? This cannot be undone.`;
+
+  const deleteTitle = ExistingSales ? "Action Impossible" : "Delete Ticket";
+
   async function handleDelete() {
     if (!ticket) return;
     try {
@@ -27,11 +36,12 @@ export function DeleteTicketDialog({ open, onOpenChange, ticket }: Props) {
     <ConfirmDialog
       open={open}
       onOpenChange={onOpenChange}
-      title="Delete Ticket"
-      description={`Delete "${ticket?.name}"? This cannot be undone. Tickets with existing sales cannot be deleted.`}
-      cancelText="Keep Ticket"
-      confirmText="Delete"
-      variant="destructive"
+      title={deleteTitle}
+      description={deleteDescription}
+      cancelText={ExistingSales ? "Close" : "Keep Ticket"}
+      confirmText={"Delete"}
+      variant={"destructive"}
+      dialogHasCancel={false}
       onConfirm={handleDelete}
     />
   );
