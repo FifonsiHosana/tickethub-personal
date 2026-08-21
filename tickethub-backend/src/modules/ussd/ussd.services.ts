@@ -43,6 +43,7 @@ export const getEvent = async (
             price: number;
             remaining: number;
             totalCount: number;
+            eventTicketId: number;
           }[]
         >`JSON_ARRAYAGG(
           CASE WHEN ${ticketTypes.id} IS NOT NULL THEN
@@ -51,7 +52,8 @@ export const getEvent = async (
               'name', ${ticketTypes.name},
               'price', ${ticketConfigurations.price},
               'remaining',${ticketConfigurations.totalRemaining},
-              'totalCount',${ticketConfigurations.totalCount}
+              'totalCount',${ticketConfigurations.totalCount},
+              'eventTicketId', ${eventTickets.id}
             )
           END
         )`,

@@ -6,7 +6,7 @@ export interface EventDetails {
   time: string;
   location: string;
   description: string | null;
-  ticketTypes: { id: number; name: string; price: number; remaining: number; totalCount:number; }[];
+  ticketTypes: { id: number; name: string; price: number; remaining: number; totalCount:number; eventTicketId: number }[];
 }
 
 export type Category = { id: number; name: string };

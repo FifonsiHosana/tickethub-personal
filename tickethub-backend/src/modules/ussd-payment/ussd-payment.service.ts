@@ -33,6 +33,7 @@ export const paymentComplete = async (fields: PaymentWebhook) => {
 
   const phoneNumber = fields.data.metadata.phoneNumber;
   const receiveNumber = fields.data.metadata.receiveNumber;
+  const orderId = fields.data.metadata.orderId;
   const message =
     'This is your ticket enjoy from the team at tickethub! https://res.cloudinary.com/du3ndnjmd/image/upload/v1784283633/ticket_prsh5j.png';
   const giftMessage =
@@ -47,7 +48,8 @@ export const paymentComplete = async (fields: PaymentWebhook) => {
   const alreadyProcessed = await isTransactionProcessed(paymentRef);
   if (alreadyProcessed) return;
 
-  await processPurchase(paymentRef, email as string);
+  // Thread orderId through to processPurchase and skip confirmation email for USSD orders
+  await processPurchase(orderId, email as string, false);
   console.log('payment was successful');
 
   //I will eventually have to await all.
@@ -65,8 +67,15 @@ const checkStatus = async () => {
   //if success and ticket not sent send ----add to the tree
 };
 
-const processPurchase = (paymentRef: string, email: string) => {
-  return console.log('done processing purchase!');
+const processPurchase = (
+  paymentRef: string,
+  email: string,
+  sendConfirmationEmail: boolean = true,
+) => {
+  // TODO: Implement actual purchase processing
+  // This will be called from finance.service.ts's processPurchase
+  // For now, just log and return
+  console.log(`Processing purchase with ref: ${paymentRef}, email: ${email}, sendConfirmationEmail: ${sendConfirmationEmail}`);
 };
 
 export const verifyPaystackSignature = (

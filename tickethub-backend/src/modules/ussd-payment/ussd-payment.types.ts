@@ -7,18 +7,18 @@ export interface PaymentWebhookNalo {
 }
 
 export interface PaymentWebhook {
-  event: "charge.success";
+  event: 'charge.success';
   data: any;
 }
 
 export interface PaymentCollection {
   merchant_id: string;
-  service_name: "MOMO_TRANSACTION" | null;
+  service_name: 'MOMO_TRANSACTION' | null;
   trans_hash: string;
   account_name: string;
   description: string;
   reference: string;
-  network: "MTN" | "TELECEL" | "VODAFONE" | "AIRTELTIGO"; //ts from my brain take a look at the docs
+  network: 'MTN' | 'TELECEL' | 'VODAFONE' | 'AIRTELTIGO'; //ts from my brain take a look at the docs
   amount: number;
   callback: string;
 }
@@ -29,11 +29,12 @@ export interface PaystackPaymentFields {
   currency: string;
   mobile_money: {
     phone: string;
-    provider: "mtn" | "vod" | "atl";
+    provider: 'mtn' | 'vod' | 'atl';
   };
   metadata: {
     phoneNumber: string;
     receiveNumber: string | undefined;
+    orderId: number;
   };
 }
 

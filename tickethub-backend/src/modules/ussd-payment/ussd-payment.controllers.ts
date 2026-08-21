@@ -1,11 +1,9 @@
-import { TelcoProviders } from "../ussd/ussd.types";
-import {
-  initiatePayment,
-  paymentComplete,
-  verifyPaystackSignature,
-} from "./ussd-payment.service";
-import { Request, Response } from "express";
-import { PaystackPaymentFields } from "./ussd-payment.types";
+
+import type { Request, Response } from "express";
+import type { PaystackPaymentFields } from "./ussd-payment.types.js";
+import { initiatePayment, paymentComplete } from "./ussd-payment.service.js";
+import type { TelcoProviders } from "../ussd/ussd.types.js";
+import { verifyPaystackSignature } from "../finance/finance.utils.js";
 
 export const testPayment = async (req: Request, res: Response) => {
   try {

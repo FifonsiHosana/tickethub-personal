@@ -1,18 +1,8 @@
 import config from '@/config/config.js';
 import type { PaystackPaymentFields } from '../ussd-payment/ussd-payment.types.js';
-import { getCategories, getCategoryEvents } from './ussd.services.js';
+import { getCategories, getCategoryEvents, ticketType, singleTicketPrice, ticketsRemaining, numberOfTickets, totalPrice, eventName } from './ussd.utils.js';
 import type { EventDetails, MenuNode } from './ussd.types.js';
-import {
-  categoryId,
-  categoryName,
-  dateTimeFormat,
-  eventName,
-  numberOfTickets,
-  singleTicketPrice,
-  ticketsRemaining,
-  ticketType,
-  totalPrice,
-} from './ussd.utils.js';
+import TicketsService from '../tickets/tickets.service.js';
 import { initiatePayment } from '../ussd-payment/ussd-payment.service.js';
 
 export const tree: Record<string, MenuNode> = {
@@ -25,7 +15,6 @@ export const tree: Record<string, MenuNode> = {
   },
   viewEvents: {
     id: 'view-events',
-
     prompt: async (context) => {
       const page = context.data?.['page:viewEvents'] ?? '0';
       const categories = await getCategories(page);
@@ -119,10 +108,10 @@ export const tree: Record<string, MenuNode> = {
       const selected = (context.eventDetails as EventDetails).ticketTypes[
         Number(input) - 1
       ];
+      const eventTicketId = selected?.id;
       return selected
         ? String(
-            selected.id +
-              `*${selected.name}*${selected.price}*${selected.remaining}`,
+            `${eventTicketId}*${selected.name}*${selected.price}*${selected.remaining}`,
           )
         : undefined;
     },
@@ -168,9 +157,47 @@ export const tree: Record<string, MenuNode> = {
     action: true,
     onSelect: {
       '1': async (context) => {
+        // Create a pending order before charging
+        const numberOfTicketsVal = numberOfTickets(context);
+        const attendee = {
+          firstName: 'USSD',
+          lastName: 'Customer',
+          phoneNumber: context.phoneNumber,
+          // Build email as ussd+<sanitized phone number>@tickethub.local
+          email: `ussd+${context.phoneNumber.replace(/[^a-zA-Z0-9]/g, '')}@tickethub.local`,
+        };
+
+        // Generate eventTicketId from the selected ticket type data
+        const ticketTypeStr = context.data?.ticketType;
+        const ticketTypeParts = ticketTypeStr?.split('*');
+        const eventTicketId = ticketTypeParts ? Number(ticketTypeParts[0]) : undefined;
+
+        if (!eventTicketId) {
+          throw new Error('Missing eventTicketId from ticket type selection');
+        }
+
+        const numberOfTickets = numberOfTicketsVal || 1;
+
+        // Create pending order with placeholder identity
+        const purchaseResult = await TicketsService.purchaseTickets(
+          {
+            items: [
+              {
+                eventTicketId,
+                quantity: numberOfTickets,
+              },
+            ],
+            attendee,
+          },
+          null, // userId can be null for USSD guest orders
+        );
+
+        const orderId = purchaseResult.orderId;
+
+        // Build payment fields with orderId in metadata
         const fields: PaystackPaymentFields = {
           amount: totalPrice(context),
-          email: config.email.from_email,
+          email: attendee.email,
           currency: 'GHS',
           mobile_money: {
             phone: context.phoneNumber,
@@ -179,14 +206,18 @@ export const tree: Record<string, MenuNode> = {
           metadata: {
             phoneNumber: context.phoneNumber,
             receiveNumber: context.data?.receiveNumber,
+            orderId: orderId,
           },
         };
+
         try {
           await initiatePayment(fields);
         } catch (error) {
           console.log(error);
+          throw error;
         }
       },
+      '2': 'Cancel',
     },
   },
   buyForSomeone: {
@@ -198,9 +229,9 @@ export const tree: Record<string, MenuNode> = {
   paymentInitiation: {
     id: 'payment-initiation',
     prompt: async () => `Your transaction has been
-successfully initiated. You will be
-prompted to approve your
-purchase on your phone`,
+ successfully initiated. You will be
+ prompted to approve your
+ purchase on your phone`,
     isTerminal: true,
   },
 };

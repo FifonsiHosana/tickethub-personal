@@ -3,6 +3,9 @@ import type { EventDetails, sessionContext } from "./ussd.types.js";
 export const ticketType = (context: sessionContext) =>
   context.data?.ticketType.split("*")[1];
 
+export const eventTicketId = (context: sessionContext) =>
+  context.data?.ticketType.split("*")[0];
+
 export const singleTicketPrice = (context: sessionContext) =>
   context.data?.ticketType.split("*")[2];
 
