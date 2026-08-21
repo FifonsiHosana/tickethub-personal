@@ -51,22 +51,18 @@ export async function getSmsHistory(): Promise<SmsHistoryItem[]> {
     ? payload
     : payload?.data ?? payload;
 
-  console.log('SMS history raw response:', payload);
-
   return Array.isArray(data) ? data : [];
 }
 
 export async function sendSms(payload: SendSmsPayload) {
   const response = await axiosInstance.post('/organizer/sms', payload);
   const data = response?.data?.data ?? response?.data;
-  console.log('SMS send response:', data);
   return data;
 }
 
 export async function getCreditWallet() {
   const response = await axiosInstance.get('/organizer/sms/balance');
   const data = response?.data?.data ?? response?.data;
-  console.log('Credit wallet response:', data);
   return data;
 }
 
