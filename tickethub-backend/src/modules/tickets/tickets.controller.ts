@@ -23,13 +23,17 @@ class TicketsController {
     try {
       const identifier = req.params.ticketIdentifier as string;
       if (!identifier) {
-        return res.status(400).json({ success: false, message: 'Missing ticket identifier.' });
+        return res
+          .status(400)
+          .json({ success: false, message: 'Missing ticket identifier.' });
       }
 
       const ticket = await ticketsService.getTicketByIdentifier(identifier);
 
       if (!ticket) {
-        return res.status(404).json({ success: false, message: 'Ticket not found.' });
+        return res
+          .status(404)
+          .json({ success: false, message: 'Ticket not found.' });
       }
 
       return res.json({ success: true, data: ticket });
@@ -54,7 +58,6 @@ class TicketsController {
     }
   }
 
-
   async resendEmail(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await ticketsService.resendEmail(
@@ -66,6 +69,40 @@ class TicketsController {
         success: true,
         data: result,
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getAtttendeesPhoneNumber(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const eventId = Number(req.params.eventId);
+
+      if (isNaN(eventId)) {
+        return res
+          .status(400)
+          .json({ success: false, message: 'Invalid event ID' });
+      }
+
+      const rawGroupIds = req.query.groupIds;
+      const groupIds = Array.isArray(rawGroupIds)
+        ? rawGroupIds
+            .flatMap((value) => String(value).split(','))
+            .filter(Boolean)
+            .map(Number)
+        : typeof rawGroupIds === 'string'
+          ? rawGroupIds.split(',').filter(Boolean).map(Number)
+          : [];
+
+      const phoneNumbers = await ticketsService.getAttendeePhoneNumbersByEvent(
+        eventId,
+        groupIds,
+      );
+      return res.json({ success: true, data: phoneNumbers });
     } catch (error) {
       next(error);
     }

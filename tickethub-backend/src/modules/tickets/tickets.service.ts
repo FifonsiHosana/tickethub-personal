@@ -13,7 +13,7 @@ import {
   eventStaff,
 } from '@/db/schema/index.js';
 
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and, inArray, sql } from 'drizzle-orm';
 import { AppError } from '@/middleware/errorHandler.js';
 import type { PurchaseTicketType } from './tickets.schema.js';
 import { generateTicketIdentifier } from './tickets.utils.js';
@@ -259,7 +259,7 @@ class TicketsService {
     const { html: emailHtml, attachments } =
       await buildPurchaseConfirmationEmail({
         orderId: id,
-        items: orderItems ,
+        items: orderItems,
         total: Number(amount),
         accountCreated,
         email: customerEmail,
@@ -273,6 +273,48 @@ class TicketsService {
       undefined,
       attachments,
     );
+  }
+  async getAttendeePhoneNumbersByEvent(
+    eventId: number,
+    selectedGroupIds: number[] = [],
+  ): Promise<string[]> {
+    const filters = [eq(tickets.eventId, eventId)];
+
+    if (selectedGroupIds.length > 0) {
+      const normalizedGroupIds = [
+        ...new Set(
+          selectedGroupIds.filter((id) => Number.isFinite(id) && id > 0),
+        ),
+      ];
+      if (normalizedGroupIds.length > 0) {
+        const ticketTypeFilter = sql`EXISTS (
+          SELECT 1
+          FROM ${eventTickets}
+          WHERE ${eventTickets.id} = ${ticketOrderItems.eventTicketId}
+            AND (${eventTickets.ticketTypeId} IN (${normalizedGroupIds.join(',')}) OR ${eventTickets.id} IN (${normalizedGroupIds.join(',')}))
+        )`;
+        filters.push(ticketTypeFilter);
+      }
+    }
+
+    const results = await db
+      .select({
+        phoneNumber: ticketOrderUserDetails.phoneNumber,
+      })
+      .from(ticketOrderUserDetails)
+      .innerJoin(
+        ticketOrderItems,
+        eq(ticketOrderUserDetails.orderId, ticketOrderItems.orderId),
+      )
+      .innerJoin(
+        eventTickets,
+        eq(ticketOrderItems.eventTicketId, eventTickets.id),
+      )
+      .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
+      .where(and(...filters));
+
+    const phoneNumbers = results.map((row) => row.phoneNumber);
+    return [...new Set(phoneNumbers)];
   }
 }
 

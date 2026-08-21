@@ -21,6 +21,7 @@ import { AnalyticsOverviewFiltersProvider } from "@/components/sections/Dashboar
 import EventSelectDropdown from "@/components/sections/Dashboard/Organizer/Shared/EventSelectDropdown";
 import TicketTypeFilter from "@/components/sections/Dashboard/Organizer/Analytics/TicketTypeFilter";
 import { useAnalyticsOverviewFilters } from "@/components/sections/Dashboard/Organizer/Analytics/useAnalyticsOverviewFilters";
+import SmsProgress from "@/components/shared/SmsProgress";
 
 function HeaderAnalyticsFilters({ pathname }: { pathname: string }) {
   const { activeRole } = useAuthStorage();
@@ -76,7 +77,8 @@ export default function DashboardLayout() {
                     <SidebarTrigger className="md:-ml-1" />
                     <HeaderAnalyticsFilters pathname={pathname} />
                   </div>
-                  <div className="flex items-center gap-1 mx-2">
+                  <div className="flex items-center gap-2 mx-2">
+                    <SmsProgress />
                     <RoleSwitcher className="bg-muted border-border" />
                     {activeRole !== "attendee" && <DateRangeFilter />}
                     <CreateEventButton />

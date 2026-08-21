@@ -1,4 +1,4 @@
-﻿import { useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 
 const STORAGE_KEY = "tickethub.smsCredits";
 
@@ -57,11 +57,16 @@ export function getCreditSnapshot(): CreditState {
 }
 
 // Update the credit state from the backend wallet response.
-export function syncCreditsFromWallet(wallet: {
-  totalCredit?: number | string;
-  creditUsed?: number | string;
-  creditLeft?: number | string;
-} | null | undefined): void {
+export function syncCreditsFromWallet(
+  wallet:
+    | {
+        totalCredit?: number | string;
+        creditUsed?: number | string;
+        creditLeft?: number | string;
+      }
+    | null
+    | undefined,
+): void {
   if (!wallet) return;
 
   const total = Number(wallet.totalCredit ?? 0);

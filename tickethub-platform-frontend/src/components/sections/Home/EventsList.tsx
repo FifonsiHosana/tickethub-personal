@@ -5,6 +5,7 @@ import { useEvents } from "@/hooks/attendees/events/useEvent";
 import type { Event } from "@/types/event.types";
 import { PaginationSect } from "@/components/shared/Pagination";
 import { EventsSkeleton } from "@/components/shared/EventsSkeleton";
+import { MapPin, Calendar, Smartphone } from "lucide-react";
 
 const PAGE_SIZE = 6;
 
@@ -65,24 +66,37 @@ export const EventsList: React.FC = () => {
                   alt={event.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
-                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-foreground text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
-                  {formattedDate}
+                <div className="absolute top-4 left-4 flex gap-3">
+                  <div className=" bg-white/90 backdrop-blur-sm text-foreground text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
+                    {formattedDate}
+                  </div>
                 </div>
               </div>
-
               {/* Text Content */}
-              <div className="flex flex-col items-start">
-                <h3 className="text-xl font-sans font-semibold text-foreground line-clamp-1 mb-1 group-hover:text-neutral-600 transition-colors">
+              <div className="flex flex-col gap-1.5 items-start">
+                <h3 className="text-xl font-semibold text-foreground line-clamp-1 group-hover:text-neutral-600 transition-colors">
                   {event.title}
                 </h3>
-                {event.venueName && (
-                  <p className="text-base text-neutral-700 line-clamp-1">
-                    {event.venueName}, {event.city}
-                  </p>
-                )}
-                <p className="text-sm text-neutral-600">
-                  {formattedDateTime} at {formattedTime}
-                </p>
+
+                {/* Subtitle / Details Line */}
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-neutral-600">
+                  {event.venueName && (
+                    <>
+                      <span className="font-medium text-neutral-800 line-clamp-1">
+                        {event.venueName}, {event.city}
+                      </span>
+                      <span>•</span>
+                    </>
+                  )}
+                  <span>
+                    {formattedDateTime} at {formattedTime}
+                  </span>
+                </div>
+
+                {/* USSD Code Tag */}
+                <span className="mt-1 inline-block rounded bg-primary/80 text-white px-2 py-0.5 text-xs font-mono font-bold tracking-wider">
+                  *902*30*1#
+                </span>
               </div>
             </Link>
           );
@@ -90,12 +104,14 @@ export const EventsList: React.FC = () => {
       </div>
 
       {/* Pagination */}
-      <PaginationSect
-        currentPage={currentPage}
-        totalPages={totalPages}
-        page={page}
-        setPage={setPage}
-      />
+      <div className="mt-10">
+        <PaginationSect
+          currentPage={currentPage}
+          totalPages={totalPages}
+          page={page}
+          setPage={setPage}
+        />
+      </div>
     </div>
   );
 };

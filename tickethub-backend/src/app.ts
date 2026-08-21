@@ -16,6 +16,7 @@ import adminRoutes from '@/modules/admin/admin.routes.js';
 import mediaRoutes from '@/modules/media/media.routes.js';
 import settingsRoutes from '@/modules/settings/settings.routes.js';
 import smsRoutes from '@/modules/sms/sms.routes.js';
+import creditRoutes from '@/modules/credit/credit.routes.js';
 
 const app = express();
 
@@ -46,6 +47,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/organizer/sms', smsRoutes);
+app.use('/api/organizer/credit', creditRoutes);
 
 // error handling)
 

@@ -52,4 +52,11 @@ router.post(
 
   controller.resendEmail,
 );
+
+router.get(
+  '/events/:eventId/phone-numbers',
+  authenticate,
+  authorize('organizer', 'event_staff'),
+  controller.getAtttendeesPhoneNumber,
+);
 export default router;

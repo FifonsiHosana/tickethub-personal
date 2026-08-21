@@ -1,33 +1,22 @@
-﻿import { useState, useEffect } from "react";
+﻿import { useState } from "react";
+import { toast } from "sonner";
 import { CampaignComposer } from "@/components/sections/Dashboard/Organizer/SMS/CampaignComposer";
 import {
   AudienceFilter,
   type AudienceSelection,
 } from "@/components/sections/Dashboard/Organizer/SMS/AudienceFilter";
 import { PreviewModal } from "@/components/sections/Dashboard/Organizer/SMS/PreviewModal";
-import { SuccessModal } from "@/components/ui/success-modal";
-import { getCreditSnapshot } from "@/stores/creditStore";
-import { getTicketHoldersPhoneNumbers } from "@/utils/services/organizers/tickets.service";
-import { sendSms } from "@/utils/services/organizers/sms.service";
-
-const CREDIT_PER_SMS = Number(import.meta.env.VITE_CREDIT_PER_SMS || 1);
-
-function audienceLabel(selection: AudienceSelection): string {
-  if (selection.mode === "import") return "Imported contacts";
-  if (selection.mode === "custom")
-    return `${selection.customPhones.length} custom number${
-      selection.customPhones.length === 1 ? "" : "s"
-    }`;
-  if (selection.mode === "event") {
-    if (selection.allGroups) return "All groups";
-    if (selection.groupIds.length > 0)
-      return `${selection.groupIds.length} group${
-        selection.groupIds.length > 1 ? "s" : ""
-      } selected`;
-    return "Event audience";
-  }
-  return "—";
-}
+import {
+  useSendSms,
+  useCreditWallet,
+  // useEventTickets,
+  useTicketHoldersPhoneNumbers,
+} from "@/hooks/organizers/useOrganizerSms";
+import {
+  audienceLabel,
+  normalizeRecipients,
+  calculateCreditUsage,
+} from "@/lib/sms";
 
 export default function SmsCampaign() {
   const [message, setMessage] = useState("");
@@ -38,40 +27,16 @@ export default function SmsCampaign() {
     allGroups: false,
     customPhones: [],
   });
-
-  // State to hold active event phone numbers fetched from backend
-  const [eventPhones, setEventPhones] = useState<string[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
 
-  // Fetch unique event phone numbers when event mode and eventId are active
-  useEffect(() => {
-    if (audience.mode !== "event" || !audience.eventId) {
-      return;
-    }
+  const { data: wallet } = useCreditWallet();
+  // const { data: eventTickets = [] } = useEventTickets(audience.mode === 'event' ? audience.eventId ?? null : null);
+  const { data: eventPhones = [] } = useTicketHoldersPhoneNumbers(
+    audience.mode === "event" ? (audience.eventId ?? null) : null,
+    audience.allGroups ? [] : audience.groupIds,
+  );
 
-    let active = true;
-    async function fetchPhones() {
-      try {
-        const phones = await getTicketHoldersPhoneNumbers(
-          audience.eventId!,
-          audience.allGroups ? [] : audience.groupIds,
-        );
-        if (active) setEventPhones(phones);
-      } catch (err) {
-        console.error("Failed to load audience phone numbers:", err);
-      }
-    }
-
-    fetchPhones();
-    return () => {
-      active = false;
-    };
-  }, [audience.mode, audience.eventId, audience.allGroups, audience.groupIds]);
-
-  // Derive active phone numbers based on selection mode
   const recipientPhones = (): string[] => {
     if (audience.mode === "custom") return audience.customPhones;
     if (audience.mode === "event") return eventPhones;
@@ -79,22 +44,19 @@ export default function SmsCampaign() {
   };
 
   const activeRecipients = recipientPhones();
-  const normalizedRecipients = Array.from(
-    new Set(
-      activeRecipients
-        .map((value) => value?.toString().trim())
-        .filter((value): value is string => Boolean(value) && value.length >= 8),
-    ),
-  );
+  console.log("1",activeRecipients);
+  console.log("2",eventPhones);
+  const normalizedRecipients = normalizeRecipients(activeRecipients);
   const recipientCount = normalizedRecipients.length;
-  const creditUsed = recipientCount * CREDIT_PER_SMS;
-  const creditsLeft = getCreditSnapshot().total - getCreditSnapshot().used;
+  const creditUsed = calculateCreditUsage(recipientCount);
+  const creditsLeft = Number(wallet?.creditLeft ?? 0);
   const insufficientCredits = creditUsed > creditsLeft;
 
   const handleAudienceChange = (nextSelection: AudienceSelection) => {
-    setEventPhones([]);
     setAudience(nextSelection);
   };
+
+  const { mutateAsync: sendSmsMutation } = useSendSms();
 
   const handleSendPreview = () => {
     const payload = {
@@ -116,15 +78,19 @@ export default function SmsCampaign() {
 
   const handleConfirmSend = async () => {
     if (!message.trim()) {
-      setSuccessMessage("Please enter a message before sending.");
-      setShowSuccessModal(true);
+      toast.error("Please enter a message before sending.");
       setPreviewOpen(false);
       return;
     }
 
     if (recipientCount === 0) {
-      setSuccessMessage("Select at least one recipient before sending.");
-      setShowSuccessModal(true);
+      toast.error("Select at least one recipient before sending.");
+      setPreviewOpen(false);
+      return;
+    }
+
+    if (insufficientCredits) {
+      toast.error("Not enough credits to send this campaign.");
       setPreviewOpen(false);
       return;
     }
@@ -147,17 +113,17 @@ export default function SmsCampaign() {
         },
       };
 
-      await sendSms(payload);
-      setSuccessMessage(
-        `Message sent successfully to ${recipientCount} recipients!`
+      await sendSmsMutation(payload);
+      toast.success(
+        `Message sent successfully to ${recipientCount} recipients!`,
       );
-      setShowSuccessModal(true);
     } catch (err) {
       console.error("Failed to send SMS:", err);
-      setSuccessMessage(
-        err instanceof Error ? err.message : "Could not send SMS. Please try again."
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Could not send SMS. Please try again.",
       );
-      setShowSuccessModal(true);
     } finally {
       setIsSending(false);
       setPreviewOpen(false);
@@ -192,13 +158,6 @@ export default function SmsCampaign() {
         creditUsed={creditUsed}
         insufficientCredits={insufficientCredits}
         isSubmitting={isSending}
-      />
-
-      <SuccessModal
-        show={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
-        title="Message Sent!"
-        message={successMessage}
       />
     </div>
   );

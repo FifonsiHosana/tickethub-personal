@@ -16,7 +16,7 @@ export default function SmsHistory() {
   return (
       <div className="flex h-screen max-w-10xl flex-col gap-6 p-6 overflow-hidden">
       {/* Tabs */}
-      <div className="flex shrink-0 gap-1 rounded-xl border border-border bg-white p-1">
+      <div className="flex shrink-0 gap-1 rounded-xl border border-border p-1">
         {tabs.map((t) => (
           <button
             key={t.id}

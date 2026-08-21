@@ -1,59 +1,20 @@
 ﻿import { ArrowLeft, Coins, Minus, Plus, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SuccessModal } from "@/components/ui/success-modal";
-// import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import PayStackPop from "@paystack/inline-js";
-import { syncCreditsFromWallet } from "@/stores/creditStore";
+import { toast } from "sonner";
 import {
   buyCredits,
   getCreditWallet,
   verifyCreditPurchase,
 } from "@/utils/services/organizers/sms.service";
-
-// type Plan = {
-//   id: string;
-//   name: string;
-//   credits: number;
-//   price: number;
-//   popular?: boolean;
-//   features: string[];
-// };
-
-// const plans: Plan[] = [
-//   {
-//     id: "starter",
-//     name: "Starter",
-//     credits: 5000,
-//     price: 25,
-//     features: ["5,000 SMS credits", "Send to ticket owners", "Email support", "Basic analytics"],
-//   },
-//   {
-//     id: "growth",
-//     name: "Growth",
-//     credits: 25000,
-//     price: 100,
-//     popular: true,
-//     features: [
-//       "25,000 SMS credits",
-//       "Send to ticket owners & other numbers",
-//       "Priority support",
-//       "Advanced analytics",
-//     ],
-//   },
-//   {
-//     id: "scale",
-//     name: "Scale",
-//     credits: 100000,
-//     price: 350,
-//     features: [
-//       "100,000 SMS credits",
-//       "Send to ticket owners & other numbers",
-//       "Dedicated manager",
-//     ],
-//   },
-// ];
+import {
+  useCreditWallet,
+  useBuyCredits,
+  useVerifyCreditPurchase,
+} from "@/hooks/organizers/useOrganizerSms";
 
 const MIN_CUSTOM_CREDITS = 100;
 const MAX_CUSTOM_CREDITS = 50000;
@@ -61,112 +22,92 @@ const PRICE_PER_CREDIT = 0.5;
 
 export default function SmsCredits() {
   const [customCredits, setCustomCredits] = useState(1000);
-  const [showModal, setShowModal]         = useState(false);
-  const [modalMessage, setModalMessage]   = useState("");
-  const [isPurchasing, setIsPurchasing]   = useState(false);
   const navigate = useNavigate();
+
+  const { data: wallet, refetch: refetchWallet } = useCreditWallet();
+  const { mutateAsync: buyCreditsMutation, isPending: isPurchasing } =
+    useBuyCredits();
+  const { mutateAsync: verifyPurchaseMutation } = useVerifyCreditPurchase();
 
   const customPrice = Number((customCredits * PRICE_PER_CREDIT).toFixed(2));
 
   const refreshWallet = async (reference?: string) => {
     try {
       if (reference) {
-        const wallet = await verifyCreditPurchase(reference);
-        syncCreditsFromWallet(wallet);
+        const walletData = await verifyPurchaseMutation(reference);
+        refetchWallet();
+        return walletData;
       } else {
-        const wallet = await getCreditWallet();
-        syncCreditsFromWallet(wallet);
+        await refetchWallet();
       }
     } catch (error) {
       console.error("Failed to refresh credit wallet:", error);
-      // last-last: fallback: plain balance fetch
-      try {
-        const wallet = await getCreditWallet();
-        syncCreditsFromWallet(wallet);
-      } catch (_) { /* silent */ }
     }
   };
 
   const handleAddCredits = async (credits: number, price: number) => {
     try {
-      setIsPurchasing(true);
-
-      const result = await buyCredits({
+      const result = await buyCreditsMutation({
         credits,
-        amount: Math.round(price * 100), // convert to pesewas
+        amount: Math.round(price * 100),
         currency: "GHS",
         planName: "sms-credits",
       });
 
-      // For my sake
       if (result?.mock) {
         await refreshWallet();
-        setModalMessage("Your credits were added locally for development.");
-        setShowModal(true);
-        setIsPurchasing(false);
+        toast.success("Your credits were added locally for development.");
         return;
       }
 
       const accessCode = result?.accessCode || result?.access_code;
-      const reference  = result?.reference;
+      const reference = result?.reference;
 
       if (!accessCode) {
-        setModalMessage("Unable to start the payment popup. Please try again.");
-        setShowModal(true);
-        setIsPurchasing(false);
+        toast.error("Unable to start the payment popup. Please try again.");
         return;
       }
 
-      //  Real Paystack popup 
       const popup = new PayStackPop();
 
       popup.resumeTransaction(accessCode, {
-        onSuccess: async (_transaction: unknown) => {
+        onSuccess: async () => {
           try {
             await refreshWallet(reference);
-            setModalMessage("Payment successful! Your credits have been added.");
+            toast.success("Payment successful! Your credits have been added.");
           } catch {
-            // verify endpoint failed – show a softer message; webhook will still run
-            setModalMessage(
+            toast.success(
               "Payment received. Your balance will update in a moment – please refresh if needed.",
             );
-          } finally {
-            setShowModal(true);
-            setIsPurchasing(false);
           }
         },
 
         onCancel: () => {
-          setModalMessage("Payment cancelled. No credits were added.");
-          setShowModal(true);
-          setIsPurchasing(false);
+          toast.info("Payment cancelled. No credits were added.");
         },
 
         onError: () => {
-          setModalMessage("Payment could not be completed. Please try again.");
-          setShowModal(true);
-          setIsPurchasing(false);
+          toast.error("Payment could not be completed. Please try again.");
         },
       });
     } catch (error) {
       console.error("Failed to start credit purchase:", error);
-      setModalMessage("Unable to start the purchase right now. Please try again.");
-      setShowModal(true);
-      setIsPurchasing(false);
+      toast.error("Unable to start the purchase right now. Please try again.");
     }
   };
 
   const updateCustomCredits = (value: number) => {
-    setCustomCredits(Math.min(MAX_CUSTOM_CREDITS, Math.max(MIN_CUSTOM_CREDITS, value)));
+    setCustomCredits(
+      Math.min(MAX_CUSTOM_CREDITS, Math.max(MIN_CUSTOM_CREDITS, value)),
+    );
   };
 
   return (
-    // <DashboardLayout title="SMS Credits">
     <div className="m-auto my-5 flex w-full max-w-6xl flex-col gap-8 px-4">
       <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
         <ArrowLeft size={20} />
       </Button>
-      <div className="text-center">
+      {/* <div className="text-center">
         <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
           <Coins className="size-6" />
         </div>
@@ -176,63 +117,34 @@ export default function SmsCredits() {
         <p className="mt-2 text-sm text-muted-foreground">
           Choose a pack and keep your campaigns running. Credits never expire.
         </p>
-      </div>
-
-      {/* <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        {plans.map((plan) => (
-          <div
-            key={plan.id}
-            className={cn(
-              "relative flex flex-col rounded-2xl border bg-white p-6",
-              plan.popular ? "border-primary shadow-md" : "border-border"
-            )}
-          >
-            {plan.popular && (
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
-                Most popular
-              </span>
-            )}
-            <div className="flex items-center gap-2">
-              <Sparkles
-                className={cn(
-                  "size-4",
-                  plan.popular ? "text-primary" : "text-muted-foreground"
-                )}
-              />
-              <h3 className="font-medium text-foreground">{plan.name}</h3>
-            </div>
-
-            <p className="mt-4 text-3xl font-semibold tracking-tight text-foreground tabular-nums">
-              Gh₵{plan.price}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {plan.credits.toLocaleString()} credits
-            </p>
-
-            <ul className="mt-5 flex-1 space-y-2">
-              {plan.features.map((f) => (
-                <li key={f} className="flex items-center gap-2 text-sm text-foreground">
-                  <Check className="size-4 shrink-0 text-primary" />
-                  {f}
-                </li>
-              ))}
-            </ul>
-
-            <Button
-              className={cn(
-                "mt-6 w-full rounded-xl",
-                !plan.popular && "bg-foreground text-background hover:bg-foreground/90"
-              )}
-              disabled={isPurchasing}
-              onClick={() => handleAddCredits(plan.credits, plan.price)}
-            >
-              {isPurchasing ? "Processing..." : `Buy ${plan.credits.toLocaleString()} credits`}
-            </Button>
-          </div>
-        ))}
       </div> */}
 
-      <div className="relative overflow-hidden rounded-2xl border border-dashed border-primary/30 bg-gradient-to-br from-primary/5 to-orange-50 p-6 shadow-sm">
+      {wallet && (
+        <div className="rounded-2xl border border-border p-6">
+          <h3 className="font-medium text-foreground mb-4">Current Balance</h3>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="rounded-xl bg-accent/50 p-4">
+              <p className="text-sm text-muted-foreground">Total Credits</p>
+              <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground tabular-nums">
+                {Number(wallet.totalCredit ?? 0).toLocaleString()}
+              </p>
+            </div>
+            <div className="rounded-xl bg-accent/50 p-4">
+              <p className="text-sm text-muted-foreground">Credits Used</p>
+              <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground tabular-nums">
+                {Number(wallet.creditUsed ?? 0).toLocaleString()}
+              </p>
+            </div>
+            <div className="rounded-xl bg-accent/50 p-4">
+              <p className="text-sm text-muted-foreground">Credits Remaining</p>
+              <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground tabular-nums">
+                {Number(wallet.creditLeft ?? 0).toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="relative overflow-hidden rounded-2xl border border-dashed bg-accent/50 border-border p-6 shadow-sm">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div className="max-w-xl">
             <div className="flex items-center gap-2 text-sm font-medium text-primary">
@@ -243,11 +155,11 @@ export default function SmsCredits() {
               Build your own credit pack
             </h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              Pick the exact number of credits you need and adjust the total instantly.
+              Adjust in steps of 100 credits.
             </p>
           </div>
 
-          <div className="rounded-2xl border bg-white/80 p-5 shadow-sm">
+          <div className="rounded-2xl border border-border  p-5 shadow-sm">
             <div className="text-sm text-muted-foreground">Estimated total</div>
             <p className="mt-1 text-3xl font-semibold tracking-tight text-foreground tabular-nums">
               Gh₵{customPrice}
@@ -269,15 +181,17 @@ export default function SmsCredits() {
               <Minus className="size-4" />
             </Button>
 
-            <div className="flex min-w-[150px] items-center justify-center rounded-xl border border-border bg-white px-3 py-2">
-              <input
+            <div className="flex min-w-[150px] items-center justify-center rounded-xl border border-border  px-3 py-2">
+              <Input
                 type="number"
                 min={MIN_CUSTOM_CREDITS}
                 max={MAX_CUSTOM_CREDITS}
                 step={100}
                 inputMode="numeric"
                 value={customCredits}
-                onChange={(event) => updateCustomCredits(Number(event.target.value))}
+                onChange={(event) =>
+                  updateCustomCredits(Number(event.target.value))
+                }
                 className="w-full bg-transparent text-center text-lg font-semibold text-foreground outline-none"
               />
             </div>
@@ -293,9 +207,8 @@ export default function SmsCredits() {
           </div>
 
           <div className="text-sm flex flex-col text-muted-foreground">
-            Adjust in steps of 100 credits
             <Button
-              className={'w-30 m-auto cursor-pointer'}
+              className="w-30 m-auto cursor-pointer"
               disabled={isPurchasing}
               onClick={() => handleAddCredits(customCredits, customPrice)}
             >
@@ -304,13 +217,6 @@ export default function SmsCredits() {
           </div>
         </div>
       </div>
-
-      <SuccessModal
-        show={showModal}
-        onClose={() => setShowModal(false)}
-        message={modalMessage}
-      />
     </div>
-    // </DashboardLayout>
   );
 }

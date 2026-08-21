@@ -2,6 +2,7 @@
 import { Send, Smile } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
 
 const MAX_LENGTH = 160;
 
@@ -31,7 +32,7 @@ export const CampaignComposer: React.FC<CampaignComposerProps> = ({
   };
 
   return (
-    <div className="rounded-xl border border-gray-300 bg-white p-6 shadow-sm">
+    <Card className="rounded-xl bg-card p-6 shadow-sm">
       <div className="mb-5 flex items-center gap-3">
         <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
           <Send className="size-5" />
@@ -48,21 +49,26 @@ export const CampaignComposer: React.FC<CampaignComposerProps> = ({
       <div className="rounded-xl border border-border bg-background p-3 focus-within:border-primary">
         <textarea
           value={message}
-          onChange={(e) => onMessageChange(e.target.value.slice(0, MAX_LENGTH * 3))}
+          onChange={(e) =>
+            onMessageChange(e.target.value.slice(0, MAX_LENGTH * 3))
+          }
           rows={4}
           placeholder="Hey {{first_name}}, your tickets for {{event}} are ready! Reply STOP to opt out."
           className="w-full resize-none bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/70"
         />
         <div className="mt-2 flex items-center justify-between border-t border-border pt-2">
           <div className="flex items-center gap-1 text-muted-foreground">
-            <button className="rounded-lg p-1.5 hover:bg-accent" aria-label="Emoji">
+            <button
+              className="rounded-lg p-1.5 hover:bg-accent"
+              aria-label="Emoji"
+            >
               <Smile className="size-4" />
             </button>
           </div>
           <span
             className={cn(
               "text-xs",
-              remaining < 0 ? "text-rose-600" : "text-muted-foreground"
+              remaining < 0 ? "text-rose-600" : "text-muted-foreground",
             )}
           >
             {message.length}/{MAX_LENGTH} * {segments} segment
@@ -86,7 +92,7 @@ export const CampaignComposer: React.FC<CampaignComposerProps> = ({
           <span
             className={cn(
               "absolute top-0.5 size-5 rounded-full bg-white transition-transform",
-              scheduled ? "translate-x-5" : "translate-x-0.5"
+              scheduled ? "translate-x-5" : "translate-x-0.5",
             )}
           />
         </span>
@@ -109,6 +115,6 @@ export const CampaignComposer: React.FC<CampaignComposerProps> = ({
           </Button>
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
