@@ -1,9 +1,20 @@
 import config from '@/config/config.js';
 import type { PaystackPaymentFields } from '../ussd-payment/ussd-payment.types.js';
-import { getCategories, getCategoryEvents, ticketType, singleTicketPrice, ticketsRemaining, numberOfTickets, totalPrice, eventName } from './ussd.utils.js';
+import {
+  ticketType,
+  singleTicketPrice,
+  ticketsRemaining,
+  numberOfTickets,
+  totalPrice,
+  eventName,
+  categoryId,
+  categoryName,
+  dateTimeFormat,
+} from './ussd.utils.js';
 import type { EventDetails, MenuNode } from './ussd.types.js';
 import TicketsService from '../tickets/tickets.service.js';
 import { initiatePayment } from '../ussd-payment/ussd-payment.service.js';
+import { getCategories, getCategoryEvents } from './ussd.services.js';
 
 export const tree: Record<string, MenuNode> = {
   home: {
@@ -158,7 +169,7 @@ export const tree: Record<string, MenuNode> = {
     onSelect: {
       '1': async (context) => {
         // Create a pending order before charging
-        const numberOfTicketsVal = numberOfTickets(context);
+        const numberOfTicketsVal: number = numberOfTickets(context); // calls the imported fn
         const attendee = {
           firstName: 'USSD',
           lastName: 'Customer',
@@ -170,13 +181,15 @@ export const tree: Record<string, MenuNode> = {
         // Generate eventTicketId from the selected ticket type data
         const ticketTypeStr = context.data?.ticketType;
         const ticketTypeParts = ticketTypeStr?.split('*');
-        const eventTicketId = ticketTypeParts ? Number(ticketTypeParts[0]) : undefined;
+        const eventTicketId = ticketTypeParts
+          ? Number(ticketTypeParts[0])
+          : undefined;
 
         if (!eventTicketId) {
           throw new Error('Missing eventTicketId from ticket type selection');
         }
 
-        const numberOfTickets = numberOfTicketsVal || 1;
+        const ticketQuantity = numberOfTicketsVal || 1;
 
         // Create pending order with placeholder identity
         const purchaseResult = await TicketsService.purchaseTickets(
@@ -184,7 +197,7 @@ export const tree: Record<string, MenuNode> = {
             items: [
               {
                 eventTicketId,
-                quantity: numberOfTickets,
+                quantity: ticketQuantity,
               },
             ],
             attendee,
@@ -206,7 +219,7 @@ export const tree: Record<string, MenuNode> = {
           metadata: {
             phoneNumber: context.phoneNumber,
             receiveNumber: context.data?.receiveNumber,
-            orderId: orderId,
+            orderId: orderId as number,
           },
         };
 
@@ -217,7 +230,7 @@ export const tree: Record<string, MenuNode> = {
           throw error;
         }
       },
-      '2': 'Cancel',
+      // '2': 'Cancel',
     },
   },
   buyForSomeone: {
