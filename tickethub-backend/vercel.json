@@ -1,5 +1,16 @@
 {
   "version": 2,
-  "builds": [{ "src": "dist/src/app.js", "use": "@vercel/node" }],
-  "routes": [{ "src": "/(.*)", "dest": "dist/src/app.js" }]
+  "cleanUrls": true,
+  "functions": {
+    "dist/src/server.js": {
+      "memory": 1024,
+      "maxDuration": 15
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "dist/src/server.js"
+    }
+  ]
 }
