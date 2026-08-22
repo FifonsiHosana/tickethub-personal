@@ -94,7 +94,7 @@ export const EventsList: React.FC = () => {
 
                 {/* USSD Code Tag */}
                 <span className="mt-1 inline-block rounded bg-primary/80 text-white px-2 py-0.5 text-xs font-mono font-bold tracking-wider">
-                  *902*30*1#
+                  {`*920*658${event.id}*#`}
                 </span>
               </div>
             </Link>
