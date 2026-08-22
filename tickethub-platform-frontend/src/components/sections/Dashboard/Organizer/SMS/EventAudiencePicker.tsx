@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { useOrganizerEvents } from "@/hooks/organizers/useOrganizerEvents";
 import {
     useEventTickets
@@ -9,8 +8,7 @@ import { cn } from "@/lib/utils";
 import {
     AlertTriangle,
     ChevronDown,
-    Loader2,
-    Search
+    Loader2
 } from "lucide-react";
 import React, { useState } from "react";
 // import type { TicketResponse } from "@/hooks/organizers/useOrganizerSms";
