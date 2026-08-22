@@ -1,5 +1,6 @@
-import { redisClient } from "../redis";
-import { EventDetails } from "./ussd.types";
+import { redisClient } from "@/config/redis.config.js";
+import type { EventDetails } from "./ussd.types.js";
+
 
 const TTL = 180;
 
