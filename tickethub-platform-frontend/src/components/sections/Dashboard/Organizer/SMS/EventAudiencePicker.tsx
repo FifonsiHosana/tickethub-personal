@@ -1,20 +1,18 @@
-import React, { useState } from "react";
-import {
-  ChevronDown,
-  Loader2,
-  Phone,
-  Search,
-  AlertTriangle,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { useOrganizerEvents } from "@/hooks/organizers/useOrganizerEvents";
 import {
-  useEventTickets,
-  useTicketHoldersPhoneNumbers,
+    useEventTickets
 } from "@/hooks/organizers/useOrganizerSms";
+import { cn } from "@/lib/utils";
+import {
+    AlertTriangle,
+    ChevronDown,
+    Loader2,
+    Search
+} from "lucide-react";
+import React, { useState } from "react";
 // import type { TicketResponse } from "@/hooks/organizers/useOrganizerSms";
 
 interface EventAudiencePickerProps {
@@ -25,69 +23,69 @@ interface EventAudiencePickerProps {
   onGroupChange: (groupIds: number[], allGroups: boolean) => void;
 }
 
-const PhoneList: React.FC<{ phones: string[] }> = ({ phones }) => {
-  const [showPhones, setShowPhones] = useState(false);
-  const [search, setSearch] = useState("");
-  const [expanded, setExpanded] = useState(false);
+// const PhoneList: React.FC<{ phones: string[] }> = ({ phones }) => {
+//   const [showPhones, setShowPhones] = useState(false);
+//   const [search, setSearch] = useState("");
+//   const [expanded, setExpanded] = useState(false);
 
-  const filteredPhones = phones.filter((p) =>
-    p.toLowerCase().includes(search.toLowerCase()),
-  );
+//   const filteredPhones = phones.filter((p) =>
+//     p.toLowerCase().includes(search.toLowerCase()),
+//   );
 
-  return (
-    <div className="mt-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setShowPhones((prev) => !prev)}
-        className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
-      >
-        <span>{showPhones ? "Hide phone list" : "View phone list"}</span>
-        <ChevronDown
-          className={cn(
-            "size-3 transition-transform",
-            showPhones && "rotate-180",
-          )}
-        />
-      </Button>
+//   return (
+//     <div className="mt-2">
+//       <Button
+//         variant="ghost"
+//         size="sm"
+//         onClick={() => setShowPhones((prev) => !prev)}
+//         className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+//       >
+//         <span>{showPhones ? "Hide phone list" : "View phone list"}</span>
+//         <ChevronDown
+//           className={cn(
+//             "size-3 transition-transform",
+//             showPhones && "rotate-180",
+//           )}
+//         />
+//       </Button>
 
-      {showPhones && (
-        <div className="mt-2 max-h-36 overflow-y-auto rounded-lg border border-border bg-card p-2">
-          <div className="mb-2 flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 focus-within:border-primary">
-            <Search className="size-4 text-muted-foreground" />
-            <Input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search phones…"
-              className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/70"
-            />
-          </div>
-          <ul className="space-y-1">
-            {filteredPhones.map((phone, i) => (
-              <li key={i} className="text-xs font-mono text-muted-foreground">
-                {phone}
-              </li>
-            ))}
-            {filteredPhones.length === 0 && search && (
-              <li className="text-xs text-muted-foreground">No matches</li>
-            )}
-            {filteredPhones.length > 10 && !expanded && (
-              <Button
-                variant="ghost"
-                size="xs"
-                className="w-full mt-1"
-                onClick={() => setExpanded(true)}
-              >
-                Show all {filteredPhones.length} numbers
-              </Button>
-            )}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-};
+//       {showPhones && (
+//         <div className="mt-2 max-h-36 overflow-y-auto rounded-lg border border-border bg-card p-2">
+//           <div className="mb-2 flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 focus-within:border-primary">
+//             <Search className="size-4 text-muted-foreground" />
+//             <Input
+//               type="text"
+//               value={search}
+//               onChange={(e) => setSearch(e.target.value)}
+//               placeholder="Search phones…"
+//               className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/70"
+//             />
+//           </div>
+//           <ul className="space-y-1">
+//             {filteredPhones.map((phone, i) => (
+//               <li key={i} className="text-xs font-mono text-muted-foreground">
+//                 {phone}
+//               </li>
+//             ))}
+//             {filteredPhones.length === 0 && search && (
+//               <li className="text-xs text-muted-foreground">No matches</li>
+//             )}
+//             {filteredPhones.length > 10 && !expanded && (
+//               <Button
+//                 variant="ghost"
+//                 size="xs"
+//                 className="w-full mt-1"
+//                 onClick={() => setExpanded(true)}
+//               >
+//                 Show all {filteredPhones.length} numbers
+//               </Button>
+//             )}
+//           </ul>
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
 
 export const EventAudiencePicker: React.FC<EventAudiencePickerProps> = ({
   eventId,

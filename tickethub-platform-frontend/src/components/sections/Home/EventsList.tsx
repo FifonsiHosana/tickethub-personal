@@ -1,11 +1,10 @@
-import React, { useState } from "react";
-import { Link } from "react-router";
-import { format } from "date-fns";
+import { EventsSkeleton } from "@/components/shared/EventsSkeleton";
+import { PaginationSect } from "@/components/shared/Pagination";
 import { useEvents } from "@/hooks/attendees/events/useEvent";
 import type { Event } from "@/types/event.types";
-import { PaginationSect } from "@/components/shared/Pagination";
-import { EventsSkeleton } from "@/components/shared/EventsSkeleton";
-import { MapPin, Calendar, Smartphone } from "lucide-react";
+import { format } from "date-fns";
+import React, { useState } from "react";
+import { Link } from "react-router";
 
 const PAGE_SIZE = 6;
 
