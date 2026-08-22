@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { EventAudiencePicker } from "./EventAudiencePicker";
 import { ContactImport } from "./ContactImport";
 import { CustomNumbersInput } from "./CustomNumbersInput";
-import { Import, SendIcon, Users } from "lucide-react";
+import { Import, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { BsPeople, BsPeopleFill } from "react-icons/bs";
+import { BsPeopleFill } from "react-icons/bs";
 
 export type AudienceSelection = {
   mode: "event" | "import" | "custom";
@@ -92,7 +92,7 @@ export const AudienceFilter: React.FC<AudienceFilterProps> = ({
         <div>
           <h3 className="font-medium text-foreground">Audience</h3>
           <p className="text-sm text-muted-foreground">
-           Select sms receiving contacts.
+            Select sms receiving contacts.
           </p>
         </div>
       </div>

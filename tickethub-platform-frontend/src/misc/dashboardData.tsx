@@ -1,19 +1,17 @@
-import * as React from "react";
 import {
-  CalendarIcon,
-  TicketIcon,
-  BarChart3Icon,
-  HistoryIcon,
-  ListChecksIcon,
-  ShieldCheckIcon,
-  // WalletIcon,
-  LayoutDashboardIcon,
-  UserCheckIcon,
-  SettingsIcon,
-  Mailbox,
+    BarChart3Icon,
+    CalendarIcon,
+    HistoryIcon,
+    // WalletIcon,
+    LayoutDashboardIcon,
+    ListChecksIcon,
+    Mailbox,
+    SettingsIcon,
+    ShieldCheckIcon,
+    TicketIcon,
+    UserCheckIcon,
 } from "lucide-react";
-import { GiChatBubble } from "react-icons/gi";
-import { FaLetterboxd } from "react-icons/fa6";
+import * as React from "react";
 
 export type Role = "organizer" | "event_staff" | "admin" | "attendee";
 

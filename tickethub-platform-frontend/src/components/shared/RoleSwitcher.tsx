@@ -1,8 +1,6 @@
-import { useLocation, useNavigate } from "react-router";
 import { useAuthStorage } from "@/hooks/useAuthStorage";
 import { navByRole, type Role } from "@/misc/dashboardData";
-import { ConfirmDialog } from "./ConfirmDialog";
-import { useState } from "react";
+import { useLocation, useNavigate } from "react-router";
 
 const ROLE_LABELS: Partial<Record<Role, string>> = {
   organizer: "Organizer",

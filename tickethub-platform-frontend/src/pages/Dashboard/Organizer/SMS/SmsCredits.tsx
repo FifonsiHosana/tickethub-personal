@@ -1,20 +1,15 @@
-﻿import { ArrowLeft, Coins, Minus, Plus, Settings } from "lucide-react";
-import { Button } from "@/components/ui/button";
+﻿import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
-import { useNavigate } from "react-router";
-import PayStackPop from "@paystack/inline-js";
-import { toast } from "sonner";
 import {
-  buyCredits,
-  getCreditWallet,
-  verifyCreditPurchase,
-} from "@/utils/services/organizers/sms.service";
-import {
-  useCreditWallet,
   useBuyCredits,
+  useCreditWallet,
   useVerifyCreditPurchase,
 } from "@/hooks/organizers/useOrganizerSms";
+import PayStackPop from "@paystack/inline-js";
+import { ArrowLeft, Minus, Plus, Settings } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 const MIN_CUSTOM_CREDITS = 100;
 const MAX_CUSTOM_CREDITS = 50000;
