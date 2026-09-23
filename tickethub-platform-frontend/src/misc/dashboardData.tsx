@@ -12,8 +12,8 @@ import {
   SettingsIcon,
   Mailbox,
 } from "lucide-react";
-import { GiChatBubble } from "react-icons/gi";
-import { FaLetterboxd } from "react-icons/fa6";
+// import { GiChatBubble } from "react-icons/gi";
+// import { FaLetterboxd } from "react-icons/fa6";
 
 export type Role = "organizer" | "event_staff" | "admin" | "attendee";
 

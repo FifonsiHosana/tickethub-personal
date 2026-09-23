@@ -11,10 +11,13 @@ export async function sendMail(
   attachments?: nodemailer.SendMailOptions['attachments'],
 ) {
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    // service: 'gmail',
+    host: config.email.mail_host,
+    port: 587,
+    secure: false,
     auth: {
       user: config.email.from_email,
-      pass: config.email.gmail_app_password,
+      pass: config.email.mail_password,
     },
   });
 

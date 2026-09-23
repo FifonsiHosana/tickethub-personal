@@ -9,7 +9,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import type { ComponentProps } from "react";
-import { DialogContent } from "../ui/dialog";
+// import { DialogContent } from "../ui/dialog";
 
 type Props = {
   open: boolean;

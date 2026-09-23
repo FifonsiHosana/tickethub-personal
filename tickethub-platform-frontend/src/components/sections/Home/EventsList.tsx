@@ -5,7 +5,7 @@ import { useEvents } from "@/hooks/attendees/events/useEvent";
 import type { Event } from "@/types/event.types";
 import { PaginationSect } from "@/components/shared/Pagination";
 import { EventsSkeleton } from "@/components/shared/EventsSkeleton";
-import { MapPin, Calendar, Smartphone } from "lucide-react";
+// import { MapPin, Calendar, Smartphone } from "lucide-react";
 
 const PAGE_SIZE = 6;
 
@@ -95,7 +95,7 @@ export const EventsList: React.FC = () => {
 
                 {/* USSD Code Tag */}
                 <span className="mt-1 inline-block rounded bg-primary/80 text-white px-2 py-0.5 text-xs font-mono font-bold tracking-wider">
-                  *902*30*1#
+                  {`*902*30*${event.id}#`}
                 </span>
               </div>
             </Link>

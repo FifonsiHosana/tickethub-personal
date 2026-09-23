@@ -31,12 +31,14 @@ export interface SendSmsParams {
   sender?: string | undefined;
   scheduled?: boolean | undefined;
   scheduleDate?: string | null | undefined;
-  meta?: {
-    selectedEventId?: number | string | null | undefined;
-    audienceMode?: string | undefined;
-    selectedGroupIds?: (string | number)[] | undefined;
-    audienceLabel?: string | undefined;
-  } | undefined;
+  meta?:
+    | {
+        selectedEventId?: number | string | null | undefined;
+        audienceMode?: string | undefined;
+        selectedGroupIds?: (string | number)[] | undefined;
+        audienceLabel?: string | undefined;
+      }
+    | undefined;
 }
 
 export interface SmsSendResult {
@@ -70,12 +72,21 @@ export class SmsService {
   }
 
   async sendSms(params: SendSmsParams): Promise<SmsSendResult> {
-    const { userId, message, recipients, sender, scheduled = false, scheduleDate, meta } = params;
+    const {
+      userId,
+      message,
+      recipients,
+      sender,
+      scheduled = false,
+      scheduleDate,
+      meta,
+    } = params;
     const apiKey = config.sms.mnotify_api_key;
     const senderId = sender || config.sms.sender_id || 'TicketHub';
-    const eventId = meta?.selectedEventId !== undefined && meta?.selectedEventId !== null
-      ? Number(meta.selectedEventId)
-      : undefined;
+    const eventId =
+      meta?.selectedEventId !== undefined && meta?.selectedEventId !== null
+        ? Number(meta.selectedEventId)
+        : undefined;
 
     if (!apiKey) {
       throw new AppError(500, 'MNotify API key is not configured');
@@ -87,19 +98,28 @@ export class SmsService {
       .where(eq(creditWallet.userId, userId));
 
     if (!wallet) {
-      throw new AppError(400, 'No credit wallet found. Please contact support.');
+      throw new AppError(
+        400,
+        'No credit wallet found. Please contact support.',
+      );
     }
 
     const currentBalance = parseFloat(wallet.creditLeft);
     if (currentBalance <= 0) {
-      throw new AppError(400, 'Insufficient credit balance. Please add credit to your wallet.');
+      throw new AppError(
+        400,
+        'Insufficient credit balance. Please add credit to your wallet.',
+      );
     }
 
     const smsCount = recipients.length;
     const cost = smsCount;
 
     if (currentBalance < cost) {
-      throw new AppError(400, `Insufficient credit. You need ${cost} credits but only have ${currentBalance}.`);
+      throw new AppError(
+        400,
+        `Insufficient credit. You need ${cost} credits but only have ${currentBalance}.`,
+      );
     }
 
     const payload = {
@@ -107,7 +127,9 @@ export class SmsService {
       sender: senderId,
       message,
       is_schedule: scheduled,
-      schedule_date: scheduled ? formatMNotifyScheduleDate(scheduleDate as string) : '',
+      schedule_date: scheduled
+        ? formatMNotifyScheduleDate(scheduleDate as string)
+        : '',
     };
 
     const response = await axios.post(
@@ -121,7 +143,9 @@ export class SmsService {
     );
 
     const status = response.data?.status ? 'sent' : 'failed';
-    const sentAt = response.data?.status ? formatDateForMySQL(new Date()) : null;
+    const sentAt = response.data?.status
+      ? formatDateForMySQL(new Date())
+      : null;
 
     await db.insert(smsHistory).values({
       userId,

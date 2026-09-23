@@ -1,15 +1,15 @@
-﻿import { ArrowLeft, Coins, Minus, Plus, Settings } from "lucide-react";
+﻿import { ArrowLeft,  Minus, Plus, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import PayStackPop from "@paystack/inline-js";
 import { toast } from "sonner";
-import {
-  buyCredits,
-  getCreditWallet,
-  verifyCreditPurchase,
-} from "@/utils/services/organizers/sms.service";
+// import {
+//   buyCredits,
+//   getCreditWallet,
+//   verifyCreditPurchase,
+// } from "@/utils/services/organizers/sms.service";
 import {
   useCreditWallet,
   useBuyCredits,

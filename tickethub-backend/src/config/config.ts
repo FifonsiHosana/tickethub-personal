@@ -17,7 +17,8 @@ interface Config {
   };
   email: {
     from_email: string;
-    gmail_app_password: string;
+    mail_password: string;
+    mail_host: string;
   };
   auth: {
     jwt_secret: string;
@@ -49,7 +50,8 @@ const config: Config = {
   },
   email: {
     from_email: process.env.EMAIL_SENDER as string,
-    gmail_app_password: process.env.GMAIL_APP_PASSWORD as string,
+    mail_password: process.env.MAIL_PASSWORD as string,
+    mail_host: process.env.MAIL_HOST as string,
   },
   auth: {
     jwt_secret: process.env.JWT_SECRET as string,

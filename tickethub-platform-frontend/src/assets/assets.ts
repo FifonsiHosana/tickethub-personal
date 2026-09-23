@@ -1,6 +1,6 @@
 import TicketHubLogo from "./hero.png";
 import MoneyLogos from "./money-logos.png";
-import Hero1 from "./heros/Hero1.jpg";
+import Hero1 from "./heros/Hero1.webp";
 import Hero2 from "./heros/Hero2.webp";
 import Hero3 from "./heros/Hero3.webp";
 import Hero4 from "./heros/Hero4.webp";
