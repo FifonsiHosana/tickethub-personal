@@ -33,7 +33,7 @@ class EventsService {
     data: PublishedEventResponse[];
     pagination: PaginationMeta;
   }> {
-    const { page, pageSize, search, categoryId, sortBy, sortOrder } = params;
+    const { page, pageSize, search, categoryId } = params;
     const offset = (page - 1) * pageSize;
 
     const conditions: ReturnType<typeof and>[] = [
@@ -86,18 +86,14 @@ class EventsService {
       };
     }
 
-    // Order
-    const orderColumn = sortBy === 'title' ? events.title : events.dateAndTime;
-    const orderDirection =
-      sortOrder === 'desc' ? desc(orderColumn) : asc(orderColumn);
-
     // Get paginated IDs (avoids join multiplication)
+    // Default order: upcoming events first (soonest first), past events last (most recent first)
     const eventRows = await db
       .select({ id: events.id })
       .from(events)
       .leftJoin(eventsVenues, eq(events.eventVenueId, eventsVenues.id))
       .where(whereClause)
-      .orderBy(orderDirection)
+      .orderBy(sql`(${events.dateAndTime} < NOW()) ASC`, events.dateAndTime)
       .limit(pageSize)
       .offset(offset);
 
@@ -114,6 +110,7 @@ class EventsService {
     const data = await db
       .select({
         id: events.id,
+        slug: events.slug,
         title: events.title,
         description: events.description,
         dateAndTime: events.dateAndTime,
@@ -182,8 +179,8 @@ class EventsService {
       },
     };
   }
-
-  async getEventById(eventId: number) {
+  async getEventById(identifier: string) {
+    const isNumericId = /^\d+$/.test(identifier);
     const [event] = await db
       .select({
         id: events.id,
@@ -206,9 +203,12 @@ class EventsService {
       .leftJoin(users, eq(events.organizerId, users.id))
       .where(
         and(
-          eq(events.id, eventId),
+          // eq(events.slug, eventSlug),
           eq(events.status, 'Published'),
           eq(events.approvalStatus, 'Approved'),
+          isNumericId
+            ? eq(events.id, Number(identifier))
+            : eq(events.slug, identifier),
         ),
       )
       .limit(1);
@@ -221,7 +221,7 @@ class EventsService {
         type: eventImages.type,
       })
       .from(eventImages)
-      .where(eq(eventImages.eventId, eventId));
+      .where(eq(eventImages.eventId, event.id));
 
     // Categories for this event
     const categoryRows = await db
@@ -231,7 +231,7 @@ class EventsService {
       })
       .from(categorizedEvents)
       .innerJoin(category, eq(categorizedEvents.category_id, category.id))
-      .where(eq(categorizedEvents.event_id, eventId));
+      .where(eq(categorizedEvents.event_id, event.id));
 
     return {
       ...event,
@@ -241,7 +241,76 @@ class EventsService {
     };
   }
 
-  async getEventTickets(eventId: number) {
+  // async getEventById(eventId: number) {
+  //   const [event] = await db
+  //     .select({
+  //       id: events.id,
+  //       title: events.title,
+  //       description: events.description,
+  //       dateAndTime: events.dateAndTime,
+  //       capacity: events.capacity,
+  //       status: events.status,
+  //       termsAndConditions: events.termsAndConditions,
+  //       venueName: eventsVenues.venue_name,
+  //       address: eventsVenues.address,
+  //       city: eventsVenues.city_or_town,
+  //       country: eventsVenues.country,
+  //       googleMapLink: eventsVenues.googleMapLink,
+  //       organizerFirstName: users.firstName,
+  //       organizerLastName: users.lastName,
+  //     })
+  //     .from(events)
+  //     .leftJoin(eventsVenues, eq(events.eventVenueId, eventsVenues.id))
+  //     .leftJoin(users, eq(events.organizerId, users.id))
+  //     .where(
+  //       and(
+  //         eq(events.id, eventId),
+  //         eq(events.status, 'Published'),
+  //         eq(events.approvalStatus, 'Approved'),
+  //       ),
+  //     )
+  //     .limit(1);
+
+  //   if (!event) return null;
+
+  //   const images = await db
+  //     .select({
+  //       imageUrl: eventImages.imageUrl,
+  //       type: eventImages.type,
+  //     })
+  //     .from(eventImages)
+  //     .where(eq(eventImages.eventId, eventId));
+
+  //   // Categories for this event
+  //   const categoryRows = await db
+  //     .select({
+  //       id: category.id,
+  //       name: category.name,
+  //     })
+  //     .from(categorizedEvents)
+  //     .innerJoin(category, eq(categorizedEvents.category_id, category.id))
+  //     .where(eq(categorizedEvents.event_id, eventId));
+
+  //   return {
+  //     ...event,
+  //     images,
+  //     categoryIds: categoryRows.map((c) => c.id),
+  //     categoryNames: categoryRows.map((c) => c.name),
+  //   };
+  // }
+
+  async getEventTickets(eventId: number | string) {
+    const idIsNumber =
+      typeof eventId === 'number' || /^\d+$/.test(eventId.trim());
+    const [event] = await db
+      .select()
+      .from(events)
+      .where(
+        idIsNumber
+          ? eq(events.id, eventId as number)
+          : eq(events.slug, eventId),
+      );
+
     return await db
       .select({
         eventTicketId: eventTickets.id,
@@ -264,7 +333,7 @@ class EventsService {
       )
       .where(
         and(
-          eq(tickets.eventId, eventId),
+          eq(tickets.eventId, event?.id as number),
           gt(ticketConfigurations.totalRemaining, 0),
           lte(ticketConfigurations.salesStartDate, sql`NOW()`),
           gte(ticketConfigurations.salesEndDate, sql`NOW()`),

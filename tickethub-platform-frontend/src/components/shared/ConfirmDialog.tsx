@@ -8,14 +8,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 // import { DialogContent } from "../ui/dialog";
 
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
-  description: string;
+  description: ReactNode;
   cancelText?: string;
   confirmText?: string;
   onConfirm: () => void;
@@ -39,7 +39,7 @@ export function ConfirmDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
+          <AlertDialogDescription>{description} </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter
           className={

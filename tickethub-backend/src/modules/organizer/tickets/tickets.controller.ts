@@ -1,5 +1,9 @@
 import type { Request, Response, NextFunction } from 'express';
-import type { CreateTicketType, UpdateTicketType, CreateTicketTypeType } from './tickets.schema.js';
+import type {
+  CreateTicketType,
+  UpdateTicketType,
+  CreateTicketTypeType,
+} from './tickets.schema.js';
 import * as TicketService from './tickets.service.js';
 
 export async function getEventTickets(
@@ -12,7 +16,8 @@ export async function getEventTickets(
   try {
     const data = await TicketService.getOrganizerEventTickets(
       req.user.id,
-      Number(eventId),
+      // Number(eventId),
+      eventId as string | number,
     );
 
     res.status(200).json({

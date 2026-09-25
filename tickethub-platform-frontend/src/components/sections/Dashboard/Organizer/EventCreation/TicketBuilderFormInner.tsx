@@ -215,7 +215,7 @@ export function TicketBuilderFormInner({
       <Button
         type="button"
         className="w-full"
-        variant="secondary"
+        variant="outline"
         onClick={handleSave}
         disabled={!valid}
       >

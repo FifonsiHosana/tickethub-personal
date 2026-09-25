@@ -266,9 +266,9 @@ export class FinanceService {
   async handlePaystackWebhook(payload: any) {
     if (payload.event !== 'charge.success') return;
 
-    console.log(
-      `This is the payload from the paystack hoook ${JSON.stringify(payload)}`,
-    );
+    // console.log(
+    //   `This is the payload from the paystack hoook ${JSON.stringify(payload)}`,
+    // );
 
     const orderId = Number(payload.data.metadata.orderId);
     // const phoneNumber = payload.data.metadata.phoneNumber; // later on would send SMS to this number

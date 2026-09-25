@@ -37,9 +37,7 @@ export default function Desktop({
             <NavLink
               to={link.path}
               className={({ isActive }) =>
-                isActive
-                  ? "text-white"
-                  : "hover:text-primary transition-colors"
+                isActive ? "text-white" : "hover:text-primary transition-colors"
               }
             >
               {link.name}

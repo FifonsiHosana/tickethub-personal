@@ -29,6 +29,8 @@ export async function getEventAttendees(params: GetAttendeesParams) {
         like(ticketOrderUserDetails.firstName, `%${search}%`),
         like(ticketOrderUserDetails.lastName, `%${search}%`),
         like(ticketOrderUserDetails.email, `%${search}%`),
+        like(ticketOrderItems.ticketIdentifier, `%${search}%`),
+
         like(
           sql`CONCAT(${ticketOrderUserDetails.firstName}, ' ', ${ticketOrderUserDetails.lastName})`,
           `%${search}%`,

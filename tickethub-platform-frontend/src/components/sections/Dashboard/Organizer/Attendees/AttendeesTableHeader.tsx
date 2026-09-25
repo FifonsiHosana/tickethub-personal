@@ -30,7 +30,7 @@ export function AttendeesTableHeader({
           <div className="relative w-56">
             <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5" />
             <Input
-              placeholder="Search events..."
+              placeholder="Search attendees..."
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
               className="pl-8 h-8 text-sm bg-card"

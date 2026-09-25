@@ -12,11 +12,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 
 import { useAuthStorage } from "@/hooks/useAuthStorage";
 import { navByRole, type Role } from "@/misc/dashboardData";
 import { assets } from "@/assets/assets";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { NavMobile } from "./nav-mobile";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { activeRole, roles, user } = useAuthStorage();
@@ -24,17 +27,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Use the active role, or fall back to the user's first role.
   const userRoles = roles as Role[];
   const activeDashboardRole =
-    activeRole && userRoles.includes(activeRole)
-      ? activeRole
-      : userRoles[0];
+    activeRole && userRoles.includes(activeRole) ? activeRole : userRoles[0];
 
   const items = navByRole[activeDashboardRole as Role] ?? [];
+  const { isMobile } = useIsMobile();
+
+  if (isMobile) {
+    return <NavMobile items={items} />;
+  }
 
   return (
     <Sidebar collapsible="icon" variant="inset" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
+            {isMobile && (
+              <SidebarMenuButton size="lg">
+                <div className="w-full h-full flex justify-center">
+                  <SidebarTrigger className="md:-ml-1" />
+                </div>
+              </SidebarMenuButton>
+            )}
             <SidebarMenuButton size="lg">
               <Link to="/">
                 <div className="flex items-center gap-2">

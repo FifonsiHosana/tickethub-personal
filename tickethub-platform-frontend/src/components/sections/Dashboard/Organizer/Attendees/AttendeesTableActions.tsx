@@ -33,7 +33,8 @@ const AttendeesTableActions = ({
     <div className="flex gap-2">
       <Button
         disabled={isSuccess}
-        onClick={() => resend_ticket_email(orderId)}
+        onClick={() => console.log(orderId)}
+        // resend_ticket_email(orderId)}
         className={"dark:text-white underline cursor-pointer"}
         size={"xs"}
         variant={"link"}
@@ -56,7 +57,12 @@ const AttendeesTableActions = ({
         open={manualCheckInOpen}
         onOpenChange={setManualCheckInOpen}
         title="Manual Check-in"
-        description="This ticket will be manually checked-in."
+        description={
+          <>
+            This ticket <span className="text-primary">{ticketIdentifier}</span>{" "}
+            will be manually checked-in.
+          </>
+        }
         confirmText="Manual check-in"
         variant="default"
         onConfirm={() => {

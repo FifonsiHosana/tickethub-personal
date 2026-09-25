@@ -3,7 +3,12 @@ import { Controller, useFormContext } from "react-hook-form";
 import { CalendarIcon, UsersIcon, PlusIcon } from "lucide-react";
 import { type CreateEventFormValues } from "@/types/organizer/event.schema";
 import { useEventVenues } from "@/hooks/organizers/useOrganizerEvents";
-import { Field, FieldLabel, FieldError, FieldContent } from "@/components/ui/field";
+import {
+  Field,
+  FieldLabel,
+  FieldError,
+  FieldContent,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -17,6 +22,11 @@ import {
 } from "@/components/ui/combobox";
 import { AddVenueDialog } from "./AddVenueDialog";
 import { CategorySelect } from "./CategorySelect";
+// import { HeadingButton } from "@/components/tiptap-ui/heading-button";
+// import { MenuBar } from "@/components/shared/editor-header";
+import { DescriptionField } from "@/components/shared/richtext-editor";
+import VenueForm from "./VenueForm";
+// import { DescriptionEditor } from "@/components/shared/richtext-editor";
 
 type Venue = { id: number; venue_name: string };
 
@@ -27,37 +37,74 @@ export function EventBasicFields() {
     setValue,
     formState: { errors },
   } = useFormContext<CreateEventFormValues>();
-  const { data: venues = [], isLoading } = useEventVenues();
-  const [venueDialogOpen, setVenueDialogOpen] = useState(false);
 
   return (
-    <div className="space-y-4">
-      <Field data-invalid={!!errors.title}>
-        <FieldLabel htmlFor="title">Event Title</FieldLabel>
-        <Input {...register("title")} id="title" placeholder="e.g. Summer Music Festival 2026" />
-        {errors.title && <FieldError errors={[errors.title]} />}
-      </Field>
-
-      <Field>
-        <FieldLabel htmlFor="description">Description</FieldLabel>
-        <Textarea {...register("description")} id="description" placeholder="Tell attendees what to expect..." className="min-h-16" />
-        {errors.description && <FieldError errors={[errors.description]} />}
-      </Field>
-
-      <CategorySelect />
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <Field data-invalid={!!errors.dateAndTime}>
-          <FieldLabel htmlFor="dateAndTime">Date and Time</FieldLabel>
-          <div className="relative max-w-55">
-            <CalendarIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input {...register("dateAndTime")} id="dateAndTime" type="datetime-local" className="pl-9" />
-          </div>
-          {errors.dateAndTime && <FieldError errors={[errors.dateAndTime]} />}
+    <>
+      <div className="space-y-4">
+        <Field data-invalid={!!errors.title}>
+          <FieldLabel htmlFor="title">
+            Event Title <span className="text-destructive">*</span>
+          </FieldLabel>
+          <Input
+            {...register("title")}
+            id="title"
+            placeholder="e.g. Summer Music Festival 2026"
+          />
+          {errors.title && <FieldError errors={[errors.title]} />}
         </Field>
 
-        <Field data-invalid={!!errors.eventVenueId}>
-          <FieldLabel htmlFor="eventVenueId">Event Venue</FieldLabel>
+        <Field>
+          <FieldLabel htmlFor="description">
+            Event Description<span className="text-destructive">*</span>
+          </FieldLabel>
+
+          <Controller
+            name="description"
+            control={control}
+            render={({ field }) => (
+              <DescriptionField
+                value={field.value as string}
+                onChange={field.onChange}
+              />
+            )}
+          />
+
+          {errors.description && <FieldError errors={[errors.description]} />}
+        </Field>
+        <CategorySelect />
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-1">
+          <Field data-invalid={!!errors.dateAndTime}>
+            <FieldLabel htmlFor="dateAndTime">
+              Date and Time<span className="text-destructive">*</span>
+            </FieldLabel>
+            <div className="sm:flex flex-col gap-4 sm:gap-4">
+              <div className="relative max-w-55">
+                <CalendarIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  {...register("dateAndTime")}
+                  id="dateAndTime"
+                  type="datetime-local"
+                  className="pl-9"
+                />
+              </div>
+              <div className="relative max-w-55">
+                <CalendarIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  {...register("dateAndTime")}
+                  id="dateAndTime"
+                  type="datetime-local"
+                  className="pl-9"
+                />
+              </div>
+            </div>
+            {errors.dateAndTime && <FieldError errors={[errors.dateAndTime]} />}
+          </Field>
+
+          {/* <Field data-invalid={!!errors.eventVenueId}>
+          <FieldLabel htmlFor="eventVenueId">
+            Event Venue <span className="text-destructive">*</span>
+          </FieldLabel>
           <FieldContent>
             <div className="flex items-start gap-2">
               <div className="max-w-55 flex-1 min-w-0">
@@ -69,7 +116,9 @@ export function EventBasicFields() {
                       items={venues}
                       itemToStringLabel={(v: Venue) => v.venue_name}
                       itemToStringValue={(v: Venue) => v.venue_name}
-                      value={venues.find((v: Venue) => v.id === field.value) ?? null}
+                      value={
+                        venues.find((v: Venue) => v.id === field.value) ?? null
+                      }
                       onValueChange={(venue: Venue | null) => {
                         field.onChange(venue ? venue.id : undefined);
                       }}
@@ -78,7 +127,9 @@ export function EventBasicFields() {
                         className="border border-border focus-within:border-none focus-visible:border-none"
                         id="eventVenueId"
                         disabled={isLoading}
-                        placeholder={isLoading ? "Loading..." : "Select a venue"}
+                        placeholder={
+                          isLoading ? "Loading..." : "Select a venue"
+                        }
                         onBlur={field.onBlur}
                       />
                       <ComboboxContent>
@@ -120,21 +171,29 @@ export function EventBasicFields() {
         <AddVenueDialog
           open={venueDialogOpen}
           onOpenChange={setVenueDialogOpen}
-          onSuccess={(venue) => setValue("eventVenueId", venue.id, { shouldValidate: true })}
-        />
+          onSuccess={(venue) =>
+            setValue("eventVenueId", venue.id, { shouldValidate: true })
+          }
+        /> */}
 
-        <Field data-invalid={!!errors.capacity}>
-          <FieldLabel htmlFor="capacity">Total Capacity</FieldLabel>
-          <div className="relative max-w-45">
-            <UsersIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              {...register("capacity", { valueAsNumber: true })}
-              id="capacity" type="number" min="1" className="pl-9"
-            />
-          </div>
-          {errors.capacity && <FieldError errors={[errors.capacity]} />}
-        </Field>
+          <Field data-invalid={!!errors.capacity}>
+            <FieldLabel htmlFor="capacity">
+              Total Capacity<span className="text-destructive">*</span>
+            </FieldLabel>
+            <div className="relative max-w-45">
+              <UsersIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                {...register("capacity", { valueAsNumber: true })}
+                id="capacity"
+                type="number"
+                min="1"
+                className="pl-9"
+              />
+            </div>
+            {errors.capacity && <FieldError errors={[errors.capacity]} />}
+          </Field>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

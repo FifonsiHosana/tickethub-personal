@@ -7,7 +7,12 @@ import { type CreateEventFormValues } from "@/types/organizer/event.schema";
 import { type Category } from "@/types/event.types";
 import { useCategories } from "@/hooks/attendees/events/useEvent";
 import { useCreateCategory } from "@/hooks/organizers/useOrganizerEvents";
-import { Field, FieldLabel, FieldError, FieldContent } from "@/components/ui/field";
+import {
+  Field,
+  FieldLabel,
+  FieldError,
+  FieldContent,
+} from "@/components/ui/field";
 import {
   Combobox,
   ComboboxContent,
@@ -42,9 +47,11 @@ export function CategorySelect() {
   }, [categories, createdCategories]);
 
   const trimmedQuery = query.trim();
-  const noMatch = trimmedQuery.length > 0 && !allCategories.some(
-    (cat) => cat.name.toLowerCase() === trimmedQuery.toLowerCase(),
-  );
+  const noMatch =
+    trimmedQuery.length > 0 &&
+    !allCategories.some(
+      (cat) => cat.name.toLowerCase() === trimmedQuery.toLowerCase(),
+    );
 
   function toSelected(ids: number[] | undefined): Category[] {
     return (ids ?? [])
@@ -70,16 +77,16 @@ export function CategorySelect() {
       toast.success(`Category "${created.name}" added.`);
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to create category.";
+        error instanceof Error ? error.message : "Failed to create category.";
       toast.error(message);
     }
   }
 
   return (
     <Field data-invalid={!!errors.categoryIds}>
-      <FieldLabel htmlFor="categoryIds">Categories</FieldLabel>
+      <FieldLabel htmlFor="categoryIds">
+        Categories<span className="text-destructive">*</span>
+      </FieldLabel>
       <FieldContent>
         <Controller
           name="categoryIds"
@@ -101,9 +108,12 @@ export function CategorySelect() {
                   onClick={() => inputRef.current?.focus()}
                   className="w-full"
                 >
-                  {field.value?.map((cat) => toSelected([cat])[0]).filter(Boolean).map((cat) => (
-                    <ComboboxChip key={cat.id}>{cat.name}</ComboboxChip>
-                  ))}
+                  {field.value
+                    ?.map((cat) => toSelected([cat])[0])
+                    .filter(Boolean)
+                    .map((cat) => (
+                      <ComboboxChip key={cat.id}>{cat.name}</ComboboxChip>
+                    ))}
                   <ComboboxChipsInput
                     ref={inputRef}
                     id="categoryIds"
@@ -125,7 +135,7 @@ export function CategorySelect() {
                   )}
                 </ComboboxList>
 
-                {noMatch && (
+                {/* {noMatch && (
                   <button
                     type="button"
                     onClick={handleCreate}
@@ -137,7 +147,7 @@ export function CategorySelect() {
                       ? `Creating "${trimmedQuery}"...`
                       : `Create "${trimmedQuery}"`}
                   </button>
-                )}
+                )} */}
               </ComboboxContent>
             </Combobox>
           )}

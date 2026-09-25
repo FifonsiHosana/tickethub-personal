@@ -1,12 +1,12 @@
 export const statusColor: Record<string, string> = {
   Published:
-    "bg-green-500/15 text-green-700 hover:bg-green-500/25 dark:bg-green-500/10 dark:text-green-400 dark:hover:bg-green-500/20",
+    "bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 backdrop-blur-sm shadow-sm",
   Draft:
-    "bg-slate-500/15 text-slate-700 hover:bg-slate-500/25 dark:bg-slate-400/10 dark:text-slate-300 dark:hover:bg-slate-400/20",
+    "bg-slate-950/80 text-slate-200 border border-slate-500/40 backdrop-blur-sm shadow-sm",
   Completed:
-    "bg-blue-500/15 text-blue-700 hover:bg-blue-500/25 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20",
+    "bg-blue-950/80 text-blue-300 border border-blue-500/40 backdrop-blur-sm shadow-sm",
   Cancelled:
-    "bg-red-500/15 text-red-700 hover:bg-red-500/25 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20",
+    "bg-red-950/80 text-red-300 border border-red-500/40 backdrop-blur-sm shadow-sm",
 };
 
 export const approvalColor: Record<string, string> = {

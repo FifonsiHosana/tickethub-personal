@@ -19,6 +19,7 @@ import { and, eq, like, desc, count, inArray } from 'drizzle-orm';
 
 import { formatDateForMySQL } from '@/utils/timeDatehelpers.js';
 import logger from '@/utils/logger/index.js';
+import { toKebabCase } from '../organizer.utils.js';
 
 interface GetOrganizerEventsParams {
   organizerId: number;
@@ -67,7 +68,14 @@ export async function createEventVenue(data: {
  * Get all events created by organizer
  */
 export async function getOrganizerEvents(params: GetOrganizerEventsParams) {
-  const { organizerId, staffUserId, page = 1, pageSize = 10, search, status } = params;
+  const {
+    organizerId,
+    staffUserId,
+    page = 1,
+    pageSize = 10,
+    search,
+    status,
+  } = params;
   const offset = (page - 1) * pageSize;
 
   let dataQuery = db
@@ -89,7 +97,10 @@ export async function getOrganizerEvents(params: GetOrganizerEventsParams) {
   const filters: any[] = [];
 
   if (staffUserId) {
-    dataQuery = dataQuery.innerJoin(eventStaff, eq(events.id, eventStaff.event_id));
+    dataQuery = dataQuery.innerJoin(
+      eventStaff,
+      eq(events.id, eventStaff.event_id),
+    );
     filters.push(eq(eventStaff.staff_id, staffUserId));
   } else {
     filters.push(eq(events.organizerId, organizerId));
@@ -109,13 +120,13 @@ export async function getOrganizerEvents(params: GetOrganizerEventsParams) {
     .limit(pageSize)
     .offset(offset);
 
-  let countQuery = db
-    .select({ count: count() })
-    .from(events)
-    .$dynamic();
+  let countQuery = db.select({ count: count() }).from(events).$dynamic();
 
   if (staffUserId) {
-    countQuery = countQuery.innerJoin(eventStaff, eq(events.id, eventStaff.event_id));
+    countQuery = countQuery.innerJoin(
+      eventStaff,
+      eq(events.id, eventStaff.event_id),
+    );
   }
 
   const totalResult = await countQuery.where(and(...filters));
@@ -264,6 +275,7 @@ export async function createOrganizerEventWithTickets(
       .values({
         title: data.title,
         description: data.description,
+        slug: toKebabCase(data.title),
         eventVenueId: data.eventVenueId,
         organizerId,
         capacity: data.capacity,
@@ -310,8 +322,10 @@ export async function createOrganizerEventWithTickets(
       );
     }
 
-    const createdTickets: { ticketId: number; ticketConfigurationId: number }[] =
-      [];
+    const createdTickets: {
+      ticketId: number;
+      ticketConfigurationId: number;
+    }[] = [];
 
     for (const ticketData of data.tickets) {
       let ticketTypeId: number;

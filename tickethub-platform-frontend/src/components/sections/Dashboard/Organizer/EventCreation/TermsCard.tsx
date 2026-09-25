@@ -24,11 +24,11 @@ export const TermsCard = ({
               <Textarea
                 {...field}
                 id={field.name}
-                aria-invalid={fieldState.invalid}
+                // aria-invalid={fieldState.invalid}
                 placeholder="e.g. No refunds within 24 hours of the event..."
                 className="min-h-25"
               />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              {/* {fieldState.invalid && <FieldError errors={[fieldState.error]} />} */}
             </Field>
           )}
         />

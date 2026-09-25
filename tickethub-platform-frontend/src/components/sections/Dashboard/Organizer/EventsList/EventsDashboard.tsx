@@ -4,7 +4,7 @@ import { useOrganizerDashboardData } from "@/hooks/organizers/useDashboardData";
 import { useDashboardDateRange } from "@/components/shared/date/useDashboardDateRange";
 
 import { DashboardStatistics } from "./DashboardStatistics";
-import { EventsTable } from "./EventsTable/index";
+import { OrganizerEventsGrid } from "./EventsTable/index";
 
 export default function EventsDashboard() {
   const [page, setPage] = useState(1);
@@ -20,17 +20,30 @@ export default function EventsDashboard() {
   const events = response?.data;
   const pagination = response?.pagination;
 
-  const { data: dashboardData } = useOrganizerDashboardData({
-    from: range?.from ?? undefined,
-    to: range?.to ?? undefined,
-  });
+  // const { data: dashboardData } = useOrganizerDashboardData({
+  //   from: range?.from ?? undefined,
+  //   to: range?.to ?? undefined,
+  // });
 
   return (
     <div className="flex-1 space-y-3 p-1 min-h-screen">
-      <DashboardStatistics statistics={dashboardData?.statistics} />
+      {/* <DashboardStatistics statistics={dashboardData?.statistics} /> */}
 
       <div className="grid">
-        <EventsTable
+        {/* <EventsTable
+          events={events}
+          isLoading={isEventsLoading}
+          isError={isEventsError}
+          search={search}
+          onSearchChange={(val) => {
+            setSearch(val);
+            setPage(1);
+          }}
+          page={page}
+          onPageChange={setPage}
+          pagination={pagination}
+        /> */}
+        <OrganizerEventsGrid
           events={events}
           isLoading={isEventsLoading}
           isError={isEventsError}

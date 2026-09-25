@@ -41,6 +41,7 @@ export const events = mysqlTable('Events', {
   dateAndTime: datetime({ mode: 'string', fsp: 3 }).notNull(),
 
   capacity: int().notNull(),
+  slug: varchar({ length: 225 }).unique(),
   approvedBy: int().references(() => users.id, {
     onDelete: 'set null',
     onUpdate: 'cascade',

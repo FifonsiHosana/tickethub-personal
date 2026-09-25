@@ -2,16 +2,17 @@ import React, { useState, useEffect } from "react";
 import { useEvent } from "@/hooks/attendees/events/useEvent";
 import { Loader } from "@/components/ui/loader";
 import { format } from "date-fns";
-import { CalendarDays, MapPin, User } from "lucide-react";
+import { CalendarDays, CalendarOff, MapPin, User } from "lucide-react";
 import { EventTicketingSidebar } from "./EventTicketingSidebar";
 import { FastAverageColor } from "fast-average-color";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router";
 
 export const EventDetails: React.FC = () => {
-  const { data: event, isLoading, isError } = useEvent();
+  const { data: event, isLoading, isError, error } = useEvent();
   const [bgColor, setBgColor] = useState("#f5f5f5");
 
   useEffect(() => {
-    
     if (!event?.images) return;
     const banner = event.images.find((img) => img.type === "Banner")?.imageUrl;
 
@@ -29,13 +30,44 @@ export const EventDetails: React.FC = () => {
   }, [event]);
 
   if (isLoading) return <Loader loading={isLoading} fullScreen={true} />;
+
+  console.log("this is your error", error);
+
+  if (error?.message === "Event not found") {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center text-center px-4">
+        <div className="w-16 h-16 bg-neutral-50 rounded-full flex items-center justify-center mb-4">
+          <CalendarOff className="w-30 h-30 text-primary" />
+        </div>
+        <h1 className="text-2xl font-bold text-foreground mb-2">
+          Event not found
+        </h1>
+        <p className="text-neutral-500 max-w-sm mb-6">
+          This event doesn't exist or may have been removed.
+        </p>
+        <div className="flex gap-3 justify-center items-center">
+          <Button className="p-2 mt-2 rounded-full">
+            <Link to="/events" className="p-2">
+              Browse events
+            </Link>
+          </Button>
+          <Button variant={"outline"} className=" mt-2 rounded-full">
+            <Link to="/" className="p-2">
+              Go home
+            </Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
   if (isError) {
     return (
-      <div className="p-8 text-center text-red-500">
+      <div className="flex items-center justify-center h-screen p-8 text-center text-red-500">
         Failed to load event details.
       </div>
     );
   }
+
   if (!event) {
     return (
       <div className="p-8 text-center text-neutral-500">Event not found.</div>
@@ -43,7 +75,7 @@ export const EventDetails: React.FC = () => {
   }
 
   const bannerImage = event.images.find(
-    (image) => image.type === "Banner"
+    (image) => image.type === "Banner",
   )?.imageUrl;
 
   const formattedDateStr = format(new Date(event.dateAndTime), "EEE, MMM dd");

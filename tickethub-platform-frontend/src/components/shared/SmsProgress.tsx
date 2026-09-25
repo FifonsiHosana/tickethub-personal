@@ -44,7 +44,7 @@ const SmsProgress = () => {
     return;
   }
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col p-1 py-2">
       {role === "organizer" ? (
         <>
           <div className="flex flex-row items-center gap-2">

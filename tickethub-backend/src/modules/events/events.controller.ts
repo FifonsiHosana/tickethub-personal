@@ -18,7 +18,7 @@ class EventsController {
 
   async getEventById(req: Request, res: Response, next: NextFunction) {
     try {
-      const event = await eventsService.getEventById(Number(req.params.id));
+      const event = await eventsService.getEventById(String(req.params.id));
 
       if (!event) {
         throw new AppError(404, 'Event not found');
@@ -32,7 +32,8 @@ class EventsController {
   async getEventTickets(req: Request, res: Response, next: NextFunction) {
     try {
       const tickets = await eventsService.getEventTickets(
-        Number(req.params.id),
+        // Number(req.params.id),
+        req.params.id as string | number,
       );
 
       return res.json({ success: true, data: tickets });

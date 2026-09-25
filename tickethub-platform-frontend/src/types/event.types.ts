@@ -15,6 +15,7 @@ export interface EventImage {
 
 export interface Event {
   id: number;
+  slug: string;
   title: string;
   description?: string;
   dateAndTime: string;

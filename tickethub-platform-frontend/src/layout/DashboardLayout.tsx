@@ -22,6 +22,7 @@ import EventSelectDropdown from "@/components/sections/Dashboard/Organizer/Share
 import TicketTypeFilter from "@/components/sections/Dashboard/Organizer/Analytics/TicketTypeFilter";
 import { useAnalyticsOverviewFilters } from "@/components/sections/Dashboard/Organizer/Analytics/useAnalyticsOverviewFilters";
 import SmsProgress from "@/components/shared/SmsProgress";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 function HeaderAnalyticsFilters({ pathname }: { pathname: string }) {
   const { activeRole } = useAuthStorage();
@@ -53,6 +54,7 @@ function dashboardRoleFromPath(pathname: string): Role | null {
 export default function DashboardLayout() {
   const { roles, activeRole, setActiveRole } = useAuthStorage();
   const { pathname } = useLocation();
+  const { isMobile } = useIsMobile();
 
   useEffect(() => {
     const role = dashboardRoleFromPath(pathname);
@@ -74,7 +76,7 @@ export default function DashboardLayout() {
               <SidebarInset>
                 <header className="flex h-12 shrink-0 items-center justify-between md:gap-4 border-b border-border md:px-4">
                   <div className="flex items-center gap-1">
-                    <SidebarTrigger className="md:-ml-1" />
+                    {isMobile ? <></> : <SidebarTrigger className="md:-ml-1" />}
                     <HeaderAnalyticsFilters pathname={pathname} />
                   </div>
                   <div className="flex items-center gap-2 mx-2">
@@ -85,7 +87,7 @@ export default function DashboardLayout() {
                     <ThemeToggle />
                   </div>
                 </header>
-                <div className="grid gap-4 p-4">
+                <div className={`grid gap-4 ${isMobile ? `p-1` : `p-4`}`}>
                   <Outlet />
                 </div>
               </SidebarInset>

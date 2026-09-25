@@ -4,7 +4,10 @@ import type { CreateEventFormValues } from "@/types/organizer/event.schema";
 import { useTicketTypes } from "@/hooks/organizers/useOrganizerEventTickets";
 import { Button } from "@/components/ui/button";
 
-type Field = UseFieldArrayReturn<CreateEventFormValues, "tickets">["fields"][number];
+type Field = UseFieldArrayReturn<
+  CreateEventFormValues,
+  "tickets"
+>["fields"][number];
 
 interface Props {
   fields: Field[];
@@ -23,7 +26,7 @@ export function TicketList({ fields, onEdit, onRemove }: Props) {
   if (fields.length === 0) return null;
 
   return (
-    <div className="space-y-1.5 max-h-32 overflow-y-auto border-t border-border pt-3">
+    <div className="space-y-1.5 max-h-32  overflow-y-auto border-t border-border pt-3">
       {fields.map((t, i) => (
         <div
           key={t.id}
@@ -42,10 +45,22 @@ export function TicketList({ fields, onEdit, onRemove }: Props) {
             </span>
           )}
           <div className="flex shrink-0 ml-1">
-            <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => onEdit(i)}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={() => onEdit(i)}
+            >
               <PencilIcon className="h-3 w-3" />
             </Button>
-            <Button type="button" variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => onRemove(i)}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 text-destructive"
+              onClick={() => onRemove(i)}
+            >
               <Trash2Icon className="h-3 w-3" />
             </Button>
           </div>

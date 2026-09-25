@@ -52,12 +52,21 @@ export async function createTicketType(data: CreateTicketTypeType) {
  */
 export async function getOrganizerEventTickets(
   organizerId: number,
-  eventId: number,
+  eventId: string | number,
 ) {
+  const idIsNumber =
+    typeof eventId === 'number' || /^\d+$/.test(eventId.trim());
   const [event] = await db
     .select()
     .from(events)
-    .where(and(eq(events.id, eventId), eq(events.organizerId, organizerId)));
+    .where(
+      and(
+        idIsNumber
+          ? eq(events.id, eventId as number)
+          : eq(events.slug, eventId),
+        eq(events.organizerId, organizerId),
+      ),
+    );
 
   if (!event) {
     throw new AppError(404, 'Event not found');
@@ -85,7 +94,7 @@ export async function getOrganizerEventTickets(
       ticketConfigurations,
       eq(eventTickets.ticketConfigurationId, ticketConfigurations.id),
     )
-    .where(eq(tickets.eventId, eventId));
+    .where(eq(tickets.eventId, event.id));
 }
 
 /**

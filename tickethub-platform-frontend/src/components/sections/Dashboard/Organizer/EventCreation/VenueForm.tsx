@@ -7,13 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { DialogFooter } from "@/components/ui/dialog";
 
-interface Props {
-  onOpenChange: (open: boolean) => void;
-  onSuccess: (venue: { id: number }) => void;
-}
+// interface Props {
+//   onOpenChange: (open: boolean) => void;
+//   onSuccess: (venue: { id: number }) => void;
+// }
 
-export default function VenueForm({ onOpenChange, onSuccess }: Props) {
-  const { mutateAsync: createVenue, isPending } = useCreateEventVenue();
+export default function VenueForm() {
+// { onOpenChange, onSuccess }: Props
+  // const { mutateAsync: createVenue, isPending } = useCreateEventVenue();
 
   const [venueName, setVenueName] = useState("");
   const [address, setAddress] = useState("");
@@ -21,19 +22,19 @@ export default function VenueForm({ onOpenChange, onSuccess }: Props) {
   const [country, setCountry] = useState("");
   const [googleMapLink, setGoogleMapLink] = useState("");
 
-  async function handleSubmit() {
-    if (!venueName || !cityOrTown || !country) return;
-    const result = await createVenue({
-      venue_name: venueName,
-      address: address || undefined,
-      city_or_town: cityOrTown,
-      country,
-      googleMapLink: googleMapLink || undefined,
-    });
-    toast.success("Venue added");
-    onSuccess(result);
-    onOpenChange(false);
-  }
+  // async function handleSubmit() {
+  //   if (!venueName || !cityOrTown || !country) return;
+  //   const result = await createVenue({
+  //     venue_name: venueName,
+  //     address: address || undefined,
+  //     city_or_town: cityOrTown,
+  //     country,
+  //     googleMapLink: googleMapLink || undefined,
+  //   });
+  //   toast.success("Venue added");
+  //   onSuccess(result);
+  //   onOpenChange(false);
+  // }
 
   const valid =
     venueName.length >= 1 && cityOrTown.length >= 1 && country.length >= 1;
@@ -88,7 +89,7 @@ export default function VenueForm({ onOpenChange, onSuccess }: Props) {
           />
         </Field>
       </div>
-      <DialogFooter>
+      {/* <DialogFooter>
         <Button
           type="button"
           variant="outline"
@@ -104,7 +105,7 @@ export default function VenueForm({ onOpenChange, onSuccess }: Props) {
           {isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
           {isPending ? "Saving..." : "Save Venue"}
         </Button>
-      </DialogFooter>
+      </DialogFooter> */}
     </>
   );
 }

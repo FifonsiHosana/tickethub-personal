@@ -34,7 +34,7 @@ export const MediaUploadCard = ({
       <CardHeader>
         <CardTitle>Event Media</CardTitle>
         <CardDescription>
-          Upload a stunning banner to attract attendees.
+          Upload a stunning Flyer to attract attendees.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -46,7 +46,7 @@ export const MediaUploadCard = ({
 
             return (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={name}>Banner Image</FieldLabel>
+                <FieldLabel htmlFor={name}>Flyer Image</FieldLabel>
                 <FieldContent>
                   <div className="flex flex-col items-center justify-center gap-4">
                     {imagePreview ? (

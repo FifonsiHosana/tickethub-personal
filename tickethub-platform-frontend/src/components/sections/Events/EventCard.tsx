@@ -3,12 +3,14 @@ import { Link } from "react-router";
 import { motion } from "framer-motion";
 import { type Event } from "@/types/event.types";
 import { format } from "date-fns";
+import { getEventPath } from "@/utils/routes/eventRoutes";
 interface EventCardProps {
   event: Event;
 }
 
 export const EventCard: React.FC<EventCardProps> = ({ event }) => {
   const bannerImage = event.banner;
+  const pastEvent = new Date(event.dateAndTime).getTime() < Date.now();
 
   // date formattings
   const formattedDate = format(new Date(event.dateAndTime), "MMM dd");
@@ -30,7 +32,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
       }}
     >
       <Link
-        to={`/events/${event.id}`}
+        to={getEventPath(event)}
         className="group flex flex-col gap-4 focus:outline-none h-full"
       >
         {/* Image Container */}
@@ -38,8 +40,17 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
           <img
             src={bannerImage}
             alt={event.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
+            className={`w-full h-full object-cover ${
+              pastEvent
+                ? "grayscale-100"
+                : "group-hover:scale-105 transition-transform duration-700 ease-in-out"
+            }`}
           />
+          {pastEvent && (
+            <div className="absolute top-4 right-4 bg-black text-white backdrop-blur-sm text-xs font-bold px-4 py-2 rounded-full uppercase tracking-wider shadow-sm">
+              Sales Ended
+            </div>
+          )}
           {/* Date Badge */}
           <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm text-foreground text-xs font-bold px-4 py-2 rounded-full uppercase tracking-wider shadow-sm">
             {formattedDate}

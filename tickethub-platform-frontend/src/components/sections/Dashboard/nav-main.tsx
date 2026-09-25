@@ -21,6 +21,7 @@ import { type NavItem } from "@/misc/dashboardData"; // Adjust import path if ne
 export function NavMain({ items }: { items: NavItem[] }) {
   return (
     <SidebarGroup>
+
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (

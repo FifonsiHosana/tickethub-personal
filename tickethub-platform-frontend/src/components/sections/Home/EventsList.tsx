@@ -5,6 +5,7 @@ import { useEvents } from "@/hooks/attendees/events/useEvent";
 import type { Event } from "@/types/event.types";
 import { PaginationSect } from "@/components/shared/Pagination";
 import { EventsSkeleton } from "@/components/shared/EventsSkeleton";
+import { getEventPath } from "@/utils/routes/eventRoutes";
 // import { MapPin, Calendar, Smartphone } from "lucide-react";
 
 const PAGE_SIZE = 6;
@@ -52,11 +53,12 @@ export const EventsList: React.FC = () => {
             "MMMM dd, yyyy",
           );
           const formattedTime = format(new Date(event.dateAndTime), "h:mm a");
+          const pastEvent = new Date(event.dateAndTime).getTime() < Date.now();
 
           return (
             <Link
               key={event.id}
-              to={`/events/${event.id}`}
+              to={getEventPath(event)}
               className="group flex flex-col gap-4 focus:outline-none"
             >
               {/* Image Container */}
@@ -64,8 +66,17 @@ export const EventsList: React.FC = () => {
                 <img
                   src={bannerImage}
                   alt={event.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className={`w-full h-full object-cover ${
+                    pastEvent
+                      ? "grayscale-100"
+                      : "group-hover:scale-105 transition-transform duration-700 ease-in-out"
+                  }`}
                 />
+                {pastEvent && (
+                  <div className="absolute top-4 right-4 bg-black text-white backdrop-blur-sm text-xs font-bold px-4 py-2 rounded-full uppercase tracking-wider shadow-sm">
+                    Sales Ended
+                  </div>
+                )}
                 <div className="absolute top-4 left-4 flex gap-3">
                   <div className=" bg-white/90 backdrop-blur-sm text-foreground text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
                     {formattedDate}
