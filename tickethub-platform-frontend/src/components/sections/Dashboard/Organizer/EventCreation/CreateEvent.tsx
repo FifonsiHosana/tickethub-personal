@@ -11,7 +11,6 @@ import {
 } from "@/types/organizer/event.schema";
 import {
   useCreateOrganizerEventWithTickets,
-  useEventVenues,
 } from "@/hooks/organizers/useOrganizerEvents";
 import { useOrganizerMedia } from "@/hooks/organizers/useOrganizerMedia";
 import type { TicketPayload } from "@/utils/services/organizers/events.service";
@@ -48,8 +47,16 @@ export default function CreateEvent() {
       title: "",
       description: "",
       eventVenueId: undefined,
+      venue: {
+        venue_name: "",
+        address: "",
+        city_or_town: "",
+        country: "",
+        googleMapLink: "",
+      },
       capacity: undefined,
       dateAndTime: "",
+      dateAndTimeEnd: "",
       termsAndConditions: "",
       categoryIds: [],
       bannerImage: undefined,
@@ -72,20 +79,39 @@ export default function CreateEvent() {
       const [{ url }] = await uploadMedia([values.bannerImage]);
       if (!url) throw new Error("Upload failed");
 
+      const toIso = (v?: string) =>
+        v?.trim() ? new Date(v).toISOString() : undefined;
+
       const tickets: TicketPayload[] = values.tickets.map((t) => ({
         name: t.name,
         ...(t.ticketTypeId ? { ticketTypeId: t.ticketTypeId } : {}),
+        ...(t.ticketTypeName ? { ticketTypeName: t.ticketTypeName } : {}),
         price: t.price,
         ...(t.totalCount ? { totalCount: t.totalCount } : {}),
         ...(t.benefits ? { benefits: t.benefits } : {}),
+        ...(toIso(t.salesStartDate)
+          ? { salesStartDate: toIso(t.salesStartDate) }
+          : {}),
+        ...(toIso(t.salesEndDate) ? { salesEndDate: toIso(t.salesEndDate) } : {}),
       }));
 
       await createEvent({
         title: values.title,
         description: values.description || undefined,
-        eventVenueId: values.eventVenueId,
+        ...(values.eventVenueId
+          ? { eventVenueId: values.eventVenueId }
+          : {
+              venue: {
+                venue_name: values.venue.venue_name.trim(),
+                address: values.venue.address?.trim() || undefined,
+                city_or_town: values.venue.city_or_town.trim(),
+                country: values.venue.country.trim(),
+                googleMapLink: values.venue.googleMapLink?.trim() || undefined,
+              },
+            }),
         capacity: values.capacity,
         dateAndTime: new Date(values.dateAndTime).toISOString(),
+        dateAndTimeEnd: new Date(values.dateAndTimeEnd).toISOString(),
         termsAndConditions: values.termsAndConditions?.trim()
           ? values.termsAndConditions
           : DEFAULT_TERMS,

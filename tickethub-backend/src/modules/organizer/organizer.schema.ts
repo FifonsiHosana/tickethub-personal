@@ -13,6 +13,7 @@ export const createOrganizerEventSchema = z.object({
 
   media: z.array(eventMediaSchema).optional(),
   dateAndTime: z.iso.datetime(),
+  dateAndTimeEnd: z.iso.datetime().optional(),
   capacity: z.number().int().positive(),
   termsAndConditions: z.string().max(5000).optional(),
 });
@@ -23,6 +24,7 @@ export const updateOrganizerEventSchema = z.object({
   eventVenueId: z.number().int().positive().optional(),
   media: z.array(eventMediaSchema).optional(),
   dateAndTime: z.iso.datetime().optional(),
+  dateAndTimeEnd: z.iso.datetime().optional(),
   capacity: z.number().int().positive().optional(),
   termsAndConditions: z.string().max(5000).optional(),
 });
@@ -40,41 +42,56 @@ export const organizerEventsQuerySchema = z.object({
   status: z.enum(['Draft', 'Published', 'Completed', 'Cancelled']).optional(),
 });
 
-export const createEventWithTicketsSchema = z.object({
-  title: z.string().min(3, 'Event title must contain at least 3 characters'),
-  description: z.string().max(5000).optional(),
-  eventVenueId: z.number().int().positive(),
-  media: z
-    .array(
-      z.object({
-        imageUrl: z.url(),
-        type: z.enum(['Banner', 'Gallery', 'Sponsor']),
-      }),
-    )
-    .optional(),
-  dateAndTime: z.iso.datetime(),
-  capacity: z.number().int().positive(),
-  termsAndConditions: z.string().max(5000).optional(),
-  categoryIds: z.array(z.number().int().positive()).optional(),
-  tickets: z
-    .array(
-      z.object({
-        name: z
-          .string()
-          .trim()
-          .min(3, 'Ticket name must be at least 3 characters'),
-        ticketTypeId: z.number().int().positive().optional(),
-        ticketTypeName: z.string().trim().min(2).optional(),
-        ticketTypeDescription: z.string().max(255).optional(),
-        price: z.number().positive(),
-        totalCount: z.number().int().positive().optional(),
-        salesStartDate: z.iso.datetime().optional(),
-        salesEndDate: z.iso.datetime().optional(),
-        benefits: z.string().max(5000).optional(),
-      }),
-    )
-    .min(1, 'At least one ticket is required'),
-});
+export const createEventWithTicketsSchema = z
+  .object({
+    title: z.string().min(3, 'Event title must contain at least 3 characters'),
+    description: z.string().max(5000).optional(),
+    eventVenueId: z.number().int().positive().optional(),
+    venue: z
+      .object({
+        venue_name: z.string().trim().min(1, 'Venue name is required'),
+        address: z.string().optional(),
+        city_or_town: z.string().trim().min(1, 'City/Town is required'),
+        country: z.string().trim().min(1, 'Country is required'),
+        googleMapLink: z.string().optional(),
+      })
+      .optional(),
+    media: z
+      .array(
+        z.object({
+          imageUrl: z.url(),
+          type: z.enum(['Banner', 'Gallery', 'Sponsor']),
+        }),
+      )
+      .optional(),
+    dateAndTime: z.iso.datetime(),
+    dateAndTimeEnd: z.iso.datetime().optional(),
+    capacity: z.number().int().positive(),
+    termsAndConditions: z.string().max(5000).optional(),
+    categoryIds: z.array(z.number().int().positive()).optional(),
+    tickets: z
+      .array(
+        z.object({
+          name: z
+            .string()
+            .trim()
+            .min(3, 'Ticket name must be at least 3 characters'),
+          ticketTypeId: z.number().int().positive().optional(),
+          ticketTypeName: z.string().trim().min(2).optional(),
+          ticketTypeDescription: z.string().max(255).optional(),
+          price: z.number().positive(),
+          totalCount: z.number().int().positive().optional(),
+          salesStartDate: z.iso.datetime().optional(),
+          salesEndDate: z.iso.datetime().optional(),
+          benefits: z.string().max(5000).optional(),
+        }),
+      )
+      .min(1, 'At least one ticket is required'),
+  })
+  .refine((data) => data.eventVenueId !== undefined || data.venue !== undefined, {
+    message: 'Either eventVenueId or venue is required',
+    path: ['eventVenueId'],
+  });
 
 export type CreateOrganizerEventType = z.infer<
   typeof createOrganizerEventSchema

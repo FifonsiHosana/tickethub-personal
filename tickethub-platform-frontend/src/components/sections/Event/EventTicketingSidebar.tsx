@@ -70,7 +70,7 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
 
           const qty = cartItem ? cartItem.quantity : 0;
           const isSelected = qty > 0;
-          const isSoldOut = ticket.totalRemaining === 0;
+          const isSoldOut = ticket.totalRemaining === 0 && !isSelected;
 
           return (
             <div
@@ -81,7 +81,6 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
                   : "border-neutral-200 bg-white"
               } ${isSoldOut ? "opacity-50" : ""}`}
             >
-
               {/*  */}
               <div className="flex flex-col w-full">
                 <div className="flex flex-row items-center justify-between">
@@ -106,7 +105,7 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
                 <span className="text-xs font-medium text-neutral-600">
                   {isSoldOut
                     ? "Sold Out"
-                    : `${ticket.totalRemaining} available`}
+                    : `${ticket.totalRemaining - qty} available`}
                 </span>
 
                 {!isSoldOut && status === "Published" && (
@@ -124,7 +123,7 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
                       <Minus className="w-4 h-4" />
                     </button>
 
-                    <span className="w-4 text-center font-semibold text-foreground">
+                    <span className="w-5 text-center font-semibold text-foreground">
                       {qty}
                     </span>
 
@@ -206,10 +205,6 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
             </motion.div>
           )}
         </AnimatePresence>
-
-        <p className="text-xs text-center text-neutral-400 font-sans mt-4">
-          Secure checkout powered by TicketHub
-        </p>
       </div>
     </div>
   );

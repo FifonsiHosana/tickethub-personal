@@ -1,37 +1,99 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { Link } from "react-router";
+import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import {
+  ArrowRight,
+  Calendar,
+  CalendarOff,
+  MapPinned,
+  Smartphone,
+} from "lucide-react";
+import { FastAverageColor } from "fast-average-color";
 import { useEvent } from "@/hooks/attendees/events/useEvent";
 import { Loader } from "@/components/ui/loader";
-import { format } from "date-fns";
-import { CalendarDays, CalendarOff, MapPin, User } from "lucide-react";
 import { EventTicketingSidebar } from "./EventTicketingSidebar";
-import { FastAverageColor } from "fast-average-color";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router";
+import { Card } from "@/components/ui/card";
+import { EventsLists } from "../Events/EventsLists";
+import { useIsMobile } from "@/hooks/use-mobile";
+import EventBanner from "./EventBanner";
 
 export const EventDetails: React.FC = () => {
   const { data: event, isLoading, isError, error } = useEvent();
-  const [bgColor, setBgColor] = useState("#f5f5f5");
+  const { isMobile } = useIsMobile();
 
+  const [bgColor, setBgColor] = useState("#f5f5f5");
+  const [isTicketsVisible, setIsTicketsVisible] = useState(false);
+
+  const ticketsSectionRef = useRef<HTMLDivElement | null>(null);
+
+  /*
+   * Get the dominant color from the event banner.
+   */
   useEffect(() => {
     if (!event?.images) return;
+
     const banner = event.images.find((img) => img.type === "Banner")?.imageUrl;
 
-    if (banner) {
-      const fac = new FastAverageColor();
-      fac
-        .getColorAsync(banner, { algorithm: "dominant" })
-        .then((color) => {
-          setBgColor(color.hex);
-        })
-        .catch((e) => {
-          console.error("Error getting color:", e);
-        });
-    }
+    if (!banner) return;
+
+    const fac = new FastAverageColor();
+
+    fac
+      .getColorAsync(banner, { algorithm: "dominant" })
+      .then((color) => {
+        setBgColor(color.hex);
+      })
+      .catch((e) => {
+        console.error("Error getting color:", e);
+      });
   }, [event]);
 
-  if (isLoading) return <Loader loading={isLoading} fullScreen={true} />;
+  /*
+   * Observe the ticket section.
+   *
+   * The mobile sticky "Get Tickets" button is shown
+   * whenever the ticket section is outside the viewport.
+   */
+  useEffect(() => {
+    if (!isMobile) {
+      setIsTicketsVisible(false);
+      return;
+    }
 
-  console.log("this is your error", error);
+    const target = ticketsSectionRef.current;
+
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsTicketsVisible(entry.isIntersecting);
+      },
+      {
+        threshold: 0.1,
+      },
+    );
+
+    observer.observe(target);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [isMobile]);
+
+  /*
+   * Smoothly scroll to the ticket section.
+   */
+  const scrollToTickets = () => {
+    ticketsSectionRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
+  if (isLoading) {
+    return <Loader loading={isLoading} fullScreen={true} />;
+  }
 
   if (error?.message === "Event not found") {
     return (
@@ -39,19 +101,23 @@ export const EventDetails: React.FC = () => {
         <div className="w-16 h-16 bg-neutral-50 rounded-full flex items-center justify-center mb-4">
           <CalendarOff className="w-30 h-30 text-primary" />
         </div>
+
         <h1 className="text-2xl font-bold text-foreground mb-2">
           Event not found
         </h1>
+
         <p className="text-neutral-500 max-w-sm mb-6">
           This event doesn't exist or may have been removed.
         </p>
+
         <div className="flex gap-3 justify-center items-center">
           <Button className="p-2 mt-2 rounded-full">
             <Link to="/events" className="p-2">
               Browse events
             </Link>
           </Button>
-          <Button variant={"outline"} className=" mt-2 rounded-full">
+
+          <Button variant="outline" className="mt-2 rounded-full">
             <Link to="/" className="p-2">
               Go home
             </Link>
@@ -60,6 +126,7 @@ export const EventDetails: React.FC = () => {
       </div>
     );
   }
+
   if (isError) {
     return (
       <div className="flex items-center justify-center h-screen p-8 text-center text-red-500">
@@ -79,110 +146,212 @@ export const EventDetails: React.FC = () => {
   )?.imageUrl;
 
   const formattedDateStr = format(new Date(event.dateAndTime), "EEE, MMM dd");
+
   const formattedTimeStr = format(new Date(event.dateAndTime), "h:mm a");
 
-  // Format for the image overlay badge
-  const overlayTime = format(new Date(event.dateAndTime), "MMM dd, h:mm a");
+  // const overlayTime = format(new Date(event.dateAndTime), "MMM dd, h:mm a");
 
   return (
-    <main className="w-full min-h-screen bg-neutral-50/50 pb-24 pt-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-        {/* Left Column: Event Image */}
-        <div className="lg:col-span-5">
-          <div
-            className="sticky top-24 w-full aspect-4/5 md:h-full rounded-4xl overflow-hidden shadow-xl shadow-neutral-200/40 transition-colors duration-500 ease-in-out"
-            style={{ backgroundColor: bgColor }}
-          >
-            {bannerImage ? (
-              <img
-                src={bannerImage}
-                alt={event.title}
-                crossOrigin="anonymous"
-                className="w-full h-full object-contain relative z-10 p-4 rounded-4xl"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-neutral-400 bg-neutral-100">
-                No Banner Available
-              </div>
-            )}
+    <div>
+      {/* Hero */}
+      <div className="relative min-h-120 lg:min-h-150 flex flex-col w-full justify-center py-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="absolute inset-0 -z-1 pointer-events-none bottom-0 left-0 right-0 bg-radial-[115%_140%_at_85%_65%] from-[rgba(255,216,190,0.3)] from-40% to-[rgba(248,250,252,1)] to-100%"></div>
+          <div className="absolute inset-0 -z-1 pointer-events-none  bottom-0 left-0 right-0 bg-[linear-gradient(to_right,#e8bebe2e_1px,transparent_1px),linear-gradient(to_bottom,#e8bebe2e_1px,transparent_1px)] bg-[size:37px_36px]"></div>
+          <div className="px-6 ">
+            <div className="pt-30 lg:pt-16 ">
+              <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8 lg:gap-12">
+                {/* Event information */}
+                <div className="flex-1 w-full space-y-6 order-2 lg:order-1 text-center sm:text-left">
+                  {/* Mobile image */}
 
-            {/* Time Badge Overlay */}
-            <div className="absolute top-4 left-4 z-20 bg-black/80 backdrop-blur-md text-white px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide">
-              {overlayTime}
+                  <div className="lg:hidden mb-6">
+                    <button
+                      type="button"
+                      className="relative w-full max-w-[280px] mx-auto aspect-square cursor-pointer group block"
+                    >
+                      <div className="absolute inset-0 bg-white rounded-2xl shadow-lg" />
+
+                      <div className="relative rounded-2xl overflow-hidden bg-white shadow-xl ring-1 ring-stone-900/5">
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300">
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+
+                  {/* Category */}
+                  <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+                    <span className="inline-flex items-center px-3 py-1.5 bg-white text-stone-700 text-xs font-semibold rounded-full shadow-sm ring-1 ring-stone-900/5">
+                      {event.categoryNames}
+                    </span>
+                  </div>
+
+                  {/* Title */}
+                  <div>
+                    <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-[1.1] tracking-tight mb-3 text-balance text-pretty">
+                      {event.title.toUpperCase()}
+                    </h1>
+
+                    {/* <p className="text-base text-stone-700">
+                      by{" "}
+                      <span className="font-semibold text-gray-900">
+                        {event.organizerFirstName}
+                      </span>
+                    </p> */}
+                  </div>
+
+                  {/* Event details */}
+                  <div className="flex flex-wrap gap-x-6 gap-y-3 text-stone-700 justify-center sm:justify-start">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-5 h-5 text-gray-400 font-extralight" />
+
+                      <span className="text-sm font-medium">
+                        <p className="text-neutral-700">
+                          {formattedDateStr} &bull; {formattedTimeStr}
+                        </p>
+                      </span>
+                    </div>
+
+                    <a
+                      target="_blank"
+                      rel="noopener"
+                      className="flex items-center gap-2 hover:text-[var(--color-ego-orange)] transition-colors group"
+                      href="https://maps.google.com/maps?daddr=3 Music HQ, Abelenkpe, Accra, Ghana, Accra, GH&q=5.6087,-0.216419&z=16&sensor=true"
+                    >
+                      <MapPinned className="h-5 w-5 text-gray-400" />
+
+                      <span className="text-sm font-medium">
+                        {event.venueName}, {event.city}
+                      </span>
+                    </a>
+
+                    <div className="flex items-center gap-2">
+                      <Smartphone className="w-5 h-5 text-gray-400" />
+
+                      <span className="text-sm font-mono font-semibold">
+                        *902*30*{event.id}#
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Desktop CTA */}
+                  {!isMobile && (
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2 justify-center sm:justify-start">
+                      <button
+                        type="button"
+                        onClick={scrollToTickets}
+                        className="flex items-center justify-center gap-3 px-16 py-3 bg-primary/80 text-white rounded-full text-base font-medium hover:scale-105 hover:bg-primary/60 hover:cursor-pointer w-full md:w-auto transition-all"
+                      >
+                        Get Tickets <ArrowRight />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Desktop banner */}
+                <EventBanner
+                  bannerImage={bannerImage as string}
+                  bgColor={bgColor}
+                  event={event}
+                />
+              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Right Column: Details & Ticketing */}
-        <div className="lg:col-span-7 flex flex-col gap-6">
-          {/* Main Event Header & Summary Card */}
-          <div className="bg-white rounded-4xl p-5 sm:p-6 border border-neutral-300 shadow-sm flex flex-col gap-3">
-            {/* Title Section */}
-            <div>
-              <h1 className="text-3xl font-bold text-foreground uppercase tracking-tight leading-none">
-                {event.title}
-              </h1>
+      {/* Main content */}
+      <div className="mx-auto px-5 pb-16 pt-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row gap-16">
+            {/* Event information */}
+            <div className="w-full lg:w-[60%] space-y-12">
+              <div className="text-3xl font-semibold mb-3">
+                About this event
+              </div>
+
+              <p>{event.description}</p>
+
+              <div className="text-lg font-semibold mb-3">Date & Time</div>
+
+              <Card className="py-0">
+                <div className="grid grid-cols-2 rounded-xl overflow-hidden">
+                  <div className="px-4 py-3">
+                    <p className="text-xs font-semibold">Begins</p>
+
+                    <p className="text-xs text-gray-400 mt-1 leading-snug">
+                      {formattedDateStr} &bull; {formattedTimeStr}
+                    </p>
+                  </div>
+
+                  <div className="px-4 py-3 border-l border-gray-400">
+                    <p className="text-xs font-semibold font-bold">Ends</p>
+
+                    <p className="text-xs text-gray-400 mt-1 leading-snug">
+                      Mon • 5 October 2026 • 11:00 am
+                    </p>
+                  </div>
+                </div>
+              </Card>
+
+              <div className="text-lg font-semibold mb-3">Venue</div>
+              <div className="py-2 flex flex-col gap-2">
+                <span>{event.venueName}</span>
+              </div>
             </div>
 
-            {/* When, Where, By Summary Box 2 */}
-            <div className="flex flex-col gap-1 text-sm mb-2">
-              <div className="flex items-center gap-1">
-                <CalendarDays className="w-4 h-4 text-primary" />
-                <p className="text-neutral-700">
-                  {formattedDateStr} &bull; {formattedTimeStr}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-1">
-                <MapPin className="w-4 h-4 text-primary" />
-                <p className="text-neutral-700">
-                  {event.venueName || `${event.city}, ${event.country}`}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-1">
-                <User className="w-4 h-4 text-primary" />
-                <p className="text-neutral-700">
-                  {`${event.organizerFirstName} ${event.organizerLastName}`}
-                </p>
-              </div>
-            </div>
-
-            {/* Ticketing Component (Drop-in) */}
-            <div className="mt-1">
+            {/* Tickets */}
+            <div
+              ref={ticketsSectionRef}
+              id="tickets-section"
+              className="w-full lg:w-[40%]"
+            >
               <EventTicketingSidebar
-                status={"Published"}
+                status="Published"
                 eventName={event.title}
                 banner={bannerImage as string}
               />
             </div>
           </div>
+        </div>
 
-          {/* About Section Card */}
-          <div className="bg-white rounded-4xl p-6 sm:p-8 border border-neutral-300 shadow-sm">
-            <h3 className="text-xl font-bold text-foreground mb-4">
-              About this event
-            </h3>
-            <div className=" font-sans text-neutral-800 leading-relaxed text-sm">
-              <p>
-                {event.description || "No description provided for this event."}
-              </p>
-            </div>
+        {/* Similar events */}
+        <div className="mx-auto py-16">
+          <div className="text-2xl font-bold text-stone-900 mb-8">
+            Similar Events
+          </div>
 
-            {/* Terms & Conditions */}
-            {event.termsAndConditions && (
-              <div className="mt-8 pt-6 border-t border-dashed border-neutral-200">
-                <h4 className="text-xs font-bold text-foreground mb-2 uppercase tracking-widest">
-                  Terms & Conditions
-                </h4>
-                <p className="text-xs text-neutral-500 leading-relaxed">
-                  {event.termsAndConditions}
+          <EventsLists eventId={event.id} category={event.categoryIds} />
+        </div>
+
+        {/* Mobile sticky ticket bar */}
+        <div
+          className={`lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-stone-200 shadow-2xl transition-transform duration-300 ease-in-out ${
+            isTicketsVisible ? "translate-y-full" : "translate-y-0"
+          }`}
+        >
+          <div className="px-4 py-3">
+            <div className="flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-stone-500 mb-0.5">From ₵46.00</p>
+
+                <p className="font-semibold text-stone-900 text-sm truncate">
+                  {event.title}
                 </p>
               </div>
-            )}
+
+              <button
+                type="button"
+                onClick={scrollToTickets}
+                className="shrink-0 bg-[#fd7d43] text-white font-semibold py-3 px-6 rounded-4xl transition-transform active:scale-95"
+              >
+                Get Tickets
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 };

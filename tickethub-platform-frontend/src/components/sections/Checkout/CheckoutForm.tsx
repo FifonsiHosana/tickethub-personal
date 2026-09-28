@@ -5,7 +5,7 @@ import * as z from "zod";
 
 const checkoutSchema = z.object({
   firstName: z.string().trim().min(2, "First name is required"),
-  lastName: z.string().trim().min(2, "Last name is required").nonempty(),
+  // lastName: z.string().trim().min(2, "Last name is required").nonempty(),
   email: z.email("Invalid email address"),
   phone: z.string().trim().min(10, "Valid phone number is required"),
 });
@@ -23,7 +23,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSubmit }) => {
     formState: { errors },
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
-    defaultValues: { firstName: "", lastName: "", email: "", phone: "" },
+    defaultValues: { firstName: "", email: "", phone: "" },
     mode: "onChange",
   });
 
@@ -33,32 +33,32 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSubmit }) => {
       onSubmit={handleSubmit(onSubmit)}
       className="flex flex-col gap-6"
     >
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {/* First Name */}
-        <Controller
-          name="firstName"
-          control={control}
-          render={({ field }) => (
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-foreground">
-                First Name
-              </label>
-              <input
-                {...field}
-                placeholder="Kwame"
-                className="w-full px-4 py-3 border-b-2 border-neutral-200 bg-neutral-50/50 focus:border-primary focus:outline-none transition-all"
-              />
-              {errors.firstName && (
-                <span className="text-xs text-red-500">
-                  {errors.firstName.message}
-                </span>
-              )}
-            </div>
-          )}
-        />
+      {/* <div className="grid grid-cols-1 sm:grid-cols-2 gap-6"> */}
+      {/* First Name */}
+      <Controller
+        name="firstName"
+        control={control}
+        render={({ field }) => (
+          <div className="flex flex-col gap-2">
+            <label className="text-sm flex gap-1 font-medium text-foreground">
+              Name <span className="text-destructive">*</span>
+            </label>
+            <input
+              {...field}
+              placeholder="Kwame"
+              className="w-full px-4 py-3 border-b-2 border-neutral-200 bg-neutral-50/50 focus:border-primary focus:outline-none transition-all"
+            />
+            {errors.firstName && (
+              <span className="text-xs text-red-500">
+                {errors.firstName.message}
+              </span>
+            )}
+          </div>
+        )}
+      />
 
-        {/* Last Name */}
-        <Controller
+      {/* Last Name */}
+      {/* <Controller
           name="lastName"
           control={control}
           render={({ field }) => (
@@ -78,8 +78,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSubmit }) => {
               )}
             </div>
           )}
-        />
-      </div>
+        /> */}
+      {/* </div> */}
 
       {/* Email */}
       <Controller
@@ -88,12 +88,12 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSubmit }) => {
         render={({ field }) => (
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-foreground">
-              Email Address
+              Email Address <span className="text-destructive">*</span>
             </label>
             <input
               {...field}
               type="email"
-              placeholder="kwame.mensah@example.com"
+              placeholder="kwame@example.com"
               className="w-full px-4 py-3 border-b-2 border-neutral-200 bg-neutral-50/50 focus:border-primary focus:outline-none  transition-all"
             />
             {errors.email && (
@@ -112,7 +112,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSubmit }) => {
         render={({ field }) => (
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-foreground">
-              Phone Number
+              Phone Number <span className="text-destructive">*</span>
             </label>
             <input
               {...field}

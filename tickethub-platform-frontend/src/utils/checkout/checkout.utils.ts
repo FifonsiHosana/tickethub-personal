@@ -20,7 +20,7 @@ export function buildCheckoutPayload(
   return {
     attendee: {
       firstName: form.firstName,
-      lastName: form.lastName,
+      lastName: "",
       email: form.email,
       phoneNumber: form.phone,
     },

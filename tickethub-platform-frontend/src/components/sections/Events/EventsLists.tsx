@@ -7,7 +7,12 @@ import { EventsSkeleton } from "@/components/shared/EventsSkeleton";
 
 const PAGE_SIZE = 6;
 
-export const EventsLists: React.FC = () => {
+interface Props {
+  category?: number[];
+  eventId?: number;
+}
+
+export const EventsLists: React.FC<Props> = ({ category, eventId }) => {
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
@@ -20,7 +25,7 @@ export const EventsLists: React.FC = () => {
     page,
     pageSize: PAGE_SIZE,
     search: searchQuery || undefined,
-    categoryId: activeCategoryId ?? undefined,
+    categoryId: category ? category[0] : (activeCategoryId ?? undefined),
   });
 
   const { data: categories } = useCategories();
@@ -55,27 +60,36 @@ export const EventsLists: React.FC = () => {
   const currentPage = Math.min(page, totalPages);
 
   return (
-    <main className="w-full min-h-screen bg-neutral-50/30 py-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <main
+      className={`${!category && `w-full min-h-screen bg-neutral-50/30 py-24`}`}
+    >
+      <div
+        className={`${!category && `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`}`}
+      >
         {/* Page Header */}
-        <div className="flex flex-col items-start gap-4 mb-4">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl text-foreground tracking-tight leading-tight">
-            <span>Upcoming </span>
-            <span className="italic text-neutral-400">experiences</span>
-          </h1>
-        </div>
+        {!category && (
+          <>
+            <div className="flex flex-col items-start gap-4 mb-4">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl text-foreground tracking-tight leading-tight">
+                <span>Upcoming </span>
+                <span className="italic text-neutral-400">experiences</span>
+              </h1>
+            </div>
 
-        {/* Filters */}
-        <EventsFilterBar
-          searchQuery={searchQuery}
-          setSearchQuery={handleSearchChange}
-          activeCategoryId={activeCategoryId}
-          setActiveCategoryId={handleCategoryChange}
-          categories={allCategories}
-        />
+            {/* Filters */}
+
+            <EventsFilterBar
+              searchQuery={searchQuery}
+              setSearchQuery={handleSearchChange}
+              activeCategoryId={activeCategoryId}
+              setActiveCategoryId={handleCategoryChange}
+              categories={allCategories}
+            />
+          </>
+        )}
 
         {/* Results Grid */}
-        <EventsGrid events={events} />
+        <EventsGrid eventId={eventId && eventId} events={events} />
 
         {/* Pagination */}
         <PaginationSect

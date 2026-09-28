@@ -30,27 +30,55 @@ export const ticketSchema = z.object({
 
 export type TicketFormValues = z.infer<typeof ticketSchema>;
 
-export const createEventSchema = z.object({
-  title: z
-    .string()
-    .min(3, "Event title must be at least 3 characters")
-    .max(100),
-
-  description: z.string().optional(),
-
-  eventVenueId: z.number({ message: "Please select a venue" }).positive(),
-
-  capacity: z.number({ message: "Please enter capacity" }).positive(),
-
-  dateAndTime: z.string().min(1, "Please select a date and time"),
-
-  termsAndConditions: z.string().min(1, "Please enter terms and conditions"),
-
-  categoryIds: z.array(z.number().int().positive()).optional(),
-
-  bannerImage: imageSchema,
-
-  tickets: z.array(ticketSchema).min(1, "Add at least one ticket"),
+export const venueSchema = z.object({
+  venue_name: z.string().min(1, "Venue name is required"),
+  address: z.string().optional(),
+  city_or_town: z.string().min(1, "City/Town is required"),
+  country: z.string().min(1, "Country is required"),
+  googleMapLink: z.string().optional(),
 });
+
+export type VenueFormValues = z.infer<typeof venueSchema>;
+
+export const createEventSchema = z
+  .object({
+    title: z
+      .string()
+      .min(3, "Event title must be at least 3 characters")
+      .max(100),
+
+    description: z.string().optional(),
+
+    eventVenueId: z.number().positive().optional(),
+
+    venue: venueSchema,
+
+    capacity: z.number({ message: "Please enter capacity" }).positive(),
+
+    dateAndTime: z.string().min(1, "Please select a start date and time"),
+
+    dateAndTimeEnd: z.string().min(1, "Please select an end date and time"),
+
+    termsAndConditions: z.string().min(1, "Please enter terms and conditions"),
+
+    categoryIds: z.array(z.number().int().positive()).optional(),
+
+    bannerImage: imageSchema,
+
+    tickets: z.array(ticketSchema).min(1, "Add at least one ticket"),
+  })
+  .refine(
+    (data) => {
+      if (!data.dateAndTime || !data.dateAndTimeEnd) return true;
+      return (
+        new Date(data.dateAndTimeEnd).getTime() >=
+        new Date(data.dateAndTime).getTime()
+      );
+    },
+    {
+      message: "End date must be after start date",
+      path: ["dateAndTimeEnd"],
+    },
+  );
 
 export type CreateEventFormValues = z.infer<typeof createEventSchema>;

@@ -1,19 +1,14 @@
 import React from "react";
-import {
-  useTicketCartStore,
-  type SelectedTicket,
-} from "@/stores/tickets.store";
-import { Trash } from "lucide-react";
+import { type SelectedTicket } from "@/stores/tickets.store";
 interface OrderSummaryProps {
   items: SelectedTicket[];
 }
 
 export const OrderSummary: React.FC<OrderSummaryProps> = ({ items }) => {
-  const { removeTicket, totalAmount, totalQuantity } = useTicketCartStore();
   return (
-    <div className="flex flex-col gap-4">
-      <h3 className="text-lg font-bold text-foreground mb-2">Order Summary</h3>
-
+    <div className="space-y-3 mb-6 pb-6 border-b border-stone-200">
+      {/* <h3 className="text-lg font-bold text-foreground mb-2">Order Summary</h3> */}
+      <div className="font-semibold text-stone-900 mb-3">Tickets</div>
       {items.length === 0 ? (
         <p className="text-sm text-neutral-500">Your cart is empty.</p>
       ) : (
@@ -21,22 +16,12 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({ items }) => {
           {items.map((item) => (
             <div
               key={item.eventTicketId}
-              className="flex flex-col md:flex-row md:items-center gap-4 p-4 bg-neutral-50/50 border border-neutral-100 rounded-2xl"
+              className="flex  md:flex-row md:items-center gap-2 p-0"
             >
-              {/* Small Event Banner */}
-              <img
-                src={item.banner}
-                alt={item.eventName}
-                className="w-24 h-24 rounded-xl object-cover shadow-sm"
-              />
-
               {/* Details */}
               <div className="flex flex-col grow">
-                <h4 className="font-semibold text-foreground text-sm">
-                  {item.eventName}
-                </h4>
                 <p className="text-xs text-neutral-500 mt-0.5">
-                  {item.ticketType}
+                  {item.ticketType} x {item.quantity}
                 </p>
               </div>
 
@@ -45,23 +30,7 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({ items }) => {
                 <span className="font-bold text-foreground text-sm">
                   GH₵ {(item.price * item.quantity).toFixed(2)}
                 </span>
-                <span className="text-xs text-neutral-400 mt-0.5">
-                  Qty: {item.quantity}
-                </span>
-
-                {/* Remove Button */}
-                <button
-                  type="button"
-                  className="text-neutral-400 hover:text-red-500 transition-colors mt-1"
-                  onClick={() => {
-                    removeTicket(item.eventTicketId);
-                    totalAmount();
-                    totalQuantity();
-                  }}
-                  title="Remove ticket"
-                >
-                  <Trash size={20} />
-                </button>
+                {/* <span className="text-xs text-neutral-400 mt-0.5">Qty:</span> */}
               </div>
             </div>
           ))}

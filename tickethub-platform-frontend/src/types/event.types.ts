@@ -19,6 +19,7 @@ export interface Event {
   title: string;
   description?: string;
   dateAndTime: string;
+  dateAndTimeEnd?: string;
   capacity: number;
   venueName: string;
   city: string;

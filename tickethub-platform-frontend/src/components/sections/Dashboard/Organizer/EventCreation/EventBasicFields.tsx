@@ -1,42 +1,27 @@
-import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { CalendarIcon, UsersIcon, PlusIcon } from "lucide-react";
+import { CalendarIcon, UsersIcon } from "lucide-react";
 import { type CreateEventFormValues } from "@/types/organizer/event.schema";
-import { useEventVenues } from "@/hooks/organizers/useOrganizerEvents";
 import {
   Field,
   FieldLabel,
   FieldError,
-  FieldContent,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@/components/ui/combobox";
-import { AddVenueDialog } from "./AddVenueDialog";
 import { CategorySelect } from "./CategorySelect";
 // import { HeadingButton } from "@/components/tiptap-ui/heading-button";
 // import { MenuBar } from "@/components/shared/editor-header";
 import { DescriptionField } from "@/components/shared/richtext-editor";
-import VenueForm from "./VenueForm";
+import { useIsMobile } from "@/hooks/use-mobile";
 // import { DescriptionEditor } from "@/components/shared/richtext-editor";
-
-type Venue = { id: number; venue_name: string };
 
 export function EventBasicFields() {
   const {
     register,
     control,
-    setValue,
     formState: { errors },
   } = useFormContext<CreateEventFormValues>();
+
+  const { isMobile } = useIsMobile();
 
   return (
     <>
@@ -73,14 +58,18 @@ export function EventBasicFields() {
         </Field>
         <CategorySelect />
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-1">
-          <Field data-invalid={!!errors.dateAndTime}>
+        <div className={`flex gap-4 ${isMobile && `flex flex-col`}`}>
+          <Field data-invalid={!!errors.dateAndTime || !!errors.dateAndTimeEnd}>
             <FieldLabel htmlFor="dateAndTime">
               Date and Time<span className="text-destructive">*</span>
             </FieldLabel>
-            <div className="sm:flex flex-col gap-4 sm:gap-4">
-              <div className="relative max-w-55">
+            <div
+              className={`gap-4 ${isMobile ? `flex flex-col w-full` : `flex`}`}
+            >
+              <div className={`  ${!isMobile && `max-w-55`}`}>
+                <span>Start</span>
                 <CalendarIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+
                 <Input
                   {...register("dateAndTime")}
                   id="dateAndTime"
@@ -88,17 +77,37 @@ export function EventBasicFields() {
                   className="pl-9"
                 />
               </div>
-              <div className="relative max-w-55">
+              <div className={`  ${!isMobile && `max-w-55`}`}>
+                <span>end</span>
                 <CalendarIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  {...register("dateAndTime")}
-                  id="dateAndTime"
+                  {...register("dateAndTimeEnd")}
+                  id="dateAndTimeEnd"
                   type="datetime-local"
                   className="pl-9"
                 />
               </div>
             </div>
             {errors.dateAndTime && <FieldError errors={[errors.dateAndTime]} />}
+            {errors.dateAndTimeEnd && (
+              <FieldError errors={[errors.dateAndTimeEnd]} />
+            )}
+          </Field>
+          <Field data-invalid={!!errors.capacity}>
+            <FieldLabel htmlFor="capacity">
+              Total Capacity<span className="text-destructive">*</span>
+            </FieldLabel>
+            <div className={`relative ${!isMobile && `max-w-55`}`}>
+              <UsersIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                {...register("capacity", { valueAsNumber: true })}
+                id="capacity"
+                type="number"
+                min="1"
+                className="pl-9"
+              />
+            </div>
+            {errors.capacity && <FieldError errors={[errors.capacity]} />}
           </Field>
 
           {/* <Field data-invalid={!!errors.eventVenueId}>
@@ -175,23 +184,6 @@ export function EventBasicFields() {
             setValue("eventVenueId", venue.id, { shouldValidate: true })
           }
         /> */}
-
-          <Field data-invalid={!!errors.capacity}>
-            <FieldLabel htmlFor="capacity">
-              Total Capacity<span className="text-destructive">*</span>
-            </FieldLabel>
-            <div className="relative max-w-45">
-              <UsersIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                {...register("capacity", { valueAsNumber: true })}
-                id="capacity"
-                type="number"
-                min="1"
-                className="pl-9"
-              />
-            </div>
-            {errors.capacity && <FieldError errors={[errors.capacity]} />}
-          </Field>
         </div>
       </div>
     </>

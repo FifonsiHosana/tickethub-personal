@@ -1,6 +1,8 @@
 import React from "react";
 import { assets } from "@/assets/assets";
 import { PaymentCTA } from "./PaymentCTA";
+import { OrderSummary } from "./OrderSummary";
+import { useTicketCartStore } from "@/stores/tickets.store";
 
 interface PricingSummaryProps {
   subtotal: number;
@@ -14,12 +16,14 @@ export const PricingSummary: React.FC<PricingSummaryProps> = ({
   isProcessing,
 }) => {
   const total = subtotal + feeAmount;
+  const { items } = useTicketCartStore();
 
   return (
     <div className="bg-white rounded-4xl p-6 sm:p-8 border border-neutral-100 shadow-xl shadow-neutral-200/40 flex flex-col gap-6 ">
-      <h3 className="text-xl font-bold text-foreground">Total Payment</h3>
+      <h3 className="text-xl font-bold text-foreground">Order Summary</h3>
 
       <div className="flex flex-col gap-4 text-sm border-b border-neutral-100 pb-6">
+        <OrderSummary items={items} />
         <div className="flex justify-between items-center text-neutral-500">
           <span>Tickets Subtotal</span>
           <span className="font-medium text-foreground">
@@ -32,25 +36,23 @@ export const PricingSummary: React.FC<PricingSummaryProps> = ({
             GH₵ {feeAmount.toFixed(2)}
           </span>
         </div>
+        <div className="flex justify-between items-center">
+          <span className="font-bold text-foreground">Total</span>
+          <span className="text-lg font-bold text-[#1a201c]">
+            GH₵ {total.toFixed(2)}
+          </span>
+        </div>
       </div>
 
-      <div className="flex justify-between items-center">
-        <span className="font-bold text-foreground">Total</span>
-        <span className="text-3xl font-bold text-[#1a201c]">
-          GH₵ {total.toFixed(2)}
-        </span>
-      </div>
+      {/* Make Payment CTA */}
+      <PaymentCTA total={total} isProcessing={isProcessing} />
 
       {/* Money Logos */}
       <div className="flex items-center">
         <img src={assets.MoneyLogos} />
       </div>
-
-      {/* Make Payment CTA */}
-      <PaymentCTA isProcessing={isProcessing} />
-
       {/* Decorative Secure Badge */}
-      <div className="mt-4 flex items-center justify-center gap-2 text-xs text-neutral-400 bg-neutral-50 p-3 rounded-xl border border-neutral-100">
+      <div className=" flex items-center justify-center gap-2 text-xs text-neutral-400 bg-neutral-50 py-3 rounded-xl border border-neutral-100">
         <svg
           className="w-4 h-4 text-green-600"
           fill="none"

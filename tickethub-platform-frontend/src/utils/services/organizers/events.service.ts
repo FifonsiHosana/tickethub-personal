@@ -4,9 +4,11 @@ import type { Category } from "@/types/event.types";
 export interface CreateEventPayload {
   title: string;
   description?: string;
-  eventVenueId: number;
+  eventVenueId?: number;
+  venue?: CreateVenuePayload;
   capacity: number;
   dateAndTime: string;
+  dateAndTimeEnd?: string;
   termsAndConditions?: string;
   media?: {
     imageUrl: string;
@@ -43,6 +45,7 @@ export interface OrganizerEventResponse {
   approvalStatus: "Pending" | "Approved" | "Rejected";
   capacity: number;
   dateAndTime: string;
+  dateAndTimeEnd?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -79,9 +82,11 @@ export interface TicketPayload {
 export interface CreateEventWithTicketsPayload {
   title: string;
   description?: string;
-  eventVenueId: number;
+  eventVenueId?: number;
+  venue?: CreateVenuePayload;
   capacity: number;
   dateAndTime: string;
+  dateAndTimeEnd?: string;
   termsAndConditions?: string;
   categoryIds?: number[];
   media?: { imageUrl: string; type: "Banner" | "Gallery" | "Sponsor" }[];

@@ -11,7 +11,7 @@ import { computeTotalWithFee } from "@/utils/checkout/checkout.utils";
 import { Loader } from "@/components/ui/loader";
 
 export const Checkout: React.FC = () => {
-  const { items, totalTicketAmount: subtotal } = useTicketCartStore();
+  const { totalTicketAmount: subtotal } = useTicketCartStore();
   const purchaseMutation = usePurchaseTickets();
   const initiatePaymentFunction = usePayTicket();
   const processingFeePercentage = useProcessingFeePercentage();
@@ -42,7 +42,7 @@ export const Checkout: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
           {/* Left Column: Form, Order Summary, CTA */}
           <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-8">
-            <div className="bg-white rounded-4xl p-6 sm:p-8 border border-neutral-100 shadow-sm flex flex-col gap-10">
+            <div className="bg-white  pb-10 p-6 sm:p-8  flex flex-col gap-10">
               {/* Buyer Information Form */}
               <section>
                 <h3 className="text-xl font-bold text-foreground mb-6">
@@ -52,9 +52,9 @@ export const Checkout: React.FC = () => {
               </section>
 
               {/* Order Summary List */}
-              <section className="pt-8 border-t border-neutral-100">
+              {/* <section className="pt-8 border-t border-neutral-100">
                 <OrderSummary items={items} />
-              </section>
+              </section> */}
             </div>
           </div>
 

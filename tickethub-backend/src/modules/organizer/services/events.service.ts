@@ -85,6 +85,7 @@ export async function getOrganizerEvents(params: GetOrganizerEventsParams) {
       description: events.description,
       status: events.status,
       dateAndTime: events.dateAndTime,
+      dateAndTimeEnd: events.dateAndTimeEnd,
       approvalStatus: events.approvalStatus,
       capacity: events.capacity,
       venue: eventsVenues.venue_name,
@@ -195,15 +196,39 @@ export async function getOrganizerEventById(
  */
 export async function createOrganizerEvent(organizerId: number, data: any) {
   return await db.transaction(async (tx) => {
+    let eventVenueId = data.eventVenueId;
+
+    if (!eventVenueId && data.venue) {
+      const [venue] = await tx
+        .insert(eventsVenues)
+        .values({
+          venue_name: data.venue.venue_name,
+          address: data.venue.address,
+          city_or_town: data.venue.city_or_town,
+          country: data.venue.country,
+          googleMapLink: data.venue.googleMapLink,
+        })
+        .$returningId();
+
+      if (!venue) {
+        throw new AppError(400, 'Venue creation failed');
+      }
+
+      eventVenueId = venue.id;
+    }
+
     const [event] = await tx
       .insert(events)
       .values({
         title: data.title,
         description: data.description,
-        eventVenueId: data.eventVenueId,
+        eventVenueId,
         organizerId,
         capacity: data.capacity,
         dateAndTime: formatDateForMySQL(new Date(data.dateAndTime)),
+        dateAndTimeEnd: data.dateAndTimeEnd
+          ? formatDateForMySQL(new Date(data.dateAndTimeEnd))
+          : undefined,
         status: 'Draft',
         approvalStatus: 'Pending',
         termsAndConditions: data.termsAndConditions,
@@ -250,9 +275,17 @@ export async function createOrganizerEventWithTickets(
   data: {
     title: string;
     description?: string;
-    eventVenueId: number;
+    eventVenueId?: number;
+    venue?: {
+      venue_name: string;
+      address?: string;
+      city_or_town: string;
+      country: string;
+      googleMapLink?: string;
+    };
     media?: { imageUrl: string; type: 'Banner' | 'Gallery' | 'Sponsor' }[];
     dateAndTime: string;
+    dateAndTimeEnd?: string;
     capacity: number;
     termsAndConditions?: string;
     categoryIds?: number[];
@@ -270,16 +303,44 @@ export async function createOrganizerEventWithTickets(
   },
 ) {
   return await db.transaction(async (tx) => {
+    let eventVenueId = data.eventVenueId;
+
+    if (!eventVenueId && data.venue) {
+      const [venue] = await tx
+        .insert(eventsVenues)
+        .values({
+          venue_name: data.venue.venue_name,
+          address: data.venue.address,
+          city_or_town: data.venue.city_or_town,
+          country: data.venue.country,
+          googleMapLink: data.venue.googleMapLink,
+        })
+        .$returningId();
+
+      if (!venue) {
+        throw new AppError(400, 'Venue creation failed');
+      }
+
+      eventVenueId = venue.id;
+    }
+
+    if (!eventVenueId) {
+      throw new AppError(400, 'Either eventVenueId or venue is required');
+    }
+
     const [event] = await tx
       .insert(events)
       .values({
         title: data.title,
         description: data.description,
         slug: toKebabCase(data.title),
-        eventVenueId: data.eventVenueId,
+        eventVenueId,
         organizerId,
         capacity: data.capacity,
         dateAndTime: formatDateForMySQL(new Date(data.dateAndTime)),
+        dateAndTimeEnd: data.dateAndTimeEnd
+          ? formatDateForMySQL(new Date(data.dateAndTimeEnd))
+          : undefined,
         status: 'Draft',
         approvalStatus: 'Pending',
         termsAndConditions: data.termsAndConditions,
@@ -370,7 +431,9 @@ export async function createOrganizerEventWithTickets(
         new Date(ticketData.salesStartDate ?? data.dateAndTime),
       );
       const configSalesEnd = formatDateForMySQL(
-        new Date(ticketData.salesEndDate ?? data.dateAndTime),
+        new Date(
+          ticketData.salesEndDate ?? data.dateAndTimeEnd ?? data.dateAndTime,
+        ),
       );
 
       const [configuration] = await tx
@@ -425,7 +488,13 @@ export async function updateOrganizerEvent(
         title: data.title,
         description: data.description,
         capacity: data.capacity,
-        dateAndTime: data.dateAndTime,
+        dateAndTime: data.dateAndTime
+          ? formatDateForMySQL(new Date(data.dateAndTime))
+          : undefined,
+        dateAndTimeEnd: data.dateAndTimeEnd
+          ? formatDateForMySQL(new Date(data.dateAndTimeEnd))
+          : undefined,
+        eventVenueId: data.eventVenueId,
         updatedAt: now(),
       })
 

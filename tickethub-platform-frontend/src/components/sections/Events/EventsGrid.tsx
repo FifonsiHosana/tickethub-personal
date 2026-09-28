@@ -6,9 +6,10 @@ import { type Event } from "@/types/event.types";
 
 interface EventsGridProps {
   events: Event[];
+  eventId?: number;
 }
 
-export const EventsGrid: React.FC<EventsGridProps> = ({ events }) => {
+export const EventsGrid: React.FC<EventsGridProps> = ({ events, eventId }) => {
   if (events.length === 0) {
     return (
       <div className="w-full py-24 flex flex-col items-center justify-center text-center bg-white rounded-4xl border border-neutral-100 border-dashed">
@@ -39,9 +40,11 @@ export const EventsGrid: React.FC<EventsGridProps> = ({ events }) => {
       }}
       className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10"
     >
-      {events.map((event) => (
-        <EventCard key={event.id} event={event} />
-      ))}
+      {eventId
+        ? events
+            .filter((event) => eventId !== event.id)
+            .map((event) => <EventCard key={event.id} event={event} />)
+        : events.map((event) => <EventCard key={event.id} event={event} />)}
     </motion.div>
   );
 };

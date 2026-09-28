@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { SearchIcon } from "lucide-react";
 import type { Category } from "@/types/event.types";
 

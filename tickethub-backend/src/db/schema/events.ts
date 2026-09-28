@@ -40,6 +40,8 @@ export const events = mysqlTable('Events', {
 
   dateAndTime: datetime({ mode: 'string', fsp: 3 }).notNull(),
 
+  dateAndTimeEnd: datetime({ mode: 'string', fsp: 3 }),
+
   capacity: int().notNull(),
   slug: varchar({ length: 225 }).unique(),
   approvedBy: int().references(() => users.id, {
