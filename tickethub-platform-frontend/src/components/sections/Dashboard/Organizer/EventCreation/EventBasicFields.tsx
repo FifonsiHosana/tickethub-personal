@@ -1,11 +1,7 @@
 import { Controller, useFormContext } from "react-hook-form";
 import { CalendarIcon, UsersIcon } from "lucide-react";
 import { type CreateEventFormValues } from "@/types/organizer/event.schema";
-import {
-  Field,
-  FieldLabel,
-  FieldError,
-} from "@/components/ui/field";
+import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { CategorySelect } from "./CategorySelect";
 // import { HeadingButton } from "@/components/tiptap-ui/heading-button";
@@ -60,15 +56,14 @@ export function EventBasicFields() {
 
         <div className={`flex gap-4 ${isMobile && `flex flex-col`}`}>
           <Field data-invalid={!!errors.dateAndTime || !!errors.dateAndTimeEnd}>
-            <FieldLabel htmlFor="dateAndTime">
-              Date and Time<span className="text-destructive">*</span>
-            </FieldLabel>
+            <FieldLabel htmlFor="dateAndTime">Date and Time</FieldLabel>
             <div
               className={`gap-4 ${isMobile ? `flex flex-col w-full` : `flex`}`}
             >
-              <div className={`  ${!isMobile && `max-w-55`}`}>
-                <span>Start</span>
-                <CalendarIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <div className={`  ${!isMobile && `max-w-1/2`}`}>
+                <span className="flex gap-1">
+                  Start<span className="text-destructive">*</span>
+                </span>
 
                 <Input
                   {...register("dateAndTime")}
@@ -77,9 +72,10 @@ export function EventBasicFields() {
                   className="pl-9"
                 />
               </div>
-              <div className={`  ${!isMobile && `max-w-55`}`}>
-                <span>end</span>
-                <CalendarIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <div className={`  ${!isMobile && `max-w-1/2`}`}>
+                <span className="flex gap-1">
+                  End<span className="text-destructive">*</span>
+                </span>
                 <Input
                   {...register("dateAndTimeEnd")}
                   id="dateAndTimeEnd"
@@ -92,22 +88,6 @@ export function EventBasicFields() {
             {errors.dateAndTimeEnd && (
               <FieldError errors={[errors.dateAndTimeEnd]} />
             )}
-          </Field>
-          <Field data-invalid={!!errors.capacity}>
-            <FieldLabel htmlFor="capacity">
-              Total Capacity<span className="text-destructive">*</span>
-            </FieldLabel>
-            <div className={`relative ${!isMobile && `max-w-55`}`}>
-              <UsersIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                {...register("capacity", { valueAsNumber: true })}
-                id="capacity"
-                type="number"
-                min="1"
-                className="pl-9"
-              />
-            </div>
-            {errors.capacity && <FieldError errors={[errors.capacity]} />}
           </Field>
 
           {/* <Field data-invalid={!!errors.eventVenueId}>
@@ -171,20 +151,36 @@ export function EventBasicFields() {
               size="sm"
               className="hidden sm:inline-flex mt-1"
               onClick={() => setVenueDialogOpen(true)}
-            >
+              >
               <PlusIcon className="h-4 w-4 mr-1" /> Add Venue
-            </Button>
-          </FieldContent>
-          {errors.eventVenueId && <FieldError errors={[errors.eventVenueId]} />}
-        </Field>
+              </Button>
+              </FieldContent>
+              {errors.eventVenueId && <FieldError errors={[errors.eventVenueId]} />}
+              </Field>
         <AddVenueDialog
-          open={venueDialogOpen}
-          onOpenChange={setVenueDialogOpen}
+        open={venueDialogOpen}
+        onOpenChange={setVenueDialogOpen}
           onSuccess={(venue) =>
-            setValue("eventVenueId", venue.id, { shouldValidate: true })
+          setValue("eventVenueId", venue.id, { shouldValidate: true })
           }
-        /> */}
+          /> */}
         </div>
+        <Field data-invalid={!!errors.capacity}>
+          <FieldLabel htmlFor="capacity">
+            Total Capacity<span className="text-destructive">*</span>
+          </FieldLabel>
+          <div className={`relative ${!isMobile && `max-w-55`}`}>
+            <UsersIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              {...register("capacity", { valueAsNumber: true })}
+              id="capacity"
+              type="number"
+              min="1"
+              className="pl-9"
+            />
+          </div>
+          {errors.capacity && <FieldError errors={[errors.capacity]} />}
+        </Field>
       </div>
     </>
   );

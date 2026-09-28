@@ -591,6 +591,7 @@ export async function updateOrganizerEvent(
       .update(events)
       .set({
         title: data.title,
+        slug: toKebabCase(data.title),
         description: data.description,
         capacity: data.capacity,
         dateAndTime: data.dateAndTime

@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 interface MediaUploadProps {
   control: Control<CreateEventFormValues>;
   imagePreview: string | null;
-  setImagePreview: (url: string | null) => void;
+  setImagePreview: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 export const MediaUploadCard = ({
@@ -46,38 +46,54 @@ export const MediaUploadCard = ({
 
             return (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={name}>Flyer Image</FieldLabel>
+                <FieldLabel htmlFor={name}>
+                  Flyer Image <span className="text-destructive">*</span>
+                </FieldLabel>
                 <FieldContent>
                   <div className="flex flex-col items-center justify-center gap-4">
-                    {imagePreview ? (
-                      <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-border">
-                        <img
-                          src={imagePreview}
-                          alt="Preview"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center w-full aspect-video rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/50 hover:bg-muted transition-colors">
-                        <ImageIcon className="h-8 w-8 text-muted-foreground mb-2" />
-                        <span className="text-sm text-muted-foreground">
-                          Select an image
-                        </span>
-                      </div>
-                    )}
+                    <label
+                      htmlFor={name}
+                      className="group relative block w-full cursor-pointer"
+                    >
+                      {imagePreview ? (
+                        <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-border">
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
+                            className="w-full h-full object-cover"
+                          />
+                          {/* Hover overlay so users know it's clickable */}
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-sm text-white opacity-0 transition-opacity group-hover:opacity-100">
+                            Click to change image
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center w-full aspect-video rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/50 group-hover:bg-muted transition-colors peer-focus-visible:border-primary">
+                          <ImageIcon className="h-8 w-8 text-muted-foreground mb-2" />
+                          <span className="text-sm text-muted-foreground">
+                            Select an image
+                          </span>
+                        </div>
+                      )}
+                    </label>
+
                     <Input
                       type="file"
                       id={name}
                       name={name}
                       accept="image/png, image/jpeg, image/webp"
                       aria-invalid={fieldState.invalid}
-                      className="cursor-pointer"
+                      className="sr-only"
                       onBlur={onBlur}
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
                           onChange(file);
-                          setImagePreview(URL.createObjectURL(file));
+                          setImagePreview((prev) => {
+                            if (prev?.startsWith("blob:"))
+                              URL.revokeObjectURL(prev);
+                            return URL.createObjectURL(file);
+                          });
                         } else {
                           onChange(undefined);
                           setImagePreview(null);

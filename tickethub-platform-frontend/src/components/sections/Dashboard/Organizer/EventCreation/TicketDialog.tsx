@@ -34,7 +34,7 @@ export function TicketDialog({
   const [editIdx, setEditIdx] = useState<number | null>(null);
   const editingTicket =
     editIdx !== null
-      ? (fields[editIdx] as unknown as TicketFormValues | undefined) ?? null
+      ? ((fields[editIdx] as unknown as TicketFormValues | undefined) ?? null)
       : null;
 
   function handleSave(payload: TicketFormValues) {
@@ -70,16 +70,16 @@ export function TicketDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            Done
           </Button>
-          <Button
+          {/* <Button
             type="button"
             onClick={onSubmit}
             disabled={isSubmitting || fields.length === 0}
           >
             {isSubmitting && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
             {isSubmitting ? "Creating..." : "Create Event"}
-          </Button>
+          </Button> */}
         </DialogFooter>
       </DialogContent>
     </Dialog>

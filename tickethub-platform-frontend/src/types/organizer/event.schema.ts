@@ -14,7 +14,7 @@ const imageSchema = z
   .refine((file) => file.size <= MAX_FILE_SIZE, "Maximum file size is 5MB")
   .refine(
     (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
-    "Unsupported image format"
+    "Unsupported image format",
   );
 
 export const ticketSchema = z.object({
@@ -59,7 +59,7 @@ export const createEventSchema = z
 
     dateAndTimeEnd: z.string().min(1, "Please select an end date and time"),
 
-    termsAndConditions: z.string().min(1, "Please enter terms and conditions"),
+    termsAndConditions: z.string(),
 
     categoryIds: z.array(z.number().int().positive()).optional(),
 

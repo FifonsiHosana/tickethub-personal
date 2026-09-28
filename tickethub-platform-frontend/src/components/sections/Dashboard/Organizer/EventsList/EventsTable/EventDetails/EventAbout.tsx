@@ -1,3 +1,4 @@
+import { RichText } from "@/components/sections/Event/RichText";
 import { AlignLeft } from "lucide-react";
 
 interface EventAboutProps {
@@ -20,7 +21,7 @@ export function EventAbout({
 
       {description && (
         <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-          {description}
+          <RichText html={description} />
         </p>
       )}
 

@@ -18,6 +18,7 @@ import { EventsLists } from "../Events/EventsLists";
 import { useIsMobile } from "@/hooks/use-mobile";
 import EventBanner from "./EventBanner";
 import type { Event } from "@/types/event.types";
+import { RichText } from "./RichText";
 
 function venueQuery(event: Event): string {
   return [event.venueName, event.address, event.city, event.country]
@@ -206,7 +207,7 @@ export const EventDetails: React.FC = () => {
 
                   {/* Mobile image */}
                   <div className="lg:hidden mb-6">
-                    <div className="relative w-full max-w-[280px] mx-auto aspect-square">
+                    <div className="relative w-full max-w-70 mx-auto aspect-square">
                       <div className="absolute inset-0 bg-white rounded-2xl shadow-lg" />
 
                       <div className="relative w-full h-full rounded-2xl overflow-hidden bg-white shadow-xl ring-1 ring-stone-900/5">
@@ -310,7 +311,9 @@ export const EventDetails: React.FC = () => {
                 About this event
               </div>
 
-              <p>{event.description}</p>
+              <p>
+                <RichText html={event.description as string} />
+              </p>
 
               <div className="text-lg font-semibold mb-3">Date & Time</div>
 
@@ -325,7 +328,7 @@ export const EventDetails: React.FC = () => {
                   </div>
 
                   <div className="px-4 py-3 border-l border-gray-400">
-                    <p className="text-xs font-semibold font-bold">Ends</p>
+                    <p className="text-xs font-bold">Ends</p>
 
                     <p className="text-xs text-gray-400 mt-1 leading-snug">
                       {formattedEndStr}

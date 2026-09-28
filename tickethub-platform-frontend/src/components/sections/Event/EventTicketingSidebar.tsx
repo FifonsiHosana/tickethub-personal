@@ -150,7 +150,7 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
                         }
                       }}
                       disabled={qty >= ticket.totalRemaining}
-                      className="w-8 h-8 rounded-full border border-neutral-300 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 disabled:opacity-30 transition-colors"
+                      className="w-8 h-8 bg-primary text-white cursor-pointer rounded-full border border-neutral-300 flex items-center justify-center  disabled:opacity-30 "
                     >
                       <Plus className="w-4 h-4" />
                     </button>

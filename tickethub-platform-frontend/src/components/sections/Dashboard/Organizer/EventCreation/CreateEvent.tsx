@@ -9,9 +9,7 @@ import {
   createEventSchema,
   type CreateEventFormValues,
 } from "@/types/organizer/event.schema";
-import {
-  useCreateOrganizerEventWithTickets,
-} from "@/hooks/organizers/useOrganizerEvents";
+import { useCreateOrganizerEventWithTickets } from "@/hooks/organizers/useOrganizerEvents";
 import { useOrganizerMedia } from "@/hooks/organizers/useOrganizerMedia";
 import type { TicketPayload } from "@/utils/services/organizers/events.service";
 
@@ -30,6 +28,8 @@ import { MediaUploadCard } from "./MediaUpload";
 import { TicketDialog } from "./TicketDialog";
 import { TicketList } from "./TicketList";
 import VenueForm from "./VenueForm";
+import EventSteps from "./EventSteps";
+import { useScrollSpy } from "../../../../shared/scroll-spy";
 
 export default function CreateEvent() {
   const navigate = useNavigate();
@@ -40,6 +40,11 @@ export default function CreateEvent() {
     useCreateOrganizerEventWithTickets();
   // const { data: venues = [], isLoading } = useEventVenues();
   // const [venueDialogOpen, setVenueDialogOpen] = useState(false);
+
+  const STEP_IDS = ["step-0", "step-1", "step-2", "step-3"];
+
+  // inside the component
+  const step = useScrollSpy(STEP_IDS);
 
   const form = useForm<CreateEventFormValues>({
     resolver: zodResolver(createEventSchema),
@@ -57,7 +62,7 @@ export default function CreateEvent() {
       capacity: undefined,
       dateAndTime: "",
       dateAndTimeEnd: "",
-      termsAndConditions: "",
+      // termsAndConditions: "",
       categoryIds: [],
       bannerImage: undefined,
       tickets: [],
@@ -110,7 +115,9 @@ export default function CreateEvent() {
         ...(toIso(t.salesStartDate)
           ? { salesStartDate: toIso(t.salesStartDate) }
           : {}),
-        ...(toIso(t.salesEndDate) ? { salesEndDate: toIso(t.salesEndDate) } : {}),
+        ...(toIso(t.salesEndDate)
+          ? { salesEndDate: toIso(t.salesEndDate) }
+          : {}),
       }));
 
       const result = (await createEvent({
@@ -149,95 +156,126 @@ export default function CreateEvent() {
     }
   }
 
-  return (
-    <FormProvider {...form}>
-      <div className="flex min-h-screen flex-col pb-30">
-        <form onSubmit={submitForm} className="flex-1 overflow-y-auto">
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 p-2">
-            <div className="space-y-4 md:col-span-2">
-              <Card>
-                <CardContent className="pt-4">
-                  <EventBasicFields />
-                </CardContent>
-              </Card>
-              <Card>
-                <CardTitle className="px-4">
-                  Event Location information
-                </CardTitle>
-                <CardDescription className="px-4">
-                  Enter information on where the event will be hosted
-                </CardDescription>
-                <CardContent className="pt-4">
-                  <VenueForm
-                  // onOpenChange={venueDialogOpen}
-                  // onSuccess={(venue) =>
-                  //   setValue("eventVenueId", venue.id, { shouldValidate: true })
-                  // }
-                  />
-                </CardContent>
-              </Card>
-            </div>
+  const [stepper, setStep] = useState<string | number>();
 
-            <div className="space-y-4 md:col-span-1">
-              <MediaUploadCard
-                control={form.control}
-                imagePreview={imagePreview}
-                setImagePreview={setImagePreview}
-              />
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">
-                    Tickets ({fields.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-2">
-                    <TicketList
-                      fields={fields}
-                      onEdit={() => setTicketOpen(true)}
-                      onRemove={(i) => remove(i)}
+  return (
+    <div className="">
+      <FormProvider {...form}>
+        <div className="flex min-h-screen flex-col pb-30">
+          <EventSteps
+            currentStep={step}
+            onStepClick={(i) => {
+              setStep(i);
+              document
+                .getElementById(`step-${i}`)
+                ?.scrollIntoView({ behavior: "smooth" });
+            }}
+          />
+          <form onSubmit={submitForm} className="flex-1 overflow-y-auto">
+            <div className="grid grid-cols-1 gap-4  p-2">
+              <div className="space-y-4 md:col-span-2">
+                {/* Step 1: Event Details */}
+                <div
+                  id="step-0"
+                  className="scroll-mt-24 grid grid-cols-1 lg:grid-cols-7 gap-2 items-start"
+                >
+                  <Card className="col-span-5">
+                    <CardContent className="pt-4">
+                      <EventBasicFields />
+                    </CardContent>
+                  </Card>
+
+                  <div className="col-span-2 ">
+                    <MediaUploadCard
+                      control={form.control}
+                      imagePreview={imagePreview}
+                      setImagePreview={setImagePreview}
                     />
                   </div>
-                  {typeof form.formState.errors.tickets?.message ===
-                    "string" && (
-                    <p className="mb-2 text-xs text-destructive">
-                      {form.formState.errors.tickets.message}
-                    </p>
-                  )}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => setTicketOpen(true)}
-                  >
-                    <PlusIcon className="mr-1 h-4 w-4" /> Add Ticket
-                  </Button>
-                </CardContent>
-              </Card>
-              <TermsCard control={form.control} />
-              <Button
-                type="button"
-                onClick={submitForm}
-                disabled={isUploading || isCreating}
-                className={"w-full"}
-              >
-                {(isUploading || isCreating) && (
-                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                )}
-                {isUploading || isCreating ? "Creating..." : "Create Event"}
-              </Button>
-            </div>
-          </div>
-        </form>
-      </div>
+                </div>
+                {/* Step 2: Venue */}
+                <Card id="step-1" className="scroll-mt-24">
+                  <CardTitle className="px-4">
+                    Event Location information
+                  </CardTitle>
+                  <CardDescription className="px-4">
+                    Enter information on where the event will be hosted
+                  </CardDescription>
+                  <CardContent className="pt-4">
+                    <VenueForm
+                    // onOpenChange={venueDialogOpen}
+                    // onSuccess={(venue) =>
+                    //   setValue("eventVenueId", venue.id, { shouldValidate: true })
+                    // }
+                    />
+                  </CardContent>
+                </Card>
+                <div className="flex flex-col gap-4">
+                  {/* Step 3: Tickets */}
+                  <Card id="step-2" className="scroll-mt-24">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base">
+                        Tickets ({fields.length}){" "}
+                        <span className="text-destructive">*</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="mb-2">
+                        <TicketList
+                          fields={fields}
+                          onEdit={() => setTicketOpen(true)}
+                          onRemove={(i) => remove(i)}
+                        />
+                      </div>
+                      {typeof form.formState.errors.tickets?.message ===
+                        "string" && (
+                        <p className="mb-2 text-xs text-destructive">
+                          {form.formState.errors.tickets.message}
+                        </p>
+                      )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => setTicketOpen(true)}
+                      >
+                        <PlusIcon className="mr-1 h-4 w-4" /> Add Ticket
+                      </Button>
+                    </CardContent>
+                  </Card>
+                  {/* Step 4: Publish */}
+                  <div id="step-3" className="scroll-mt-24 flex flex-col gap-4">
+                    <TermsCard control={form.control} />
+                    <Button
+                      type="button"
+                      onClick={submitForm}
+                      disabled={isUploading || isCreating}
+                      className={"w-full"}
+                    >
+                      {(isUploading || isCreating) && (
+                        <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                      )}
+                      {isUploading || isCreating
+                        ? "Creating..."
+                        : "Create Event"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
 
-      <TicketDialog
-        open={ticketOpen}
-        onOpenChange={setTicketOpen}
-        fieldArray={ticketFieldArray}
-        onSubmit={submitForm}
-        isSubmitting={isUploading || isCreating}
-      />
-    </FormProvider>
+              {/* <div className="space-y-4 md:col-span-1"></div> */}
+            </div>
+          </form>
+        </div>
+
+        <TicketDialog
+          open={ticketOpen}
+          onOpenChange={setTicketOpen}
+          fieldArray={ticketFieldArray}
+          onSubmit={submitForm}
+          isSubmitting={isUploading || isCreating}
+        />
+      </FormProvider>
+    </div>
   );
 }

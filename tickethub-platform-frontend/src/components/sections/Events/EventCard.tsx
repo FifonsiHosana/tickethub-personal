@@ -40,10 +40,10 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
           <img
             src={bannerImage}
             alt={event.title}
-            className={`w-full h-full object-cover ${
+            className={`w-full h-full object-cover  ${
               pastEvent
                 ? "grayscale-100"
-                : "group-hover:scale-105 transition-transform duration-700 ease-in-out"
+                : " group-hover:scale-105 transition-transform duration-300 "
             }`}
           />
           {pastEvent && (
