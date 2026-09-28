@@ -1,12 +1,12 @@
 import { useMemo, useRef, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { toast } from "sonner";
-import { PlusIcon } from "lucide-react";
+// import { toast } from "sonner";
+// import { PlusIcon } from "lucide-react";
 
 import { type CreateEventFormValues } from "@/types/organizer/event.schema";
 import { type Category } from "@/types/event.types";
 import { useCategories } from "@/hooks/attendees/events/useEvent";
-import { useCreateCategory } from "@/hooks/organizers/useOrganizerEvents";
+// import { useCreateCategory } from "@/hooks/organizers/useOrganizerEvents";
 import {
   Field,
   FieldLabel,
@@ -27,17 +27,19 @@ import {
 export function CategorySelect() {
   const {
     control,
-    getValues,
-    setValue,
+    // getValues,
+    // setValue,
     formState: { errors },
   } = useFormContext<CreateEventFormValues>();
   const { data: categories = [], isLoading } = useCategories();
-  const { mutateAsync: create, isPending: isCreating } = useCreateCategory();
+  // const { mutateAsync: create, isPending: isCreating } = useCreateCategory();
 
   const [query, setQuery] = useState("");
   const [createdCategories, setCreatedCategories] = useState<Category[]>([]);
   const anchorRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  console.log(query, setCreatedCategories);
 
   const allCategories = useMemo(() => {
     const map = new Map<number, Category>();
@@ -46,12 +48,12 @@ export function CategorySelect() {
     return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
   }, [categories, createdCategories]);
 
-  const trimmedQuery = query.trim();
-  const noMatch =
-    trimmedQuery.length > 0 &&
-    !allCategories.some(
-      (cat) => cat.name.toLowerCase() === trimmedQuery.toLowerCase(),
-    );
+  // const trimmedQuery = query.trim();
+  // const noMatch =
+  //   trimmedQuery.length > 0 &&
+  //   !allCategories.some(
+  //     (cat) => cat.name.toLowerCase() === trimmedQuery.toLowerCase(),
+  //   );
 
   function toSelected(ids: number[] | undefined): Category[] {
     return (ids ?? [])
@@ -59,28 +61,28 @@ export function CategorySelect() {
       .filter((cat): cat is Category => !!cat);
   }
 
-  async function handleCreate() {
-    try {
-      const name = trimmedQuery;
-      const created = await create({ name });
+  // async function handleCreate() {
+  //   try {
+  //     const name = trimmedQuery;
+  //     const created = await create({ name });
 
-      setValue(
-        "categoryIds",
-        [...(getValues("categoryIds") ?? []), created.id],
-        { shouldValidate: true },
-      );
+  //     setValue(
+  //       "categoryIds",
+  //       [...(getValues("categoryIds") ?? []), created.id],
+  //       { shouldValidate: true },
+  //     );
 
-      if (!createdCategories.some((cat) => cat.id === created.id)) {
-        setCreatedCategories((prev) => [...prev, created]);
-      }
+  //     if (!createdCategories.some((cat) => cat.id === created.id)) {
+  //       setCreatedCategories((prev) => [...prev, created]);
+  //     }
 
-      toast.success(`Category "${created.name}" added.`);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to create category.";
-      toast.error(message);
-    }
-  }
+  //     toast.success(`Category "${created.name}" added.`);
+  //   } catch (error) {
+  //     const message =
+  //       error instanceof Error ? error.message : "Failed to create category.";
+  //     toast.error(message);
+  //   }
+  // }
 
   return (
     <Field data-invalid={!!errors.categoryIds}>

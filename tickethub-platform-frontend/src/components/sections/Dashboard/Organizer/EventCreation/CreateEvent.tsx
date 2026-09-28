@@ -157,6 +157,7 @@ export default function CreateEvent() {
   }
 
   const [stepper, setStep] = useState<string | number>();
+  console.log(stepper);
 
   return (
     <div className="">

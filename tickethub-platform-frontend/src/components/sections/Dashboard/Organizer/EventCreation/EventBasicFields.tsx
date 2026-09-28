@@ -1,5 +1,5 @@
 import { Controller, useFormContext } from "react-hook-form";
-import { CalendarIcon, UsersIcon } from "lucide-react";
+import { UsersIcon } from "lucide-react";
 import { type CreateEventFormValues } from "@/types/organizer/event.schema";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";

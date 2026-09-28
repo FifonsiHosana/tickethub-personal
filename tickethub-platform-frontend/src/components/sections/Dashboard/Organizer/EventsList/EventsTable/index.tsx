@@ -1,10 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardTitle } from "@/components/ui/card";
 import { PaginationSect } from "@/components/shared/Pagination";
 import {
   CalendarX2Icon,
@@ -28,7 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EventsTableHeader } from "./EventsTableHeader";
+// import { EventsTableHeader } from "./EventsTableHeader";
 import { EventDetailsSheet } from "./EventDetails/EventDetailsSheet";
 import { CancelEventDialog } from "./CancelEventDialog";
 import type {

@@ -2,7 +2,7 @@ import { Controller, type Control } from "react-hook-form";
 import { type CreateEventFormValues } from "@/types/organizer/event.schema";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, FieldError } from "@/components/ui/field";
+import { Field } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 
 export const TermsCard = ({

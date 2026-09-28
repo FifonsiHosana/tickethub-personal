@@ -1,9 +1,9 @@
 import { TextAlign } from "@tiptap/extension-text-align";
 import {
-  Heading1,
-  Heading2,
-  Heading3,
-  Pilcrow,
+  // Heading1,
+  // Heading2,
+  // Heading3,
+  // Pilcrow,
   Bold,
   Italic,
   Strikethrough,
@@ -55,7 +55,6 @@ export const MenuBar = ({ editor }: { editor: Editor }) => {
   return (
     <div className="control-group">
       <div className="inline-flex items-center mb-3 border border-slate-200 bg-white  shadow-sm dark:border-slate-800 dark:bg-slate-900">
-       
         {/* Inline Styles Group */}
         <div
           title="Bold"

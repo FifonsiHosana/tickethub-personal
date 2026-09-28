@@ -22,7 +22,7 @@ const AttendeesTableActions = ({
   const { mutate: check_user_in_manually } = useCheckInTicket();
 
   const {
-    mutate: resend_ticket_email,
+    // mutate: resend_ticket_email,
     isPending,
     isSuccess,
   } = useResendTicketEmail();

@@ -1,6 +1,6 @@
 import React from "react";
 import { CheckoutForm } from "@/components/sections/Checkout/CheckoutForm";
-import { OrderSummary } from "@/components/sections/Checkout/OrderSummary";
+// import { OrderSummary } from "@/components/sections/Checkout/OrderSummary";
 import { PricingSummary } from "@/components/sections/Checkout/PricingSummary";
 import { useTicketCartStore } from "@/stores/tickets.store";
 import { usePurchaseTickets } from "@/hooks/attendees/tickets/useTickets";

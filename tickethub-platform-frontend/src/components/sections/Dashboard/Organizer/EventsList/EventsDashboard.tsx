@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { useOrganizerEvents } from "@/hooks/organizers/useOrganizerEvents";
-import { useOrganizerDashboardData } from "@/hooks/organizers/useDashboardData";
-import { useDashboardDateRange } from "@/components/shared/date/useDashboardDateRange";
+// import { useOrganizerDashboardData } from "@/hooks/organizers/useDashboardData";
+// import { useDashboardDateRange } from "@/components/shared/date/useDashboardDateRange";
 
-import { DashboardStatistics } from "./DashboardStatistics";
+// import { DashboardStatistics } from "./DashboardStatistics";
 import { OrganizerEventsGrid } from "./EventsTable/index";
 
 export default function EventsDashboard() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const { range } = useDashboardDateRange();
+  // const { range } = useDashboardDateRange();
 
   const {
     data: response,

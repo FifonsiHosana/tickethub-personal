@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
 import type { UseFieldArrayReturn } from "react-hook-form";
 import type {
   CreateEventFormValues,
@@ -28,8 +27,8 @@ export function TicketDialog({
   open,
   onOpenChange,
   fieldArray: { fields, append, update, remove },
-  onSubmit,
-  isSubmitting,
+  // onSubmit,
+  // isSubmitting,
 }: Props) {
   const [editIdx, setEditIdx] = useState<number | null>(null);
   const editingTicket =
