@@ -181,9 +181,9 @@ export async function updateEvent(
     const eventId = Number(req.params.id);
 
     const result = await updateOrganizerEvent(
-      organizerId,
-
       eventId,
+
+      organizerId,
 
       req.body,
     );

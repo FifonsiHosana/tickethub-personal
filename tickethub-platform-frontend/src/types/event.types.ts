@@ -22,8 +22,10 @@ export interface Event {
   dateAndTimeEnd?: string;
   capacity: number;
   venueName: string;
+  address?: string;
   city: string;
   country: string;
+  googleMapLink?: string;
   organizerFirstName: string;
   organizerLastName: string;
   termsAndConditions?: string;

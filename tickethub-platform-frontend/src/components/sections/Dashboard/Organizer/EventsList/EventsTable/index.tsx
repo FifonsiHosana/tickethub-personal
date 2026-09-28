@@ -3,7 +3,6 @@ import {
   Card,
   CardContent,
   CardFooter,
-  CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { PaginationSect } from "@/components/shared/Pagination";
@@ -12,7 +11,6 @@ import {
   Loader2Icon,
   PlusIcon,
   CalendarIcon,
-  MapPinIcon,
   MoreVerticalIcon,
   EyeIcon,
   PencilIcon,
@@ -22,7 +20,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -32,7 +30,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EventsTableHeader } from "./EventsTableHeader";
 import { EventDetailsSheet } from "./EventDetails/EventDetailsSheet";
-import { EditEventDialog } from "./EditEventDialog";
 import { CancelEventDialog } from "./CancelEventDialog";
 import type {
   OrganizerEventResponse,
@@ -64,16 +61,15 @@ export function OrganizerEventsGrid({
 }: Props) {
   const [selected, setSelected] = useState<OrganizerEventResponse | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleView = (e: OrganizerEventResponse) => {
     setSelected(e);
     setSheetOpen(true);
   };
   const handleEdit = (e: OrganizerEventResponse) => {
-    setSelected(e);
-    setEditOpen(true);
+    navigate(`/organizer/events/${e.id}/edit`);
   };
   const handleCancel = (e: OrganizerEventResponse) => {
     setSelected(e);
@@ -187,7 +183,7 @@ export function OrganizerEventsGrid({
                 {/* Event Image Banner (Optional - falls back if unavailable) */}
 
                 <div className="relative h-48 rounded-lg m-2 overflow-hidden bg-muted">
-                  <div className="absolute left-2 top-2">
+                  <div className="absolute left-2 top-2 z-10">
                     <Badge
                       variant="secondary"
                       className={`border ${
@@ -198,11 +194,17 @@ export function OrganizerEventsGrid({
                       {event.status}
                     </Badge>
                   </div>
-                  <img
-                    src={`https://res.cloudinary.com/dsttnkan0/image/upload/v1785292872/Accra_Music_Festival_ns5ul6.jpg`}
-                    alt={event.title}
-                    className="h-full w-full object-cover"
-                  />
+                  {event.banner ? (
+                    <img
+                      src={event.banner}
+                      alt={event.title}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                      <CalendarIcon className="h-12 w-12 text-muted-foreground/40" />
+                    </div>
+                  )}
                 </div>
 
                 <CardContent className="py-0 my-0 text-sm text-muted-foreground flex-1">
@@ -265,13 +267,25 @@ export function OrganizerEventsGrid({
                   >
                     View Details
                   </Button>
-                  <Button variant="outline" className="px-3">
+                  <Button
+                    variant="outline"
+                    className="px-3"
+                    onClick={() => handleEdit(event)}
+                  >
                     <Edit />
                   </Button>
-                  <Button variant="outline" className="px-3">
+                  <Button
+                    variant="outline"
+                    className="px-3"
+                    onClick={() => navigate(`/events/${event.id}`)}
+                  >
                     <ExternalLink />
                   </Button>
-                  <Button variant="destructive" className="px-3">
+                  <Button
+                    variant="destructive"
+                    className="px-3"
+                    onClick={() => handleCancel(event)}
+                  >
                     <XCircleIcon />
                   </Button>
                 </CardFooter>
@@ -298,11 +312,6 @@ export function OrganizerEventsGrid({
         open={sheetOpen}
         onOpenChange={setSheetOpen}
         eventId={selected?.id ?? null}
-      />
-      <EditEventDialog
-        open={editOpen}
-        onOpenChange={setEditOpen}
-        event={selected}
       />
       <CancelEventDialog
         open={cancelOpen}

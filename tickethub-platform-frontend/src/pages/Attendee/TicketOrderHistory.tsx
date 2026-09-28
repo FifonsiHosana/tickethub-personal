@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrderHistory } from "@/hooks/attendees/orders/useOrderHistory";
 import { PaginationSect } from "@/components/shared/Pagination";
-import OrderHistoryTable from "@/components/sections/Attendee/TicketOrderHistory/OrderHistoryTable";
+import OrderHistoryGrid from "@/components/sections/Attendee/TicketOrderHistory/OrderHistoryGrid";
 import EmptyOrders from "@/components/sections/Attendee/TicketOrderHistory/EmptyOrders";
 
 export default function TicketOrderHistoryPage() {
@@ -29,10 +29,10 @@ export default function TicketOrderHistoryPage() {
       </div>
 
       {isLoading ? (
-        <div className="space-y-3">
-          <Skeleton className="h-10 w-full rounded-xl" />
-          <Skeleton className="h-10 w-full rounded-xl" />
-          <Skeleton className="h-10 w-full rounded-xl" />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <Skeleton className="h-44 w-full rounded-xl" />
+          <Skeleton className="h-44 w-full rounded-xl" />
+          <Skeleton className="h-44 w-full rounded-xl" />
         </div>
       ) : isError ? (
         <p className="text-sm text-muted-foreground">
@@ -41,7 +41,7 @@ export default function TicketOrderHistoryPage() {
       ) : orders.length === 0 ? (
         <EmptyOrders />
       ) : (
-        <OrderHistoryTable orders={orders} />
+        <OrderHistoryGrid orders={orders} />
       )}
 
       {pagination && pagination.totalPages > 1 && (

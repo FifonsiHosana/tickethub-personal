@@ -69,10 +69,28 @@ export default function CreateEvent() {
     name: "tickets",
   });
 
-  const { fields } = ticketFieldArray;
+  const { fields, remove } = ticketFieldArray;
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const DEFAULT_TERMS =
     "By purchasing a ticket, you agree to abide by the event organizer's policies. All sales are final unless otherwise stated.";
+
+  function firstErrorMessage(obj: unknown): string | undefined {
+    if (!obj || typeof obj !== "object") return undefined;
+    if ("message" in obj && typeof obj.message === "string") return obj.message;
+    for (const value of Object.values(obj)) {
+      const found = firstErrorMessage(value);
+      if (found) return found;
+    }
+    return undefined;
+  }
+
+  function onInvalid(errors: unknown) {
+    toast.error(
+      firstErrorMessage(errors) ?? "Please fix the highlighted fields.",
+    );
+  }
+
+  const submitForm = form.handleSubmit(onSubmit, onInvalid);
 
   async function onSubmit(values: CreateEventFormValues) {
     try {
@@ -95,7 +113,7 @@ export default function CreateEvent() {
         ...(toIso(t.salesEndDate) ? { salesEndDate: toIso(t.salesEndDate) } : {}),
       }));
 
-      await createEvent({
+      const result = (await createEvent({
         title: values.title,
         description: values.description || undefined,
         ...(values.eventVenueId
@@ -118,9 +136,13 @@ export default function CreateEvent() {
         categoryIds: values.categoryIds,
         media: [{ imageUrl: url, type: "Banner" }],
         tickets,
-      });
+      })) as { data?: { status?: string } } | undefined;
 
-      toast.success("Event and tickets created!");
+      toast.success(
+        result?.data?.status === "Published"
+          ? "Event created and published!"
+          : "Event and tickets created! Pending review.",
+      );
       navigate("/organizer/events");
     } catch {
       toast.error("Failed to create event. Please try again.");
@@ -130,10 +152,7 @@ export default function CreateEvent() {
   return (
     <FormProvider {...form}>
       <div className="flex min-h-screen flex-col pb-30">
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="flex-1 overflow-y-auto"
-        >
+        <form onSubmit={submitForm} className="flex-1 overflow-y-auto">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 p-2">
             <div className="space-y-4 md:col-span-2">
               <Card>
@@ -176,9 +195,15 @@ export default function CreateEvent() {
                     <TicketList
                       fields={fields}
                       onEdit={() => setTicketOpen(true)}
-                      onRemove={() => setTicketOpen(true)}
+                      onRemove={(i) => remove(i)}
                     />
                   </div>
+                  {typeof form.formState.errors.tickets?.message ===
+                    "string" && (
+                    <p className="mb-2 text-xs text-destructive">
+                      {form.formState.errors.tickets.message}
+                    </p>
+                  )}
                   <Button
                     type="button"
                     variant="outline"
@@ -192,7 +217,7 @@ export default function CreateEvent() {
               <TermsCard control={form.control} />
               <Button
                 type="button"
-                onClick={form.handleSubmit(onSubmit)}
+                onClick={submitForm}
                 disabled={isUploading || isCreating}
                 className={"w-full"}
               >
@@ -210,7 +235,7 @@ export default function CreateEvent() {
         open={ticketOpen}
         onOpenChange={setTicketOpen}
         fieldArray={ticketFieldArray}
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={submitForm}
         isSubmitting={isUploading || isCreating}
       />
     </FormProvider>

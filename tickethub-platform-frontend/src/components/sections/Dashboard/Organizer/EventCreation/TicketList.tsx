@@ -11,8 +11,8 @@ type Field = UseFieldArrayReturn<
 
 interface Props {
   fields: Field[];
-  onEdit: (index: number) => void;
-  onRemove: (index: number) => void;
+  onEdit?: (index: number) => void;
+  onRemove?: (index: number) => void;
 }
 
 function typeLabel(types: { id: number; name: string }[], id?: number) {
@@ -44,26 +44,32 @@ export function TicketList({ fields, onEdit, onRemove }: Props) {
               x{t.totalCount}
             </span>
           )}
-          <div className="flex shrink-0 ml-1">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              onClick={() => onEdit(i)}
-            >
-              <PencilIcon className="h-3 w-3" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 text-destructive"
-              onClick={() => onRemove(i)}
-            >
-              <Trash2Icon className="h-3 w-3" />
-            </Button>
-          </div>
+          {(onEdit || onRemove) && (
+            <div className="flex shrink-0 ml-1">
+            {onEdit && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => onEdit(i)}
+              >
+                <PencilIcon className="h-3 w-3" />
+              </Button>
+            )}
+            {onRemove && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-destructive"
+                onClick={() => onRemove(i)}
+              >
+                <Trash2Icon className="h-3 w-3" />
+              </Button>
+            )}
+            </div>
+          )}
         </div>
       ))}
     </div>

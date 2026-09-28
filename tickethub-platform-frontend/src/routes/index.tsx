@@ -17,6 +17,7 @@ import Dashboard from "@/pages/Dashboard/Dashboard";
 import Events from "@/pages/Event/Event";
 import { Checkout } from "@/pages/Checkout/Checkout";
 import CreateEventPage from "@/pages/Dashboard/Organizer/CreateEvent";
+import EditEventPage from "@/pages/Dashboard/Organizer/EditEvent";
 import EventsList from "@/pages/Dashboard/Organizer/EventsList";
 import EventsListPage from "@/pages/Events/Events";
 import OrganizerAd from "@/pages/SellTickets/OrganizerAd";
@@ -127,6 +128,10 @@ export default function RouterLayout() {
 
             {/* Events */}
             <Route path="/organizer/events/new" element={<CreateEventPage />} />
+            <Route
+              path="/organizer/events/:id/edit"
+              element={<EditEventPage />}
+            />
             <Route path="/organizer/events" element={<EventsList />} />
 
             {/* Tickets */}

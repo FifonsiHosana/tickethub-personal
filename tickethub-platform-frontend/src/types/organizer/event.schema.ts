@@ -79,6 +79,20 @@ export const createEventSchema = z
       message: "End date must be after start date",
       path: ["dateAndTimeEnd"],
     },
+  )
+  .refine(
+    (data) => {
+      if (data.capacity === undefined || !data.tickets?.length) return true;
+      const total = data.tickets.reduce(
+        (sum, t) => sum + (t.totalCount ?? data.capacity),
+        0,
+      );
+      return total <= (data.capacity as number);
+    },
+    {
+      message: "Total ticket quantity cannot exceed event capacity",
+      path: ["tickets"],
+    },
   );
 
 export type CreateEventFormValues = z.infer<typeof createEventSchema>;

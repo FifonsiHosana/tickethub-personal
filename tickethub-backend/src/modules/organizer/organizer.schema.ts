@@ -22,10 +22,20 @@ export const updateOrganizerEventSchema = z.object({
   title: z.string().min(3).optional(),
   description: z.string().max(5000).optional(),
   eventVenueId: z.number().int().positive().optional(),
+  venue: z
+    .object({
+      venue_name: z.string().trim().min(1, 'Venue name is required'),
+      address: z.string().optional(),
+      city_or_town: z.string().trim().min(1, 'City/Town is required'),
+      country: z.string().trim().min(1, 'Country is required'),
+      googleMapLink: z.string().optional(),
+    })
+    .optional(),
   media: z.array(eventMediaSchema).optional(),
   dateAndTime: z.iso.datetime().optional(),
   dateAndTimeEnd: z.iso.datetime().optional(),
   capacity: z.number().int().positive().optional(),
+  categoryIds: z.array(z.number().int().positive()).optional(),
   termsAndConditions: z.string().max(5000).optional(),
 });
 

@@ -11,6 +11,7 @@ import {
   eventStaff,
   category,
   categorizedEvents,
+  platformSettings,
 } from '@/db/schema/index.js';
 import { AppError } from '@/middleware/errorHandler.js';
 import { now } from '@/utils/timeDatehelpers.js';
@@ -28,6 +29,19 @@ interface GetOrganizerEventsParams {
   pageSize?: number;
   search?: string;
   status?: 'Draft' | 'Published' | 'Completed' | 'Cancelled';
+}
+
+/**
+ * Whether platform settings currently auto-approve new events.
+ */
+export async function isAutoApproveEnabled(): Promise<boolean> {
+  const [row] = await db
+    .select({ value: platformSettings.value })
+    .from(platformSettings)
+    .where(eq(platformSettings.key, 'auto_approve_events'))
+    .limit(1);
+
+  return row?.value === 'true';
 }
 
 /**
@@ -89,10 +103,15 @@ export async function getOrganizerEvents(params: GetOrganizerEventsParams) {
       approvalStatus: events.approvalStatus,
       capacity: events.capacity,
       venue: eventsVenues.venue_name,
+      banner: eventImages.imageUrl,
       createdAt: events.createdAt,
     })
     .from(events)
     .leftJoin(eventsVenues, eq(events.eventVenueId, eventsVenues.id))
+    .leftJoin(
+      eventImages,
+      and(eq(eventImages.eventId, events.id), eq(eventImages.type, 'Banner')),
+    )
     .$dynamic();
 
   const filters: any[] = [];
@@ -165,15 +184,34 @@ export async function getOrganizerEventById(
     .from(eventImages)
     .where(eq(eventImages.eventId, eventId));
 
+  const [venue] = await db
+    .select()
+    .from(eventsVenues)
+    .where(eq(eventsVenues.id, result.eventVenueId as number))
+    .limit(1);
+
+  const categoryRows = await db
+    .select({
+      id: category.id,
+      name: category.name,
+    })
+    .from(categorizedEvents)
+    .innerJoin(category, eq(categorizedEvents.category_id, category.id))
+    .where(eq(categorizedEvents.event_id, eventId));
+
   const eventTicketsData = await db
     .select({
       id: tickets.id,
       name: tickets.name,
       ticketType: ticketTypes.name,
+      ticketTypeId: eventTickets.ticketTypeId,
       price: ticketConfigurations.price,
       totalCount: ticketConfigurations.totalCount,
       totalSold: ticketConfigurations.totalSold,
       remaining: ticketConfigurations.totalRemaining,
+      salesStartDate: ticketConfigurations.salesStartDate,
+      salesEndDate: ticketConfigurations.salesEndDate,
+      benefits: ticketConfigurations.benefits,
     })
     .from(tickets)
     .leftJoin(eventTickets, eq(eventTickets.ticketId, tickets.id))
@@ -187,6 +225,9 @@ export async function getOrganizerEventById(
   return {
     ...result,
     media,
+    venue: venue ?? null,
+    categoryIds: categoryRows.map((c) => c.id),
+    categoryNames: categoryRows.map((c) => c.name),
     tickets: eventTicketsData,
   };
 }
@@ -195,6 +236,8 @@ export async function getOrganizerEventById(
  * Create organizer event
  */
 export async function createOrganizerEvent(organizerId: number, data: any) {
+  const autoApprove = await isAutoApproveEnabled();
+
   return await db.transaction(async (tx) => {
     let eventVenueId = data.eventVenueId;
 
@@ -229,8 +272,9 @@ export async function createOrganizerEvent(organizerId: number, data: any) {
         dateAndTimeEnd: data.dateAndTimeEnd
           ? formatDateForMySQL(new Date(data.dateAndTimeEnd))
           : undefined,
-        status: 'Draft',
-        approvalStatus: 'Pending',
+        status: autoApprove ? 'Published' : 'Draft',
+        approvalStatus: autoApprove ? 'Approved' : 'Pending',
+        approvedAt: autoApprove ? now() : undefined,
         termsAndConditions: data.termsAndConditions,
       })
 
@@ -262,7 +306,11 @@ export async function createOrganizerEvent(organizerId: number, data: any) {
 
     return {
       id: eventId,
-      message: 'Event created successfully',
+      status: autoApprove ? 'Published' : 'Draft',
+      approvalStatus: autoApprove ? 'Approved' : 'Pending',
+      message: autoApprove
+        ? 'Event created and published'
+        : 'Event created successfully',
     };
   });
 }
@@ -302,6 +350,20 @@ export async function createOrganizerEventWithTickets(
     }[];
   },
 ) {
+  const autoApprove = await isAutoApproveEnabled();
+
+  const totalAllocated = data.tickets.reduce(
+    (sum, t) => sum + (t.totalCount ?? data.capacity),
+    0,
+  );
+
+  if (totalAllocated > data.capacity) {
+    throw new AppError(
+      400,
+      `Total ticket quantity (${totalAllocated}) exceeds event capacity (${data.capacity})`,
+    );
+  }
+
   return await db.transaction(async (tx) => {
     let eventVenueId = data.eventVenueId;
 
@@ -341,8 +403,9 @@ export async function createOrganizerEventWithTickets(
         dateAndTimeEnd: data.dateAndTimeEnd
           ? formatDateForMySQL(new Date(data.dateAndTimeEnd))
           : undefined,
-        status: 'Draft',
-        approvalStatus: 'Pending',
+        status: autoApprove ? 'Published' : 'Draft',
+        approvalStatus: autoApprove ? 'Approved' : 'Pending',
+        approvedAt: autoApprove ? now() : undefined,
         termsAndConditions: data.termsAndConditions,
       })
       .$returningId();
@@ -468,7 +531,11 @@ export async function createOrganizerEventWithTickets(
     return {
       id: eventId,
       tickets: createdTickets,
-      message: 'Event and tickets created successfully',
+      status: autoApprove ? 'Published' : 'Draft',
+      approvalStatus: autoApprove ? 'Approved' : 'Pending',
+      message: autoApprove
+        ? 'Event created and published'
+        : 'Event and tickets created successfully',
     };
   });
 }
@@ -482,6 +549,44 @@ export async function updateOrganizerEvent(
   data: any,
 ) {
   return await db.transaction(async (tx) => {
+    const [existing] = await tx
+      .select({ eventVenueId: events.eventVenueId })
+      .from(events)
+      .where(and(eq(events.id, eventId), eq(events.organizerId, organizerId)))
+      .limit(1);
+
+    if (!existing) {
+      throw new AppError(404, 'Event not found or unauthorized');
+    }
+
+    if (data.venue && !data.eventVenueId) {
+      const venueValues = {
+        venue_name: data.venue.venue_name,
+        address: data.venue.address,
+        city_or_town: data.venue.city_or_town,
+        country: data.venue.country,
+        googleMapLink: data.venue.googleMapLink,
+      };
+
+      if (existing.eventVenueId) {
+        await tx
+          .update(eventsVenues)
+          .set(venueValues)
+          .where(eq(eventsVenues.id, existing.eventVenueId));
+      } else {
+        const [venue] = await tx
+          .insert(eventsVenues)
+          .values(venueValues)
+          .$returningId();
+
+        if (!venue) {
+          throw new AppError(400, 'Venue creation failed');
+        }
+
+        data.eventVenueId = venue.id;
+      }
+    }
+
     await tx
       .update(events)
       .set({
@@ -499,6 +604,34 @@ export async function updateOrganizerEvent(
       })
 
       .where(and(eq(events.id, eventId), eq(events.organizerId, organizerId)));
+
+    if (data.categoryIds !== undefined) {
+      const categoryIds = [...new Set(data.categoryIds as number[])];
+
+      if (categoryIds.length) {
+        const valid = await tx
+          .select({ id: category.id })
+          .from(category)
+          .where(inArray(category.id, categoryIds));
+
+        if (valid.length !== categoryIds.length) {
+          throw new AppError(400, 'One or more categories are invalid.');
+        }
+      }
+
+      await tx
+        .delete(categorizedEvents)
+        .where(eq(categorizedEvents.event_id, eventId));
+
+      if (categoryIds.length) {
+        await tx.insert(categorizedEvents).values(
+          categoryIds.map((categoryId) => ({
+            event_id: eventId,
+            category_id: categoryId,
+          })),
+        );
+      }
+    }
 
     if (data.media) {
       await tx

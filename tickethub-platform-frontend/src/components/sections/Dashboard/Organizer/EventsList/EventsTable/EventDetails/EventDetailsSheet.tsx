@@ -19,8 +19,7 @@ interface Props {
 }
 
 export function EventDetailsSheet({ open, onOpenChange, eventId }: Props) {
-  const { data, isLoading } = useOrganizerEvent(eventId ?? 0);
-  const event = data?.data ?? data;
+  const { data: event, isLoading } = useOrganizerEvent(eventId ?? 0);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -38,17 +37,22 @@ export function EventDetailsSheet({ open, onOpenChange, eventId }: Props) {
           </div>
         ) : event ? (
           <div className="flex-1 overflow-y-auto pb-6">
-            <EventBanner media={event.media} title={event.title} />
+            <EventBanner media={event.media ?? []} title={event.title} />
 
             <div className="p-6 space-y-8">
               <EventStats
                 dateAndTime={event.dateAndTime}
                 capacity={event.capacity}
               />
-              <EventTickets tickets={event.tickets} />
+              <EventTickets
+                tickets={event.tickets?.map((ticket) => ({
+                  ...ticket,
+                  ticketType: ticket.ticketType ?? "General",
+                }))}
+              />
               <EventAbout
-                description={event.description}
-                termsAndConditions={event.termsAndConditions}
+                description={event.description ?? undefined}
+                termsAndConditions={event.termsAndConditions ?? undefined}
               />
             </div>
           </div>

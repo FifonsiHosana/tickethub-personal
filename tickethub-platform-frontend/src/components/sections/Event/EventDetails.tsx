@@ -17,6 +17,32 @@ import { Card } from "@/components/ui/card";
 import { EventsLists } from "../Events/EventsLists";
 import { useIsMobile } from "@/hooks/use-mobile";
 import EventBanner from "./EventBanner";
+import type { Event } from "@/types/event.types";
+
+function venueQuery(event: Event): string {
+  return [event.venueName, event.address, event.city, event.country]
+    .filter(Boolean)
+    .join(", ");
+}
+
+function directionsUrl(event: Event): string {
+  const link = event.googleMapLink?.trim();
+  if (link) return link;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    venueQuery(event),
+  )}`;
+}
+
+function mapEmbedUrl(event: Event): string | null {
+  const link = event.googleMapLink?.trim();
+  if (link && /google\.[^/]+\/maps|maps\.google\./i.test(link)) {
+    if (/[?&]output=embed/i.test(link)) return link;
+    return `${link}${link.includes("?") ? "&" : "?"}output=embed`;
+  }
+  const query = link || venueQuery(event);
+  if (!query) return null;
+  return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
+}
 
 export const EventDetails: React.FC = () => {
   const { data: event, isLoading, isError, error } = useEvent();
@@ -149,7 +175,20 @@ export const EventDetails: React.FC = () => {
 
   const formattedTimeStr = format(new Date(event.dateAndTime), "h:mm a");
 
+  const formattedEndStr = event.dateAndTimeEnd
+    ? `${format(new Date(event.dateAndTimeEnd), "EEE, MMM dd")} • ${format(
+        new Date(event.dateAndTimeEnd),
+        "h:mm a",
+      )}`
+    : "—";
+
   // const overlayTime = format(new Date(event.dateAndTime), "MMM dd, h:mm a");
+
+  const addressLine = [event.address, event.city, event.country]
+    .filter(Boolean)
+    .join(", ");
+
+  const mapSrc = mapEmbedUrl(event);
 
   return (
     <div>
@@ -165,19 +204,19 @@ export const EventDetails: React.FC = () => {
                 <div className="flex-1 w-full space-y-6 order-2 lg:order-1 text-center sm:text-left">
                   {/* Mobile image */}
 
+                  {/* Mobile image */}
                   <div className="lg:hidden mb-6">
-                    <button
-                      type="button"
-                      className="relative w-full max-w-[280px] mx-auto aspect-square cursor-pointer group block"
-                    >
+                    <div className="relative w-full max-w-[280px] mx-auto aspect-square">
                       <div className="absolute inset-0 bg-white rounded-2xl shadow-lg" />
 
-                      <div className="relative rounded-2xl overflow-hidden bg-white shadow-xl ring-1 ring-stone-900/5">
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300">
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        </div>
+                      <div className="relative w-full h-full rounded-2xl overflow-hidden bg-white shadow-xl ring-1 ring-stone-900/5">
+                        <img
+                          src={bannerImage as string}
+                          alt={event.title}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-                    </button>
+                    </div>
                   </div>
 
                   {/* Category */}
@@ -217,7 +256,7 @@ export const EventDetails: React.FC = () => {
                       target="_blank"
                       rel="noopener"
                       className="flex items-center gap-2 hover:text-[var(--color-ego-orange)] transition-colors group"
-                      href="https://maps.google.com/maps?daddr=3 Music HQ, Abelenkpe, Accra, Ghana, Accra, GH&q=5.6087,-0.216419&z=16&sensor=true"
+                      href={directionsUrl(event)}
                     >
                       <MapPinned className="h-5 w-5 text-gray-400" />
 
@@ -289,7 +328,7 @@ export const EventDetails: React.FC = () => {
                     <p className="text-xs font-semibold font-bold">Ends</p>
 
                     <p className="text-xs text-gray-400 mt-1 leading-snug">
-                      Mon • 5 October 2026 • 11:00 am
+                      {formattedEndStr}
                     </p>
                   </div>
                 </div>
@@ -297,7 +336,30 @@ export const EventDetails: React.FC = () => {
 
               <div className="text-lg font-semibold mb-3">Venue</div>
               <div className="py-2 flex flex-col gap-2">
-                <span>{event.venueName}</span>
+                <span className="font-medium">{event.venueName}</span>
+                {addressLine && (
+                  <span className="text-sm text-muted-foreground">
+                    {addressLine}
+                  </span>
+                )}
+                {mapSrc && (
+                  <div className="mt-2 overflow-hidden rounded-xl border border-border">
+                    <iframe
+                      title={`Map of ${event.venueName}`}
+                      src={mapSrc}
+                      className="h-64 w-full"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  href={directionsUrl(event)}
+                  className="text-sm font-medium text-primary hover:underline w-fit"
+                >
+                  Get Directions
+                </a>
               </div>
             </div>
 

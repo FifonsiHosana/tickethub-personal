@@ -10,6 +10,7 @@ export interface CreateEventPayload {
   dateAndTime: string;
   dateAndTimeEnd?: string;
   termsAndConditions?: string;
+  categoryIds?: number[];
   media?: {
     imageUrl: string;
     type: "Banner" | "Gallery" | "Sponsor";
@@ -46,6 +47,8 @@ export interface OrganizerEventResponse {
   capacity: number;
   dateAndTime: string;
   dateAndTimeEnd?: string;
+  venue?: string | null;
+  banner?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -57,9 +60,51 @@ export async function getOrganizerEvents(
   return response.data;
 }
 
-export async function getOrganizerEventById(eventId: number) {
+export interface OrganizerEventTicketDetail {
+  id: number;
+  name: string;
+  ticketType?: string | null;
+  ticketTypeId?: number | null;
+  price: string | number;
+  totalCount: number;
+  totalSold: number;
+  remaining: number;
+  salesStartDate?: string | null;
+  salesEndDate?: string | null;
+  benefits?: string | null;
+}
+
+export interface OrganizerEventDetail {
+  id: number;
+  title: string;
+  description?: string | null;
+  status: "Draft" | "Published" | "Completed" | "Cancelled";
+  approvalStatus: "Pending" | "Approved" | "Rejected";
+  capacity: number;
+  dateAndTime: string;
+  dateAndTimeEnd?: string | null;
+  eventVenueId?: number | null;
+  termsAndConditions?: string | null;
+  categoryIds?: number[];
+  categoryNames?: string[];
+  venue?: {
+    venue_name: string;
+    address?: string | null;
+    city_or_town: string;
+    country: string;
+    googleMapLink?: string | null;
+  } | null;
+  media?: { id: number; eventId: number; imageUrl: string; type: string }[];
+  tickets?: OrganizerEventTicketDetail[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function getOrganizerEventById(
+  eventId: number,
+): Promise<OrganizerEventDetail> {
   const response = await axiosInstance.get(`/organizer/events/${eventId}`);
-  return response.data;
+  return response.data.data;
 }
 
 export async function createOrganizerEvent(payload: CreateEventPayload) {
