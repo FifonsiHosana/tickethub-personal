@@ -14,9 +14,7 @@ export const EventVenue: React.FC<{ event: Event }> = ({ event }) => {
         <h3 className="text-lg font-semibold">Venue</h3>
 
         <div className="space-y-1">
-          {event.venueName && (
-            <p className="text-sm text-muted-foreground">{event.venueName}</p>
-          )}
+          {event.venueName && <p className="text-sm ">{event.venueName}</p>}
           {/* {addressLine && (
             <p className="text-sm text-muted-foreground">{addressLine}</p>
           )} */}

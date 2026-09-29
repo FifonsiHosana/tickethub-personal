@@ -64,7 +64,7 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
     <div className="sticky top-32 rounded-3xl flex flex-col gap-4">
       {/* Sidebar Header */}
 
-      <div className="pb-4 font-semibold text-2xl">Available Tickets</div>
+      <div className=" font-semibold text-2xl">Available Tickets</div>
 
       {/* Ticket List */}
       <div className="flex flex-col gap-4">
@@ -190,7 +190,7 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
                   className="w-full py-4 px-6 rounded-full bg-primary text-white font-medium shadow-lg hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] transition-all"
                 >
                   Checkout ({totalTicketQuantity}{" "}
-                  {totalTicketQuantity === 1 ? "ticket" : "tickets"})
+                  {totalTicketQuantity === 1 ? "Ticket" : "Tickets"})
                 </button>
               </motion.div>
             ) : (

@@ -49,7 +49,7 @@ export const MobileTicketBar: React.FC<MobileTicketBarProps> = ({
               <div className="flex  flex-col justify-start px-4 pt-4">
                 <span className=" font-bold ">
                   {totalTicketQuantity}{" "}
-                  {totalTicketQuantity === 1 ? "ticket" : "tickets"}
+                  {totalTicketQuantity === 1 ? "Ticket" : "Tickets"}
                 </span>
                 <span className="font-sans">
                   Total - GH₵ {totalTicketAmount}
