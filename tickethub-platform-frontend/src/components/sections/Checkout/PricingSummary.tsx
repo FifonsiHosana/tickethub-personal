@@ -18,6 +18,13 @@ export const PricingSummary: React.FC<PricingSummaryProps> = ({
   const total = subtotal + feeAmount;
   const { items } = useTicketCartStore();
 
+  const subAmount = useTicketCartStore((s) =>
+    s.items.reduce((sum, i) => sum + i.price * i.quantity, 0),
+  );
+  const totalAmount = useTicketCartStore((s) =>
+    s.items.reduce((sum, i) => sum + i.price * i.quantity + feeAmount, 0),
+  );
+
   return (
     <div className="bg-white rounded-4xl p-6 sm:p-8 border border-neutral-100 shadow-xl shadow-neutral-200/40 flex flex-col gap-6 ">
       <h3 className="text-xl font-bold text-foreground">Order Summary</h3>
@@ -27,7 +34,7 @@ export const PricingSummary: React.FC<PricingSummaryProps> = ({
         <div className="flex justify-between items-center text-neutral-500">
           <span>Tickets Subtotal</span>
           <span className="font-medium text-foreground">
-            GH₵ {subtotal.toFixed(2)}
+            GH₵ {subAmount.toFixed(2)}
           </span>
         </div>
         <div className="flex justify-between items-center text-neutral-500">
@@ -39,7 +46,7 @@ export const PricingSummary: React.FC<PricingSummaryProps> = ({
         <div className="flex justify-between items-center">
           <span className="font-bold text-foreground">Total</span>
           <span className="text-lg font-bold text-[#1a201c]">
-            GH₵ {total.toFixed(2)}
+            GH₵ {totalAmount.toFixed(2)}
           </span>
         </div>
       </div>
@@ -52,7 +59,7 @@ export const PricingSummary: React.FC<PricingSummaryProps> = ({
         <img src={assets.MoneyLogos} />
       </div>
       {/* Decorative Secure Badge */}
-      <div className=" flex items-center justify-center gap-2 text-xs text-neutral-400 bg-neutral-50 py-3 rounded-xl border border-neutral-100">
+      {/* <div className=" flex items-center justify-center gap-2 text-xs text-neutral-400 bg-neutral-50 py-3 rounded-xl border border-neutral-100">
         <svg
           className="w-4 h-4 text-green-600"
           fill="none"
@@ -67,7 +74,7 @@ export const PricingSummary: React.FC<PricingSummaryProps> = ({
           />
         </svg>
         Secure Encrypted Checkout
-      </div>
+      </div> */}
     </div>
   );
 };

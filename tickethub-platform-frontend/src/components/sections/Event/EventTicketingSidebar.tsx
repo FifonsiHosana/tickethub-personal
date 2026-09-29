@@ -6,6 +6,7 @@ import { type EventTicket } from "@/types/ticket.types";
 import { useNavigate } from "react-router";
 import { Minus, Plus } from "lucide-react";
 import { useTicketCartStore } from "@/stores/tickets.store";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface EventTicketingSidebarProps {
   status: "Draft" | "Published" | "Completed" | "Cancelled";
@@ -20,6 +21,8 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
   banner,
   eventName,
 }) => {
+  const { isMobile } = useIsMobile();
+
   const { data: tickets, isLoading, isError } = useEventTickets();
 
   const {
@@ -58,8 +61,10 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
   }
 
   return (
-    <div className="sticky top-32 p-3 md:p-4 rounded-3xl border border-neutral-200 shadow-xl shadow-neutral-200/50 flex flex-col gap-4 bg-white">
+    <div className="sticky top-32 rounded-3xl flex flex-col gap-4 bg-white">
       {/* Sidebar Header */}
+
+      <div className="pb-4 font-semibold text-2xl">Available Tickets</div>
 
       {/* Ticket List */}
       <div className="flex flex-col gap-4">
@@ -123,7 +128,7 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
                       <Minus className="w-4 h-4" />
                     </button>
 
-                    <span className="w-5 text-center font-semibold text-foreground">
+                    <span className="w-6 text-center font-semibold text-foreground">
                       {qty}
                     </span>
 
@@ -163,49 +168,51 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
       </div>
 
       {/* Dynamic Checkout Button Area */}
-      <div className="min-h-25 flex flex-col justify-end">
-        <AnimatePresence mode="wait">
-          {items.length > 0 ? (
-            <motion.div
-              key="checkout"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="flex flex-col gap-4"
-            >
-              <div className="flex items-center justify-between pt-4 border-t border-neutral-100">
-                <span className="font-sans text-neutral-500">Total</span>
-                <span className="text-2xl font-bold text-foreground">
-                  GH₵ {totalTicketAmount}
-                </span>
-              </div>
-              <button
-                onClick={handleCheckout}
-                className="w-full py-4 px-6 rounded-full bg-primary text-white font-medium shadow-lg hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] transition-all"
+      {!isMobile && (
+        <div className="min-h-25 flex flex-col justify-end">
+          <AnimatePresence mode="wait">
+            {items.length > 0 ? (
+              <motion.div
+                key="checkout"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="flex flex-col gap-4"
               >
-                Checkout ({totalTicketQuantity}{" "}
-                {totalTicketQuantity === 1 ? "ticket" : "tickets"})
-              </button>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="empty"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <button
-                disabled
-                className="w-full py-4 px-6 rounded-full bg-neutral-100 text-neutral-400 font-medium cursor-not-allowed"
+                <div className="flex items-center justify-between pt-4 border-t border-neutral-100">
+                  <span className="font-sans text-neutral-500">Total</span>
+                  <span className="text-2xl font-bold text-foreground">
+                    GH₵ {totalTicketAmount}
+                  </span>
+                </div>
+                <button
+                  onClick={handleCheckout}
+                  className="w-full py-4 px-6 rounded-full bg-primary text-white font-medium shadow-lg hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                >
+                  Checkout ({totalTicketQuantity}{" "}
+                  {totalTicketQuantity === 1 ? "ticket" : "tickets"})
+                </button>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
               >
-                {status === "Published"
-                  ? "Select tickets to continue"
-                  : "Event Unavailable"}
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+                <button
+                  disabled
+                  className="w-full py-4 px-6 rounded-full bg-neutral-100 text-neutral-400 font-medium cursor-not-allowed"
+                >
+                  {status === "Published"
+                    ? "Select tickets to continue"
+                    : "Event Unavailable"}
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 };

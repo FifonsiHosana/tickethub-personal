@@ -365,6 +365,8 @@ export async function createOrganizerEventWithTickets(
   }
 
   return await db.transaction(async (tx) => {
+    const slug = `${toKebabCase(data.title) || 'event'}-${Math.random().toString(36).slice(2, 7)}`;
+
     let eventVenueId = data.eventVenueId;
 
     if (!eventVenueId && data.venue) {
@@ -395,7 +397,8 @@ export async function createOrganizerEventWithTickets(
       .values({
         title: data.title,
         description: data.description,
-        slug: toKebabCase(data.title),
+        // slug: toKebabCase(data.title),
+        slug,
         eventVenueId,
         organizerId,
         capacity: data.capacity,

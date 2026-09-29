@@ -115,7 +115,11 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSubmit }) => {
               Phone Number <span className="text-destructive">*</span>
             </label>
             <input
-              {...field}
+              value={field.value ?? ""}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                field.onChange(digits);
+              }}
               type="tel"
               placeholder=" 055 000 0000"
               className="w-full px-4 py-3 border-b-2 border-neutral-200 bg-neutral-50/50 focus:border-primary focus:outline-none transition-all"

@@ -14,14 +14,14 @@ export const PaymentCTA: React.FC<PaymentCTAProps> = ({
   if (isMobile)
     return (
       <>
-        <div className="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t-2 border-stone-200 shadow-lg z-40">
+        <div className="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t-2 border-stone-200 rounded-t-4xl shadow-lg z-500">
           {" "}
           <div className="container mx-auto px-6 py-4 ">
             <div className="max-w-6xl mx-auto">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-xs text-stone-500">Total</p>
-                  <p className="text-xl font-bold">₵{total}</p>
+                  <p className="text-xl font-bold">GH₵{" "}{total}</p>
                 </div>
 
                 <button

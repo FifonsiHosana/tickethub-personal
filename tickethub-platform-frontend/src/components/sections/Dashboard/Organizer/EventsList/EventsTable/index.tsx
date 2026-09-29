@@ -91,15 +91,7 @@ export function OrganizerEventsGrid({
   return (
     <div className="space-y-6">
       {/* Search Header Container */}
-      {/* <Card>
-        <EventsTableHeader
-          search={search}
-          onSearchChange={onSearchChange}
-          events={events}
-        />
-      </Card> */}
       <Button
-        // onClick={backToTop}
         aria-label="Scroll to top"
         className={`fixed bottom-8 right-8 z-50 p-3 rounded-full bg-primary text-white shadow-lg shadow-primary/60 transition-all duration-300 ease-in-out hover:bg-primary/60 hover:shadow-xl hover:-translate-y-1 flex items-center justify-center ${
           showScroll
@@ -254,35 +246,43 @@ export function OrganizerEventsGrid({
                   )}
                 </CardContent>
 
-                <CardFooter className="pt-2 border-0 gap-1">
+                <CardFooter className="gap-2 border-0 pt-2">
                   <Button
                     variant="outline"
-                    className=""
+                    className="flex-1"
                     onClick={() => handleView(event)}
                   >
                     View Details
                   </Button>
-                  <Button
-                    variant="outline"
-                    className="px-3"
-                    onClick={() => handleEdit(event)}
-                  >
-                    <Edit />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="px-3"
-                    onClick={() => navigate(`/events/${event.id}`)}
-                  >
-                    <ExternalLink />
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    className="px-3"
-                    onClick={() => handleCancel(event)}
-                  >
-                    <XCircleIcon />
-                  </Button>
+
+                  {event.status !== "Cancelled" && (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        aria-label="Edit event"
+                        onClick={() => handleEdit(event)}
+                      >
+                        <Edit />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        aria-label="Open public page"
+                        onClick={() => navigate(`/events/${event.id}`)}
+                      >
+                        <ExternalLink />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        aria-label="Cancel event"
+                        onClick={() => handleCancel(event)}
+                      >
+                        <XCircleIcon />
+                      </Button>
+                    </>
+                  )}
                 </CardFooter>
               </Card>
             ))}

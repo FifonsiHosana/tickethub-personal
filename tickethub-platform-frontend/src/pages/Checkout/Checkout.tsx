@@ -9,8 +9,13 @@ import { useCheckout } from "@/hooks/useCheckout";
 import { useProcessingFeePercentage } from "@/hooks/useSettings";
 import { computeTotalWithFee } from "@/utils/checkout/checkout.utils";
 import { Loader } from "@/components/ui/loader";
+import { MoveLeft } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useNavigate } from "react-router";
 
 export const Checkout: React.FC = () => {
+  const navigate = useNavigate();
+  const { isMobile } = useIsMobile();
   const { totalTicketAmount: subtotal } = useTicketCartStore();
   const purchaseMutation = usePurchaseTickets();
   const initiatePaymentFunction = usePayTicket();
@@ -29,13 +34,27 @@ export const Checkout: React.FC = () => {
     <main className="w-full min-h-screen bg-neutral-50/50 py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Page Header */}
-        <div className="mb-10">
-          <h1 className="text-3xl md:text-5xl font-bold text-foreground tracking-tight mb-2">
-            Secure Checkout
-          </h1>
-          <p className="text-neutral-500 font-sans">
-            Complete your details to secure your tickets.
-          </p>
+        <div className="flex justify-between">
+          <div className="mb-10">
+            <h1 className="text-3xl md:text-5xl font-bold text-foreground tracking-tight mb-2">
+              Secure Checkout
+            </h1>
+            <p className="text-neutral-500 font-sans">
+              Complete your details to secure your tickets.
+            </p>
+          </div>
+          <div className="">
+            <div
+              onClick={() => {
+                navigate(-1);
+                // clearCart();
+              }}
+              className="inline-flex justify-center items-top gap-2 rounded-full px-4 p-2 bg-muted hover:bg-muted/80 cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <MoveLeft />
+              {isMobile ? `` : ` Go Back`}
+            </div>
+          </div>
         </div>
 
         {/* Layout Grid */}
