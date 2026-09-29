@@ -58,9 +58,9 @@ export const EventDetails: React.FC = () => {
           <div className="flex flex-col lg:flex-row gap-16">
             <div className="w-full lg:w-[60%] space-y-8">
               {/* About Section */}
-              <div className="space-y-1">
+              <div className="space-y-3">
                 <h2 className="text-2xl font-semibold">About This Event</h2>
-                <div className=" leading-relaxed">
+                <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
                   <RichText html={event.description as string} />
                 </div>
               </div>

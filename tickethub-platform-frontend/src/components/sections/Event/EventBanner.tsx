@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { ZoomIn, X } from "lucide-react";
+import { X } from "lucide-react";
 import type { Event } from "@/types/event.types";
 
 type Props = { bannerImage: string; event: Event; bgColor: string };
-export default function EventBanner({ bannerImage, event, bgColor }: Props) {
+export default function EventBanner({ bannerImage, event }: Props) {
   // State to track whether the lightbox modal is open
   const [isViewerOpen, setIsViewerOpen] = useState(false);
 
