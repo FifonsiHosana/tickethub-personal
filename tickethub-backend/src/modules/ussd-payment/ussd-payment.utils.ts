@@ -2,6 +2,8 @@ import { db } from '@/db/client.js';
 import { payments } from '@/db/schema/finance.js';
 import { eq } from 'drizzle-orm';
 import axios from 'axios';
+import config from '@/config/config.js';
+import logger from '@/utils/logger/index.js';
 
 export const isTransactionProcessed = async (
   reference: string,
@@ -20,32 +22,50 @@ export const isTransactionProcessed = async (
 export const sendTicket = async (
   phoneNumber: string,
   ticketMessage: string,
-) => {
+): Promise<boolean> => {
   try {
-    const endPoint = 'https://api.mnotify.com/api/sms/quick';
-    const apiKey = 'YOUR_API_KEY';
-    const url = endPoint + '?key=' + apiKey;
-    // if paying for oneself
-    const data = {
-      recipient: [phoneNumber],
-      sender: 'mNotify',
-      message: ticketMessage,
-      is_schedule: false,
-      schedule_date: '',
-    };
-
-    axios
-      .post(url, data, {
+    const response = await axios.post(
+      'https://api.mnotify.com/api/sms/quick',
+      {
+        recipient: [phoneNumber],
+        sender: 'mNotify', // replace with your registered sender ID
+        message: ticketMessage,
+        is_schedule: false,
+        schedule_date: '',
+      },
+      {
+        params: { key: config.sms.mnotify_api_key },
         headers: { 'Content-Type': 'application/json' },
-      })
-      .then((response) => {
-        console.log(response.data);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  } catch (error) {
-    console.log(error);
+        timeout: 10_000,
+      },
+    );
+
+    if (response.data?.status !== 'success') {
+      logger.error(
+        { phoneNumber, response: response.data },
+        'mNotify rejected SMS',
+      );
+      return false;
+    }
+
+    logger.info({ phoneNumber }, 'Ticket SMS sent');
+    return true;
+  } catch (err) {
+    // log only safe fields, never the full axios error (it contains the API key in the URL)
+    if (axios.isAxiosError(err)) {
+      logger.error(
+        {
+          phoneNumber,
+          status: err.response?.status,
+          data: err.response?.data,
+          message: err.message,
+        },
+        'Failed to send ticket SMS',
+      );
+    } else {
+      logger.error({ phoneNumber, err }, 'Failed to send ticket SMS');
+    }
+    return false;
   }
 };
 

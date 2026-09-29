@@ -40,7 +40,7 @@ export const dateTimeFormat = (dateTime: string) => {
 };
 
 export function stripShortcode(userdata: string, shortcode: string): string {
-  let cleaned = userdata;
+  let cleaned = (userdata ?? '').trim();
 
   // remove a leading "*" if present
   if (cleaned.startsWith("*")) {
@@ -56,6 +56,9 @@ export function stripShortcode(userdata: string, shortcode: string): string {
   if (cleaned.startsWith("*")) {
     cleaned = cleaned.slice(1);
   }
+
+  // NALO dial strings terminate with "#"; strip trailing "#"s and whitespace
+  cleaned = cleaned.replace(/[#\s]+$/, '');
 
   return cleaned;
 }

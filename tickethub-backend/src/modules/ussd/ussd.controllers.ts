@@ -10,22 +10,21 @@ export const ussdController = async (req: Request, res: Response) => {
 
   const TelcoProvider = NETWORK.toLowerCase();
 
-  const text = () => {
-    if (MSGTYPE === true) {
-      return "";
-    } else {
-      return USERDATA;
-    }
-  };
+  // NALO sends MSGTYPE=false on the initial dial (USERDATA holds the full
+  // dial string, e.g. *920*658*28#) and MSGTYPE=true on continuations
+  // (USERDATA holds just the user's reply). The input text must always be
+  // forwarded; only the first-request flag depends on MSGTYPE.
+  const text = USERDATA ?? '';
+  const isFirstRequest = MSGTYPE === false;
   console.log(text);
 
   const response = await handleUssd(
     SESSIONID,
-    text(),
+    text,
     phoneNumber,
     TelcoProvider,
     USERID,
-    MSGTYPE,
+    isFirstRequest,
   );
 
   res.set("Content-Type", "text/plain");

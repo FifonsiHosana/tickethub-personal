@@ -15,6 +15,20 @@ import type { EventDetails, MenuNode } from './ussd.types.js';
 import TicketsService from '../tickets/tickets.service.js';
 import { initiatePayment } from '../ussd-payment/ussd-payment.service.js';
 import { getCategories, getCategoryEvents } from './ussd.services.js';
+import type { sessionContext } from './ussd.types.js';
+
+type AvailableTicket = NonNullable<EventDetails['ticketTypes'][number]> & {
+  remaining: number;
+};
+
+/** Tickets that can actually be sold (mapping exists and stock remains). */
+function availableTicketTypes(context: sessionContext): AvailableTicket[] {
+  const all = (context.eventDetails as EventDetails).ticketTypes ?? [];
+  return all.filter(
+    (t): t is AvailableTicket =>
+      t != null && Number(t.remaining) > 0 && t.id != null,
+  );
+}
 
 export const tree: Record<string, MenuNode> = {
   home: {
@@ -102,24 +116,27 @@ export const tree: Record<string, MenuNode> = {
   },
   selectTicketType: {
     id: 'select-ticket-type',
-    prompt: async (context) =>
-      `${eventName(context)}\nSelect Ticket Type\n${(
-        context.eventDetails as EventDetails
-      ).ticketTypes
-        .filter((ticket) => ticket.remaining > 0)
+    prompt: async (context) => {
+      const available = availableTicketTypes(context);
+      if (available.length === 0) {
+        return `${eventName(context)}\nSorry, tickets for this event are sold out.`;
+      }
+      return `${eventName(context)}\nSelect Ticket Type\n${available
         .map((ticket, index) => {
           const isLowStock = ticket.remaining < ticket.totalCount / 2;
 
           return `${index + 1}. ${ticket.name} - GHC ${ticket.price} (${ticket.remaining}${isLowStock ? ' only' : ''} remaining)`;
         })
-        .join('\n')}`,
+        .join('\n')}`;
+    },
     data: 'ticketType',
     next: 'NumberOfTickets',
     resolve: (input, context) => {
-      const selected = (context.eventDetails as EventDetails).ticketTypes[
-        Number(input) - 1
-      ];
-      const eventTicketId = selected?.id;
+      const available = availableTicketTypes(context);
+      const selected = available[Number(input) - 1];
+      // First segment must be the EventTickets row id (what purchaseTickets
+      // expects as eventTicketId), NOT the ticket-type id.
+      const eventTicketId = selected?.eventTicketId;
       return selected
         ? String(
             `${eventTicketId}*${selected.name}*${selected.price}*${selected.remaining}`,

@@ -202,10 +202,13 @@ export const handleUssd = async (
     console.log('RAW TEXT (first request):', JSON.stringify(text));
     console.log('CLEANED:', JSON.stringify(cleaned));
 
+    // First segment (if any) is a deep-linked event id; only segments
+    // after it count as menu input (e.g. *920*658*28# -> event 28, no input).
     const parts = cleaned.split('*');
-    rawEventId = parts[0];
-    lastInput = parts[parts.length - 1] as string;
-    hasInput = cleaned !== '' && cleaned !== undefined;
+    rawEventId = parts[0] === '' ? undefined : parts[0];
+    const rest = parts.slice(1).filter((p) => p !== '');
+    lastInput = rest.length > 0 ? (rest[rest.length - 1] as string) : '';
+    hasInput = rest.length > 0;
   } else {
     console.log('RAW TEXT (continuing):', JSON.stringify(text));
     lastInput = text;
@@ -239,6 +242,11 @@ export const handleUssd = async (
     }
   }
 
+  // The stack may have been reassigned above (root -> home), so resolve
+  // the node to process input against from the current stack top.
+  const activeNodeId = session.stack[session.stack.length - 1] as string;
+  const activeNode = tree[activeNodeId] ?? currentNode;
+
   if (hasInput) {
     const context = {
       sessionId,
@@ -248,18 +256,18 @@ export const handleUssd = async (
       eventDetails: session.eventDetails as EventDetails,
     };
 
-    if (currentNode.paginate && lastInput === currentNode.paginate.moreOption) {
-      const pageKey = `page:${currentNodeId}`;
+    if (activeNode.paginate && lastInput === activeNode.paginate.moreOption) {
+      const pageKey = `page:${activeNodeId}`;
       const currentPage = Number(session.data[pageKey] ?? '0');
       session.data[pageKey] = String(currentPage + 1);
     } else if (
-      currentNode.paginate &&
-      lastInput === currentNode.paginate.seeLess
+      activeNode.paginate &&
+      lastInput === activeNode.paginate.seeLess
     ) {
-      const pageKey = `page:${currentNodeId}`;
+      const pageKey = `page:${activeNodeId}`;
       const currentPage = Number(session.data[pageKey] ?? '0');
       session.data[pageKey] = String(Math.max(currentPage - 1, 0));
-    } else if (currentNode.data) {
+    } else if (activeNode.data) {
       if (lastInput === '0') {
         if (session.stack.length > 1) session.stack.pop();
       } else if (lastInput === '00') {
@@ -268,16 +276,16 @@ export const handleUssd = async (
       } else {
         const rawInput = lastInput;
 
-        const value = currentNode.resolve
-          ? await currentNode.resolve(rawInput, context)
+        const value = activeNode.resolve
+          ? await activeNode.resolve(rawInput, context)
           : rawInput;
 
         if (value === undefined) {
           errorMessage = 'Invalid choice.\n';
         } else {
-          session.data[currentNode.data] = value;
+          session.data[activeNode.data] = value;
 
-          if (currentNode.data === 'eventId' && !session.eventDetails) {
+          if (activeNode.data === 'eventId' && !session.eventDetails) {
             const eventDetails = await getEvent(Number(value));
             if (!eventDetails) {
               errorMessage = 'Invalid event. Please try again.\n';
@@ -286,12 +294,12 @@ export const handleUssd = async (
             }
           }
 
-          if (!currentNode.next) {
+          if (!activeNode.next) {
             throw new Error(
-              `Node "${currentNodeId}" has data but no next node defined`,
+              `Node "${activeNodeId}" has data but no next node defined`,
             );
           }
-          session.stack.push(currentNode.next);
+          session.stack.push(activeNode.next);
         }
       }
     } else if (lastInput === '00') {
@@ -299,17 +307,17 @@ export const handleUssd = async (
       session.data = {};
     } else if (lastInput === '0') {
       if (session.stack.length > 1) session.stack.pop();
-    } else if (currentNode.options?.[lastInput]) {
-      const action = currentNode.onSelect?.[lastInput];
+    } else if (activeNode.options?.[lastInput]) {
+      const action = activeNode.onSelect?.[lastInput];
       if (action) {
         await action(context);
       }
 
-      if (currentNode.options[lastInput] === 'home') {
+      if (activeNode.options[lastInput] === 'home') {
         session.eventDetails = undefined;
       }
 
-      session.stack.push(currentNode.options[lastInput] as string);
+      session.stack.push(activeNode.options[lastInput] as string);
     } else {
       errorMessage = 'Invalid choice.\n';
     }
