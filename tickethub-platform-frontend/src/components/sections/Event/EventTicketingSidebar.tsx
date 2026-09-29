@@ -61,7 +61,7 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
   }
 
   return (
-    <div className="sticky top-32 rounded-3xl flex flex-col gap-4 bg-white">
+    <div className="sticky top-32 rounded-3xl flex flex-col gap-4">
       {/* Sidebar Header */}
 
       <div className="pb-4 font-semibold text-2xl">Available Tickets</div>

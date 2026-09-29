@@ -56,7 +56,7 @@ export const EventDetails: React.FC = () => {
       <div className="mx-auto px-5 pb-16 pt-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-16">
-            <div className="w-full lg:w-[60%] space-y-8">
+            <div className="w-full lg:w-[60%] space-y-6">
               {/* About Section */}
               <div className="space-y-3">
                 <h2 className="text-2xl font-semibold">About This Event</h2>
