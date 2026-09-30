@@ -7,6 +7,7 @@ import { useNavigate } from "react-router";
 import { Minus, Plus } from "lucide-react";
 import { useTicketCartStore } from "@/stores/tickets.store";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Card } from "@/components/ui/card";
 
 interface EventTicketingSidebarProps {
   status: "Draft" | "Published" | "Completed" | "Cancelled";
@@ -60,8 +61,10 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
     );
   }
 
+  const lastTicket = tickets[tickets.length - 1];
+
   return (
-    <div className="sticky top-32 rounded-3xl flex flex-col gap-4">
+    <Card className=" sticky top-32 rounded-2xl flex flex-col  p-4">
       {/* Sidebar Header */}
 
       <div className=" font-semibold text-2xl">Available Tickets</div>
@@ -78,90 +81,90 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
           const isSoldOut = ticket.totalRemaining === 0 && !isSelected;
 
           return (
-            <div
-              key={ticket.eventTicketId}
-              className={`p-4 rounded-2xl border transition-all duration-300 ${
-                isSelected
-                  ? "border-foreground bg-foreground/5"
-                  : "border-neutral-200 bg-white"
-              } ${isSoldOut ? "opacity-50" : ""}`}
-            >
-              {/*  */}
-              <div className="flex flex-col w-full">
-                <div className="flex flex-row items-center justify-between">
-                  <h4 className="font-sans font-semibold text-foreground text-lg">
-                    {ticket.ticketName}
-                  </h4>
-                  <p className="text-sm text-neutral-800">
-                    {Number(ticket.price) === 0
-                      ? "Free"
-                      : `GH₵ ${Number(ticket.price).toFixed(2)}`}
-                  </p>
+            <div key={ticket.eventTicketId}>
+              <div
+                className={`p-4 transition-colors duration-300 ${
+                  isSelected ? "bg-foreground/5" : "bg-white"
+                } ${isSoldOut ? "opacity-50" : ""}`}
+              >
+                <div className="flex flex-col w-full">
+                  <div className="flex flex-row items-center justify-between">
+                    <h4 className="font-sans font-semibold text-foreground text-lg">
+                      {ticket.ticketName}
+                    </h4>
+                    <p className="text-sm text-neutral-800">
+                      {Number(ticket.price) === 0
+                        ? "Free"
+                        : `GH₵ ${Number(ticket.price).toFixed(2)}`}
+                    </p>
+                  </div>
+
+                  {ticket.description && (
+                    <p className="text-xs text-neutral-600 mt-1">
+                      {ticket.description}
+                    </p>
+                  )}
                 </div>
 
-                {ticket.description && (
-                  <p className="text-xs text-neutral-600 mt-1">
-                    {ticket.description}
-                  </p>
-                )}
-              </div>
-              {/* Quantity Controls */}
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-xs font-medium text-neutral-600">
-                  {isSoldOut
-                    ? "Sold Out"
-                    : `${ticket.totalRemaining - qty} available`}
-                </span>
+                {/* Quantity Controls */}
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-xs font-medium text-neutral-600">
+                    {isSoldOut
+                      ? "Sold Out"
+                      : `${ticket.totalRemaining - qty} available`}
+                  </span>
 
-                {!isSoldOut && status === "Published" && (
-                  <div className="flex items-center gap-3">
-                    {/* Minus Button */}
-                    <button
-                      onClick={() => {
-                        decreaseQuantity(ticket.eventTicketId);
-                        totalAmount();
-                        totalQuantity();
-                      }}
-                      disabled={qty === 0}
-                      className="w-8 h-8 rounded-full border border-neutral-300 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 disabled:opacity-30 transition-colors"
-                    >
-                      <Minus className="w-4 h-4" />
-                    </button>
-
-                    <span className="w-6 text-center font-semibold text-foreground">
-                      {qty}
-                    </span>
-
-                    {/* Plus Button */}
-                    <button
-                      onClick={() => {
-                        if (qty === 0) {
-                          // First time adding to cart
-                          addTicket({
-                            eventTicketId: ticket.eventTicketId,
-                            ticketName: ticket.ticketName,
-                            ticketType: ticket.ticketType || "Standard", // Fallback if missing
-                            price: Number(ticket.price),
-                            eventName: eventName,
-                            banner: banner,
-                          });
+                  {!isSoldOut && status === "Published" && (
+                    <div className="flex items-center gap-3">
+                      {/* Minus Button */}
+                      <button
+                        onClick={() => {
+                          decreaseQuantity(ticket.eventTicketId);
                           totalAmount();
                           totalQuantity();
-                        } else {
-                          // Already in cart, just increase
-                          increaseQuantity(ticket.eventTicketId);
+                        }}
+                        disabled={qty === 0}
+                        className="w-8 h-8 rounded-full border border-neutral-300 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 disabled:opacity-30 transition-colors"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+
+                      <span className="w-6 text-center font-semibold text-foreground">
+                        {qty}
+                      </span>
+
+                      {/* Plus Button */}
+                      <button
+                        onClick={() => {
+                          if (qty === 0) {
+                            addTicket({
+                              eventTicketId: ticket.eventTicketId,
+                              ticketName: ticket.ticketName,
+                              ticketType: ticket.ticketType || "Standard",
+                              price: Number(ticket.price),
+                              eventName: eventName,
+                              banner: banner,
+                            });
+                          } else {
+                            increaseQuantity(ticket.eventTicketId);
+                          }
                           totalAmount();
                           totalQuantity();
-                        }
-                      }}
-                      disabled={qty >= ticket.totalRemaining}
-                      className="w-8 h-8 bg-primary text-white cursor-pointer rounded-full border border-neutral-300 flex items-center justify-center  disabled:opacity-30 "
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
+                        }}
+                        disabled={qty >= ticket.totalRemaining}
+                        className="w-8 h-8 bg-primary text-white cursor-pointer rounded-full border border-neutral-300 flex items-center justify-center disabled:opacity-30"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* Horizontal Separator - rendered for all items except the last ticket */}
+              {lastTicket.ticketId !== ticket.ticketId && (
+                <hr className="border-t border-neutral-200 my-0 pt-2" />
+              )}
             </div>
           );
         })}
@@ -169,7 +172,7 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
 
       {/* Dynamic Checkout Button Area */}
       {!isMobile && (
-        <div className="min-h-25 flex flex-col justify-end">
+        <div className="min-h-25 flex flex-col ">
           <AnimatePresence mode="wait">
             {items.length > 0 ? (
               <motion.div
@@ -179,7 +182,7 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
                 exit={{ opacity: 0, y: 10 }}
                 className="flex flex-col gap-4"
               >
-                <div className="flex items-center justify-between pt-4 border-t border-neutral-100">
+                <div className="flex items-center justify-between pt-4">
                   <span className="font-sans text-neutral-500">Total</span>
                   <span className="text-2xl font-bold text-foreground">
                     GH₵ {totalTicketAmount}
@@ -213,6 +216,6 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
           </AnimatePresence>
         </div>
       )}
-    </div>
+    </Card>
   );
 };

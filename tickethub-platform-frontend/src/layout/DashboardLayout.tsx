@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Outlet, useLocation } from "react-router";
+import { Link, Outlet, useLocation } from "react-router";
 
 import { AppSidebar } from "@/components/sections/Dashboard/app-sidebar";
 import { RoleSwitcher } from "@/components/shared/RoleSwitcher";
@@ -23,6 +23,8 @@ import TicketTypeFilter from "@/components/sections/Dashboard/Organizer/Analytic
 import { useAnalyticsOverviewFilters } from "@/components/sections/Dashboard/Organizer/Analytics/useAnalyticsOverviewFilters";
 import SmsProgress from "@/components/shared/SmsProgress";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Home } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 function HeaderAnalyticsFilters({ pathname }: { pathname: string }) {
   const { activeRole } = useAuthStorage();
@@ -76,7 +78,17 @@ export default function DashboardLayout() {
               <SidebarInset>
                 <header className="flex h-12 shrink-0 items-center justify-between md:gap-4 border-b border-border md:px-4">
                   <div className="flex items-center gap-1">
-                    {isMobile ? <></> : <SidebarTrigger className="md:-ml-1" />}
+                    {isMobile ? (
+                      <div className="p-2">
+                        <Button variant={"outline"}>
+                          <Link to={"/home"}>
+                            <Home className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                      </div>
+                    ) : (
+                      <SidebarTrigger className="md:-ml-1" />
+                    )}
                     <HeaderAnalyticsFilters pathname={pathname} />
                   </div>
                   <div className="flex items-center gap-2 mx-2">

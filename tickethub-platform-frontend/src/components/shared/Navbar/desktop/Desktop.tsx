@@ -1,5 +1,17 @@
 import { NavLink } from "react-router";
-import { Menu, X } from "lucide-react";
+import {
+  History,
+  Link,
+  Menu,
+  Settings,
+  ShoppingBag,
+  User,
+  X,
+} from "lucide-react";
+// import { Avatar } from "@/components/ui/avatar";
+import { useAuthStorage } from "@/hooks/useAuthStorage";
+import { UserNavMenu } from "./UserAvatar";
+// import { UserAvatar } from "./UserAvatar";UserNavMenu
 // import { RoleSwitcher } from "@/components/shared/RoleSwitcher";
 
 type NavItem = {
@@ -28,6 +40,7 @@ export default function Desktop({
   onSignInOrOut,
   onCreateEvent,
 }: Props) {
+  const { user, logout } = useAuthStorage();
   return (
     <>
       {/* Desktop Center Links */}
@@ -67,6 +80,24 @@ export default function Desktop({
         <button className="lg:hidden p-2 text-white" onClick={onToggleMenu}>
           {isOpen ? <X /> : <Menu />}
         </button>
+        {user && (
+          <UserNavMenu
+            user={{
+              name: `${user.firstName} ${user.lastName || ""}`.trim(),
+              email: user.email,
+              // avatarUrl: user.avatarUrl,
+            }}
+            items={[
+              { label: "Dashboard", to: "/dashboard", icon: User },
+              // { label: "Settings", to: "/settings", icon: Settings },
+              {
+                label: "Order History",
+                to: "/ticket-order-history",
+                icon: History,
+              },
+            ]}
+          />
+        )}
       </div>
     </>
   );

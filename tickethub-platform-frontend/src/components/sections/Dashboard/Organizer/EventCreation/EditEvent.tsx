@@ -1,21 +1,30 @@
 import { useEffect, useState } from "react";
-import { useForm, FormProvider, useFieldArray } from "react-hook-form";
+import {
+  useForm,
+  FormProvider,
+  useFieldArray,
+  type Control,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 import {
-  createEventSchema,
-  type CreateEventFormValues,
+  editEventSchema,
+  type EditEventFormValues,
   type TicketFormValues,
+  type CreateEventFormValues,
 } from "@/types/organizer/event.schema";
 import {
   useOrganizerEvent,
   useUpdateOrganizerEvent,
 } from "@/hooks/organizers/useOrganizerEvents";
 import { useOrganizerMedia } from "@/hooks/organizers/useOrganizerMedia";
-import type { UpdateEventPayload } from "@/utils/services/organizers/events.service";
+import type {
+  UpdateEventPayload,
+  OrganizerEventDetail,
+} from "@/utils/services/organizers/events.service";
 
 import {
   Card,
@@ -31,6 +40,11 @@ import { TermsCard } from "./TermsCard";
 import { MediaUploadCard } from "./MediaUpload";
 import { TicketList } from "./TicketList";
 import VenueForm from "./VenueForm";
+import { firstErrorMessage } from "./CreateEvent";
+
+// Shared section components are typed for the create form; the edit form
+// carries the same field names with relaxed optionality.
+type SharedControl = Control<CreateEventFormValues>;
 
 const toLocalInput = (v?: string | null) =>
   v ? v.replace(" ", "T").slice(0, 16) : "";
@@ -58,8 +72,8 @@ export default function EditEvent({ eventId }: Props) {
   const { mutateAsync: updateEvent, isPending: isSaving } =
     useUpdateOrganizerEvent();
 
-  const form = useForm<CreateEventFormValues>({
-    resolver: zodResolver(createEventSchema),
+  const form = useForm<EditEventFormValues>({
+    resolver: zodResolver(editEventSchema),
     defaultValues: {
       title: "",
       description: "",
@@ -87,26 +101,32 @@ export default function EditEvent({ eventId }: Props) {
   useEffect(() => {
     if (!detail) return;
     let cancelled = false;
-    const bannerUrl = detail.media?.find((m) => m.type === "Banner")?.imageUrl;
+    // Accept both the unwrapped event and the raw { success, data } envelope
+    // so prefilling never silently blanks when layers drift.
+    const src = (detail as OrganizerEventDetail & { data?: OrganizerEventDetail })
+      .data ?? detail;
+    const bannerUrl = src.media?.find((m) => m.type === "Banner")?.imageUrl;
 
     form.reset({
-      title: detail.title ?? "",
-      description: detail.description ?? "",
-      eventVenueId: detail.eventVenueId ?? undefined,
-      venue: {
-        venue_name: detail.venue?.venue_name ?? "",
-        address: detail.venue?.address ?? "",
-        city_or_town: detail.venue?.city_or_town ?? "",
-        country: detail.venue?.country ?? "",
-        googleMapLink: detail.venue?.googleMapLink ?? "",
-      },
-      capacity: detail.capacity,
-      dateAndTime: toLocalInput(detail.dateAndTime),
-      dateAndTimeEnd: toLocalInput(detail.dateAndTimeEnd),
-      termsAndConditions: detail.termsAndConditions ?? "",
-      categoryIds: detail.categoryIds ?? [],
+      title: src.title ?? "",
+      description: src.description ?? "",
+      eventVenueId: src.eventVenueId ?? undefined,
+      venue: src.venue
+        ? {
+            venue_name: src.venue.venue_name ?? "",
+            address: src.venue.address ?? "",
+            city_or_town: src.venue.city_or_town ?? "",
+            country: src.venue.country ?? "",
+            googleMapLink: src.venue.googleMapLink ?? "",
+          }
+        : undefined,
+      capacity: src.capacity,
+      dateAndTime: toLocalInput(src.dateAndTime),
+      dateAndTimeEnd: toLocalInput(src.dateAndTimeEnd),
+      termsAndConditions: src.termsAndConditions ?? "",
+      categoryIds: src.categoryIds ?? [],
       bannerImage: undefined,
-      tickets: (detail.tickets ?? []).map(
+      tickets: (src.tickets ?? []).map(
         (t): TicketFormValues => ({
           name: t.name,
           ticketTypeId: t.ticketTypeId ?? undefined,
@@ -133,19 +153,29 @@ export default function EditEvent({ eventId }: Props) {
     };
   }, [detail, form]);
 
-  async function onSubmit(values: CreateEventFormValues) {
+  function onInvalid(errors: unknown) {
+    toast.error(
+      firstErrorMessage(errors) ?? "Please fix the highlighted fields.",
+    );
+  }
+
+  const submitForm = form.handleSubmit(onSubmit, onInvalid);
+
+  async function onSubmit(values: EditEventFormValues) {
     try {
       const payload: UpdateEventPayload = {
         title: values.title,
         description: values.description || undefined,
         capacity: values.capacity,
         dateAndTime: new Date(values.dateAndTime).toISOString(),
-        dateAndTimeEnd: new Date(values.dateAndTimeEnd).toISOString(),
+        dateAndTimeEnd: values.dateAndTimeEnd?.trim()
+          ? new Date(values.dateAndTimeEnd).toISOString()
+          : undefined,
         termsAndConditions: values.termsAndConditions,
         categoryIds: values.categoryIds,
       };
 
-      if (values.venue.venue_name.trim()) {
+      if (values.venue?.venue_name?.trim()) {
         payload.venue = {
           venue_name: values.venue.venue_name.trim(),
           address: values.venue.address?.trim() || undefined,
@@ -195,10 +225,7 @@ export default function EditEvent({ eventId }: Props) {
   return (
     <FormProvider {...form}>
       <div className="flex min-h-screen flex-col pb-30">
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="flex-1 overflow-y-auto"
-        >
+        <form onSubmit={submitForm} className="flex-1 overflow-y-auto">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 p-2">
             <div className="space-y-4 md:col-span-2">
               <Card>
@@ -221,7 +248,7 @@ export default function EditEvent({ eventId }: Props) {
 
             <div className="space-y-4 md:col-span-1">
               <MediaUploadCard
-                control={form.control}
+                control={form.control as unknown as SharedControl}
                 imagePreview={imagePreview}
                 setImagePreview={setImagePreview}
               />
@@ -238,7 +265,7 @@ export default function EditEvent({ eventId }: Props) {
                   </p>
                 </CardContent>
               </Card>
-              <TermsCard control={form.control} />
+              <TermsCard control={form.control as unknown as SharedControl} />
               <div className="flex gap-2">
                 <Button
                   type="button"
@@ -250,7 +277,7 @@ export default function EditEvent({ eventId }: Props) {
                 </Button>
                 <Button
                   type="button"
-                  onClick={form.handleSubmit(onSubmit)}
+                  onClick={submitForm}
                   disabled={isUploading || isSaving}
                   className="flex-1"
                 >

@@ -23,7 +23,7 @@ export const EventDateTime: React.FC<{ event: Event }> = ({ event }) => {
             <div className="p-4">
               <p className="text-xs font-semibold text-foreground">Ends</p>
               <p className="text-xs text-muted-foreground mt-1 leading-snug">
-                {endStr} &bull; {timeEndStr}
+                {endStr} 
               </p>
             </div>
           </div>

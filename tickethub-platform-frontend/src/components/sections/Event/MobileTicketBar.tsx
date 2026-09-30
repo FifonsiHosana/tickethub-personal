@@ -66,7 +66,7 @@ export const MobileTicketBar: React.FC<MobileTicketBarProps> = ({
             <div className="px-4 py-3">
               <div className="flex items-center gap-3">
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-stone-900 text-sm truncate">
+                  <p className="font-semibold text-stone-900 text-sm truncate uppercase">
                     {title}
                   </p>
                 </div>
@@ -74,7 +74,7 @@ export const MobileTicketBar: React.FC<MobileTicketBarProps> = ({
                 <button
                   type="button"
                   onClick={onGetTickets}
-                  className="shrink-0 bg-[#fd7d43] text-white font-semibold py-3 px-6 rounded-4xl transition-transform active:scale-95"
+                  className="shrink-0 bg-[#fd7d43] text-white font-semibold py-3 px-6 rounded-4xl transition-transform active:scale-95 "
                 >
                   Get Tickets
                 </button>

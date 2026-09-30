@@ -1,5 +1,5 @@
 import React from "react";
-import { useEvent } from "@/hooks/attendees/events/useEvent";
+import { useEvent, useEvents } from "@/hooks/attendees/events/useEvent";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Loader } from "@/components/ui/loader";
 import { EventTicketingSidebar } from "./EventTicketingSidebar";
@@ -17,6 +17,12 @@ import { getBannerUrl } from "./eventUtils";
 export const EventDetails: React.FC = () => {
   const { data: event, isLoading, isError, error } = useEvent();
   const { isMobile } = useIsMobile();
+  const { data: eventsResponse } = useEvents({
+    page: 1,
+    pageSize: 1,
+    search: undefined,
+    categoryId: event?.categoryIds[0] || undefined,
+  });
 
   const bgColor = useBannerColor(event);
   const { ticketsSectionRef, isTicketsVisible, scrollToTickets } =
@@ -58,7 +64,7 @@ export const EventDetails: React.FC = () => {
           <div className="flex flex-col lg:flex-row gap-16">
             <div className="w-full lg:w-[60%] space-y-6">
               {/* About Section */}
-              <div className="space-y-3">
+              <div className="space-y-3 mt-5">
                 <h2 className="text-2xl font-semibold">About This Event</h2>
                 <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
                   <RichText html={event.description as string} />
@@ -88,7 +94,7 @@ export const EventDetails: React.FC = () => {
         </div>
 
         {/* Similar events */}
-        {event.categoryIds.length !== 0 && (
+        {(eventsResponse?.data.length as number) > 1 && (
           <div className="mx-auto py-16">
             <div className="text-2xl font-bold text-stone-900 mb-8">
               Similar Events

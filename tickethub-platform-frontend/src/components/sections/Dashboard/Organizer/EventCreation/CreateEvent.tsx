@@ -28,6 +28,16 @@ import { MediaUploadCard } from "./MediaUpload";
 import { TicketDialog } from "./TicketDialog";
 import { TicketList } from "./TicketList";
 import VenueForm from "./VenueForm";
+
+export function firstErrorMessage(obj: unknown): string | undefined {
+  if (!obj || typeof obj !== "object") return undefined;
+  if ("message" in obj && typeof obj.message === "string") return obj.message;
+  for (const value of Object.values(obj)) {
+    const found = firstErrorMessage(value);
+    if (found) return found;
+  }
+  return undefined;
+}
 import EventSteps from "./EventSteps";
 import { useScrollSpy } from "../../../../shared/scroll-spy";
 
@@ -78,16 +88,6 @@ export default function CreateEvent() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const DEFAULT_TERMS =
     "By purchasing a ticket, you agree to abide by the event organizer's policies. All sales are final unless otherwise stated.";
-
-  function firstErrorMessage(obj: unknown): string | undefined {
-    if (!obj || typeof obj !== "object") return undefined;
-    if ("message" in obj && typeof obj.message === "string") return obj.message;
-    for (const value of Object.values(obj)) {
-      const found = firstErrorMessage(value);
-      if (found) return found;
-    }
-    return undefined;
-  }
 
   function onInvalid(errors: unknown) {
     toast.error(

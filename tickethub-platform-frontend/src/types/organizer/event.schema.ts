@@ -96,3 +96,66 @@ export const createEventSchema = z
   );
 
 export type CreateEventFormValues = z.infer<typeof createEventSchema>;
+
+/**
+ * Edit mode: same fields as create, but nothing that already exists is
+ * forced — banner (keep current), end date, venue (keep current) and
+ * tickets (managed read-only) are all optional so saving never blocks
+ * silently on pre-existing data.
+ */
+export const editEventSchema = z
+  .object({
+    title: z
+      .string()
+      .min(3, "Event title must be at least 3 characters")
+      .max(100),
+
+    description: z.string().optional(),
+
+    eventVenueId: z.number().positive().optional(),
+
+    venue: venueSchema.optional(),
+
+    capacity: z.number({ message: "Please enter capacity" }).positive(),
+
+    dateAndTime: z.string().min(1, "Please select a start date and time"),
+
+    dateAndTimeEnd: z.string().optional(),
+
+    termsAndConditions: z.string(),
+
+    categoryIds: z.array(z.number().int().positive()).optional(),
+
+    bannerImage: imageSchema.optional(),
+
+    tickets: z.array(ticketSchema).optional(),
+  })
+  .refine(
+    (data) => {
+      if (!data.dateAndTime || !data.dateAndTimeEnd) return true;
+      return (
+        new Date(data.dateAndTimeEnd).getTime() >=
+        new Date(data.dateAndTime).getTime()
+      );
+    },
+    {
+      message: "End date must be after start date",
+      path: ["dateAndTimeEnd"],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.capacity === undefined || !data.tickets?.length) return true;
+      const total = data.tickets.reduce(
+        (sum, t) => sum + (t.totalCount ?? data.capacity),
+        0,
+      );
+      return total <= (data.capacity as number);
+    },
+    {
+      message: "Total ticket quantity cannot exceed event capacity",
+      path: ["tickets"],
+    },
+  );
+
+export type EditEventFormValues = z.infer<typeof editEventSchema>;

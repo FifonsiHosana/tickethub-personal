@@ -30,6 +30,10 @@ interface PinterestNavProps {
   maxVisible?: number; // primary icons shown before collapsing into "More"
 }
 
+// Shared sizing: big touch targets, big icons
+const ICON_BUTTON =
+  "h-12 w-12 rounded-full [&_svg]:!size-5 select-none transition-all duration-150 active:scale-90 active:font-bold";
+
 export function NavMobile({
   items,
   className,
@@ -92,11 +96,12 @@ export function NavMobile({
         size="icon"
         aria-label={item.title}
         className={cn(
-          "relative h-11 w-11 rounded-full text-muted-foreground transition-colors duration-150 select-none active:scale-95",
-          item.isActive &&
-            "bg-foreground text-background hover:bg-foreground/90",
-          !item.isActive && "hover:bg-muted hover:text-foreground",
-          isOpen && "bg-muted text-foreground",
+          ICON_BUTTON,
+          "relative",
+          item.isActive
+            ? "bg-primary text-primary-foreground shadow-md hover:bg-primary/90 hover:text-primary-foreground"
+            : "text-foreground hover:bg-muted hover:text-foreground",
+          isOpen && !item.isActive && "bg-muted text-foreground",
         )}
         onMouseDown={() => startPress(item)}
         onMouseUp={cancelPress}
@@ -107,7 +112,7 @@ export function NavMobile({
       >
         {item.icon}
         {hasSubItems && (
-          <span className="absolute bottom-1.5 h-[3px] w-[3px] rounded-full bg-current opacity-50" />
+          <span className="absolute bottom-2 h-1 w-1 rounded-full bg-current opacity-70" />
         )}
       </Button>
     );
@@ -125,19 +130,21 @@ export function NavMobile({
         <PopoverContent
           side="top"
           align="center"
-          sideOffset={10}
-          className="w-44 p-1 rounded-2xl border border-border/60 bg-background/95 backdrop-blur-xl shadow-xl animate-in fade-in-0 zoom-in-95 duration-150"
+          sideOffset={14}
+          className="w-64 p-2 rounded-3xl border-2 border-border bg-background text-foreground shadow-2xl animate-in fade-in-0 zoom-in-95 duration-150"
         >
-          <div className="flex flex-col gap-0.5">
+          <div className="flex flex-col gap-1">
             {item.items?.map((subItem) => (
               <Link
                 key={subItem.title}
                 to={subItem.url}
                 onClick={() => setOpenPopoverId(null)}
-                className="flex items-center gap-2.5 px-2.5 py-2 text-sm rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="flex items-center gap-3 px-4 py-3.5 text-lg font-medium rounded-2xl text-foreground transition-colors hover:bg-muted active:bg-muted"
               >
                 {subItem.icon && (
-                  <span className="h-4 w-4 shrink-0">{subItem.icon}</span>
+                  <span className="h-6 w-6 shrink-0 [&_svg]:!size-6">
+                    {subItem.icon}
+                  </span>
                 )}
                 <span className="truncate">{subItem.title}</span>
               </Link>
@@ -151,7 +158,7 @@ export function NavMobile({
   return (
     <nav
       className={cn(
-        "fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-1 rounded-full border border-border/40 bg-background/80 p-1.5 shadow-lg backdrop-blur-xl",
+        "fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border-2 border-border bg-background p-3 text-foreground shadow-2xl ring-1 ring-foreground/10",
         className,
       )}
     >
@@ -174,20 +181,21 @@ export function NavMobile({
               size="icon"
               aria-label="More"
               className={cn(
-                "h-11 w-11 rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-                openPopoverId === "__overflow__" && "bg-muted text-foreground",
+                ICON_BUTTON,
+                "text-foreground hover:bg-muted hover:text-foreground",
+                openPopoverId === "__overflow__" && "bg-muted",
               )}
             >
-              <MoreHorizontal className="h-5 w-5" />
+              <MoreHorizontal />
             </Button>
           </PopoverTrigger>
           <PopoverContent
             side="top"
             align="end"
-            sideOffset={10}
-            className="w-56 p-1 rounded-2xl border border-border/60 bg-background/95 backdrop-blur-xl shadow-xl animate-in fade-in-0 zoom-in-95 duration-150"
+            sideOffset={14}
+            className="w-72 p-2 rounded-3xl border-2 border-border bg-background text-foreground shadow-2xl animate-in fade-in-0 zoom-in-95 duration-150"
           >
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col gap-1">
               {overflowItems.map((item) => {
                 const hasSubItems = Boolean(
                   item.items && item.items.length > 0,
@@ -204,10 +212,15 @@ export function NavMobile({
                           navigate(item.url);
                         }
                       }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      className={cn(
+                        "flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-lg font-medium text-foreground transition-colors hover:bg-muted active:bg-muted",
+                        item.isActive && "bg-muted",
+                      )}
                     >
                       {item.icon && (
-                        <span className="h-4 w-4 shrink-0">{item.icon}</span>
+                        <span className="h-6 w-6 shrink-0 text-foreground [&_svg]:!size-6">
+                          {item.icon}
+                        </span>
                       )}
                       <span className="flex-1 truncate text-left">
                         {item.title}
@@ -215,14 +228,14 @@ export function NavMobile({
                       {hasSubItems && (
                         <ChevronRight
                           className={cn(
-                            "h-3.5 w-3.5 shrink-0 transition-transform",
+                            "h-5 w-5 shrink-0 transition-transform",
                             isExpanded && "rotate-90",
                           )}
                         />
                       )}
                     </button>
                     {hasSubItems && isExpanded && (
-                      <div className="mb-1 ml-4 flex flex-col gap-0.5 border-l border-border/60 pl-2.5">
+                      <div className="mb-1 ml-6 flex flex-col gap-1 border-l-2 border-border pl-3">
                         {item.items?.map((subItem) => (
                           <Link
                             key={subItem.title}
@@ -231,10 +244,10 @@ export function NavMobile({
                               setOpenPopoverId(null);
                               setExpandedOverflow(null);
                             }}
-                            className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            className="flex items-center gap-3 rounded-xl px-3 py-3 text-base font-medium text-foreground transition-colors hover:bg-muted active:bg-muted"
                           >
                             {subItem.icon && (
-                              <span className="h-3.5 w-3.5 shrink-0">
+                              <span className="h-5 w-5 shrink-0 [&_svg]:size-5!">
                                 {subItem.icon}
                               </span>
                             )}

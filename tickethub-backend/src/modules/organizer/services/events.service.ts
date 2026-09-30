@@ -593,8 +593,9 @@ export async function updateOrganizerEvent(
     await tx
       .update(events)
       .set({
-        title: data.title,
-        slug: toKebabCase(data.title),
+        ...(data.title !== undefined
+          ? { title: data.title, slug: toKebabCase(data.title) }
+          : {}),
         description: data.description,
         capacity: data.capacity,
         dateAndTime: data.dateAndTime

@@ -30,6 +30,22 @@ function availableTicketTypes(context: sessionContext): AvailableTicket[] {
   );
 }
 
+/** Ticket types are shown 3 per screen to fit small USSD displays. */
+const TICKET_TYPES_PAGE_SIZE = 3;
+
+function ticketTypePage(context: sessionContext): number {
+  return Number(context.data?.['page:selectTicketType'] ?? '0');
+}
+
+function ticketTypePageSlice(context: sessionContext): AvailableTicket[] {
+  const available = availableTicketTypes(context);
+  const page = ticketTypePage(context);
+  return available.slice(
+    page * TICKET_TYPES_PAGE_SIZE,
+    page * TICKET_TYPES_PAGE_SIZE + TICKET_TYPES_PAGE_SIZE,
+  );
+}
+
 export const tree: Record<string, MenuNode> = {
   home: {
     id: 'home',
@@ -69,10 +85,13 @@ export const tree: Record<string, MenuNode> = {
       const page = context.data?.['categoryEvents'] ?? '0';
 
       const events = await getCategoryEvents(categoryId(context), page);
+      const items = events
+        .map((event, index: number) => `${index + 1}. ${event.name}`)
+        .join('\n');
       const more = events.length === 5 ? '\n#.See more' : '';
       const less = page !== '0' ? '\n##.Go back in the list' : '';
 
-      return `Select an Event from ${categoryName(context)}\n ${events.map((events, index: number) => `${index + 1}. ${events.name}${more}${less}`)}`;
+      return `Select an Event from ${categoryName(context)}\n${items}${more}${less}`;
     },
     resolve: async (input, context) => {
       const events = await getCategoryEvents(
@@ -121,19 +140,29 @@ export const tree: Record<string, MenuNode> = {
       if (available.length === 0) {
         return `${eventName(context)}\nSorry, tickets for this event are sold out.`;
       }
-      return `${eventName(context)}\nSelect Ticket Type\n${available
-        .map((ticket, index) => {
-          const isLowStock = ticket.remaining < ticket.totalCount / 2;
-
-          return `${index + 1}. ${ticket.name} - GHC ${ticket.price} (${ticket.remaining}${isLowStock ? ' only' : ''} remaining)`;
-        })
-        .join('\n')}`;
+      const page = ticketTypePage(context);
+      const slice = ticketTypePageSlice(context);
+      const lines = slice
+        .map(
+          (ticket, index) =>
+            `${index + 1}. ${ticket.name} - GHC ${ticket.price}`,
+        )
+        .join('\n');
+      const more =
+        (page + 1) * TICKET_TYPES_PAGE_SIZE < available.length
+          ? '\n#. More'
+          : '';
+      const less = page > 0 ? '\n##. Less' : '';
+      return `${eventName(context)}\nSelect Ticket Type\n${lines}${more}${less}`;
     },
     data: 'ticketType',
     next: 'NumberOfTickets',
+    paginate: {
+      moreOption: '#',
+      seeLess: '##',
+    },
     resolve: (input, context) => {
-      const available = availableTicketTypes(context);
-      const selected = available[Number(input) - 1];
+      const selected = ticketTypePageSlice(context)[Number(input) - 1];
       // First segment must be the EventTickets row id (what purchaseTickets
       // expects as eventTicketId), NOT the ticket-type id.
       const eventTicketId = selected?.eventTicketId;

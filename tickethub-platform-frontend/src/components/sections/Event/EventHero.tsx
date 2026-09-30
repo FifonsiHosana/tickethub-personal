@@ -1,8 +1,16 @@
-import React from "react";
-import { ArrowRight, Calendar, MapPinned, Smartphone } from "lucide-react";
+import React, { useState } from "react";
+import {
+  ArrowRight,
+  Calendar,
+  Check,
+  MapPinned,
+  Share2,
+  Smartphone,
+} from "lucide-react";
 import type { Event } from "@/types/event.types";
 import EventBanner from "./EventBanner";
 import { directionsUrl, formatEventDates } from "./eventUtils";
+import { downloadIcs } from "@/utils/calendar";
 
 interface EventHeroProps {
   event: Event;
@@ -20,6 +28,34 @@ export const EventHero: React.FC<EventHeroProps> = ({
   onGetTickets,
 }) => {
   const { dateStr, timeStr } = formatEventDates(event);
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    const shareData = {
+      title: event.title || document.title,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (error) {
+        // Suppress error if user cancelled the share dialog
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          console.error("Error sharing:", error);
+        }
+      }
+    } else {
+      // Fallback: Copy link to clipboard
+      try {
+        await navigator.clipboard.writeText(shareData.url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error("Failed to copy link:", err);
+      }
+    }
+  };
 
   return (
     <div className="relative min-h-120 lg:min-h-150 flex flex-col w-full justify-center py-6">
@@ -61,15 +97,17 @@ export const EventHero: React.FC<EventHeroProps> = ({
 
                 {/* Event details */}
                 <div className="flex flex-wrap gap-x-6 gap-y-3 text-stone-700 justify-center sm:justify-start">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-gray-400 font-extralight" />
-
+                  <button
+                    type="button"
+                    onClick={() => downloadIcs(event)}
+                    title="Add to calendar"
+                    className="flex items-center gap-2 hover:text-(--color-ego-orange) transition-colors cursor-pointer"
+                  >
+                    <Calendar className="w-5 h-5 text-gray-400" />
                     <span className="text-sm font-medium">
-                      <p className="text-neutral-700">
-                        {dateStr} &bull; {timeStr}
-                      </p>
+                      {dateStr} &bull; {timeStr}
                     </span>
-                  </div>
+                  </button>
 
                   <a
                     target="_blank"
@@ -87,24 +125,50 @@ export const EventHero: React.FC<EventHeroProps> = ({
                   <div className="flex items-center gap-2">
                     <Smartphone className="w-5 h-5 text-gray-400" />
 
-                    <span className="text-sm font-mono font-semibold">
-                      *902*30*{event.id}#
+                    <span className="text-sm font-mono font-semibold ">
+                      <a
+                        href={`
+                        tel:*920*658*${event.id}#
+                          `}
+                        className=" hover:text-gray/70 transition-colors"
+                      >
+                        *920*658*{event.id}#
+                      </a>
                     </span>
                   </div>
                 </div>
 
                 {/* Desktop CTA */}
-                {!isMobile && (
-                  <div className=" flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2 justify-center sm:justify-start">
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2 justify-center sm:justify-start">
+                  {!isMobile && (
                     <button
                       type="button"
                       onClick={onGetTickets}
-                      className="flex items-center justify-center gap-3 px-16 py-3 bg-primary/80 text-white rounded-full text-base font-medium hover:scale-105 hover:bg-primary/60 hover:cursor-pointer w-full md:w-auto transition-all"
+                      className="flex items-center justify-center gap-3 px-16 py-3 bg-primary/80 text-white rounded-full text-base font-medium hover:scale-105 hover:bg-primary/60 cursor-pointer w-full md:w-auto transition-all"
                     >
-                      Get Tickets <ArrowRight />
+                      Get Tickets <ArrowRight className="h-4 w-4" />
+                    </button>
+                  )}
+
+                  <div className="flex justify-center sm:justify-end">
+                    <button
+                      type="button"
+                      onClick={handleShare}
+                      className="border h-12 justify-center text-blue-500 gap-3 px-16 py-3 items-center flex rounded-full text-base font-medium hover:scale-105 transition-all cursor-pointer border-blue-300 bg-accent active:scale-95"
+                    >
+                      {copied ? (
+                        <>
+                          Copied! <Check className="h-4 w-4 text-green-600" />
+                        </>
+                      ) : (
+                        <>
+                          Share <Share2 className="h-4 w-4" />
+                        </>
+                      )}
                     </button>
                   </div>
-                )}
+                </div>
               </div>
 
               {/* Desktop banner */}
