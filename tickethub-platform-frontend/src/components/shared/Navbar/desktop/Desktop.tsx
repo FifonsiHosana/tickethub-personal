@@ -1,10 +1,10 @@
 import { NavLink } from "react-router";
 import {
   History,
-  Link,
+  // Link,
   Menu,
-  Settings,
-  ShoppingBag,
+  // Settings,
+  // ShoppingBag,
   User,
   X,
 } from "lucide-react";
@@ -40,7 +40,7 @@ export default function Desktop({
   onSignInOrOut,
   onCreateEvent,
 }: Props) {
-  const { user, logout } = useAuthStorage();
+  const { user } = useAuthStorage();
   return (
     <>
       {/* Desktop Center Links */}

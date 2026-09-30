@@ -4,7 +4,7 @@ import type { Event } from "@/types/event.types";
 import { formatEventDates } from "./eventUtils";
 
 export const EventDateTime: React.FC<{ event: Event }> = ({ event }) => {
-  const { dateStr, timeStr, endStr, timeEndStr } = formatEventDates(event);
+  const { dateStr, timeStr, endStr } = formatEventDates(event);
 
   return (
     <>
@@ -23,7 +23,7 @@ export const EventDateTime: React.FC<{ event: Event }> = ({ event }) => {
             <div className="p-4">
               <p className="text-xs font-semibold text-foreground">Ends</p>
               <p className="text-xs text-muted-foreground mt-1 leading-snug">
-                {endStr} 
+                {endStr}
               </p>
             </div>
           </div>
