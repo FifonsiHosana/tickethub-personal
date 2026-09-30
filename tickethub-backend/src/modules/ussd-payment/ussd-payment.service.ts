@@ -26,12 +26,78 @@ export const initiatePayment = async (fields: PaystackPaymentFields) => {
       },
     );
 
-    // logger.info()
-    console.log(`Paystack cHARGE ${response.data.status}`);
+    console.log(`Paystack cHARGE ${response.data}`);
 
     return response.data;
   } catch (error) {
     console.log(error);
+  }
+};
+
+// export const paystackOtp = async (otp: string, reference: string) => {
+//   try {
+//     const response = await axios.post(
+//       'https://api.paystack.co/charge/submit_otp',
+//       { otp, reference },
+//       {
+//         headers: {
+//           Authorization: `Bearer ${config.payment.paystack_api_key}`,
+//         },
+//       },
+//     );
+//     return response.data;
+//   } catch (error) {
+//     if (axios.isAxiosError(error)) {
+//       console.log('Paystack OTP error:', error.response?.data ?? error.message);
+//       return error.response?.data ?? { status: false, message: error.message };
+//     }
+//     throw error;
+//   }
+// };
+
+const paystackHeaders = () => ({
+  Authorization: `Bearer ${config.payment.paystack_api_key}`,
+  'Content-Type': 'application/json',
+});
+
+const handleError = (label: string, error: unknown) => {
+  if (axios.isAxiosError(error)) {
+    console.log(`${label}:`, error.response?.data ?? error.message);
+    return error.response?.data ?? { status: false, message: error.message };
+  }
+  throw error;
+};
+
+// /**
+//  * Starts a mobile money charge.
+//  * Response shape: { status, message, data: { status, reference, display_text } }
+//  * data.status: 'send_otp' | 'pay_offline' | 'pending' | 'success' | 'failed'
+//  */
+// export const initiatePayment = async (fields: PaystackPaymentFields) => {
+//   try {
+//     const response = await axios.post(
+//       'https://api.paystack.co/charge',
+//       { ...fields },
+//       { headers: paystackHeaders() },
+//     );
+//     console.log(`Paystack charge ${response.data?.data?.status}`);
+//     return response.data;
+//   } catch (error) {
+//     return handleError('Paystack charge error', error);
+//   }
+// };
+
+/** Submits the OTP / voucher code for a charge that returned `send_otp`. */
+export const paystackOtp = async (otp: string, reference: string) => {
+  try {
+    const response = await axios.post(
+      'https://api.paystack.co/charge/submit_otp',
+      { otp, reference },
+      { headers: paystackHeaders() },
+    );
+    return response.data;
+  } catch (error) {
+    return handleError('Paystack OTP error', error);
   }
 };
 

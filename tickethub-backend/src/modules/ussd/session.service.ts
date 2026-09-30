@@ -11,7 +11,7 @@ export type Session = {
 
 export const getSession = async (sessionId: string): Promise<Session> => {
   const raw = await redisClient.get(sessionId);
-  console.log('currentsession', raw);
+  // console.log('currentsession', raw);
 
   return raw
     ? JSON.parse(raw)

@@ -281,7 +281,7 @@ export const handleUssd = async (
           : rawInput;
 
         if (value === undefined) {
-          errorMessage = 'Invalid choice.\n';
+          errorMessage = activeNode.invalidMessage ?? 'Invalid choice.\n';
         } else {
           session.data[activeNode.data] = value;
 
@@ -294,12 +294,14 @@ export const handleUssd = async (
             }
           }
 
-          if (!activeNode.next) {
-            throw new Error(
-              `Node "${activeNodeId}" has data but no next node defined`,
-            );
+          if (!errorMessage) {
+            if (!activeNode.next) {
+              throw new Error(
+                `Node "${activeNodeId}" has data but no next node defined`,
+              );
+            }
+            session.stack.push(activeNode.next);
           }
-          session.stack.push(activeNode.next);
         }
       }
     } else if (lastInput === '00') {
@@ -309,15 +311,25 @@ export const handleUssd = async (
       if (session.stack.length > 1) session.stack.pop();
     } else if (activeNode.options?.[lastInput]) {
       const action = activeNode.onSelect?.[lastInput];
-      if (action) {
-        await action(context);
-      }
+      // An onSelect handler may return a node id to override the default target
+      const override = action ? await action(context) : undefined;
 
       if (activeNode.options[lastInput] === 'home') {
         session.eventDetails = undefined;
       }
 
-      session.stack.push(activeNode.options[lastInput] as string);
+      const target =
+        typeof override === 'string'
+          ? override
+          : (activeNode.options[lastInput] as string);
+
+      if (typeof override === 'string') {
+        // A charge has been initiated: reset the stack so "0. Back" can't
+        // return to Confirmation and trigger a second order/charge.
+        session.stack = [target];
+      } else {
+        session.stack.push(target);
+      }
     } else {
       errorMessage = 'Invalid choice.\n';
     }

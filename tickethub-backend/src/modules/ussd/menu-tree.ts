@@ -168,10 +168,12 @@ export const tree: Record<string, MenuNode> = {
       const selected = ticketTypePageSlice(context)[Number(input) - 1];
       // First segment must be the EventTickets row id (what purchaseTickets
       // expects as eventTicketId), NOT the ticket-type id.
+
       const eventTicketId = selected?.eventTicketId;
+
       return selected
         ? String(
-            `${eventTicketId}*${selected.name}*${selected.price + 10}*${selected.remaining}`,
+            `${eventTicketId}*${selected.name}*${Number(selected.price)}*${selected.remaining}`,
           )
         : undefined;
     },
@@ -208,7 +210,9 @@ export const tree: Record<string, MenuNode> = {
   Confirmation: {
     id: 'confirmation',
     prompt: async (context) =>
-      `Confirmation \n\nEvent: ${eventName(context)}\nTicket: ${ticketType(context)}\nTotal:${numberOfTickets(context) > 1 ? ` ${singleTicketPrice(context)} x ${numberOfTickets(context)} =` : ''} GHC ${totalPrice(context)}\nFor: ${context.data?.receiveNumber ?? context.phoneNumber}\n1. Confirm`,
+      `Confirmation \n\nEvent: ${eventName(context)}\nTicket: ${ticketType(context)}\n
+    Total:${numberOfTickets(context) > 1 ? ` ${singleTicketPrice(context)} x ${numberOfTickets(context)} =` : ''} 
+    GHC ${totalPrice(context)}\nFor: ${context.data?.receiveNumber ?? context.phoneNumber}\n1. Confirm`,
     options: {
       '1': 'paymentInitiation',
       '2': 'Cancel',
@@ -261,7 +265,7 @@ export const tree: Record<string, MenuNode> = {
           amount: totalPrice(context),
           email: 'donaldfifonsi@gmail.com',
           currency: 'GHS',
-          channels:['mobile_money'],
+          channels: ['mobile_money'],
           mobile_money: {
             phone: context.phoneNumber,
             provider: context.telcoProvider,

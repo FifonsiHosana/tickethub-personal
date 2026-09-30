@@ -1,90 +1,41 @@
 import 'dotenv/config';
 import bcrypt from 'bcrypt';
 
-import { db } from '../src/db/client'; // adjust path
-import {
-  users,
-  permissions,
-  userRoles,
-  rolePermissions,
-} from '../src/db/schema/auth'; 
+import { db } from '../src/db/client';
+import { users, roles, userRoles } from '../src/db/schema/auth';
 
 async function seed() {
   console.log('🌱 Seeding authentication data...');
 
-  //
-  // Permissions
-  //
-  const permissionList = [
-    {
-      resource: 'events',
-      action: 'create',
-      resource_action: 'events:create',
-    },
-    {
-      resource: 'events',
-      action: 'update',
-      resource_action: 'events:update',
-    },
-    {
-      resource: 'events',
-      action: 'delete',
-      resource_action: 'events:delete',
-    },
-    {
-      resource: 'tickets',
-      action: 'manage',
-      resource_action: 'tickets:manage',
-    },
-    {
-      resource: 'users',
-      action: 'manage',
-      resource_action: 'users:manage',
-    },
-  ];
+  // --------------------------------
+  // Roles
+  // --------------------------------
 
-  const permissionIds = await db
-    .insert(permissions)
-    .values(permissionList)
+  const [adminRole] = await db
+    .insert(roles)
+    .values({
+      name: 'Admin',
+    })
     .$returningId();
 
-  //
-  // Give Admin every permission
-  //
-  await db.insert(rolePermissions).values(
-    permissionIds.map((permission) => ({
-      roleId: 1,
-      permissionId: permission.id,
-    })),
-  );
+  const [organizerRole] = await db
+    .insert(roles)
+    .values({
+      name: 'Organizer',
+    })
+    .$returningId();
 
-  //
-  // Organizer permissions
-  //
-  await db.insert(rolePermissions).values([
-    {
-      roleId: 2,
-      permissionId: permissionIds[0].id,
-    },
-    {
-      roleId: 2,
-      permissionId: permissionIds[1].id,
-    },
-    {
-      roleId: 2,
-      permissionId: permissionIds[3].id,
-    },
-  ]);
-
-  //
+  // --------------------------------
   // Passwords
-  //
+  // --------------------------------
+
   const adminPassword = await bcrypt.hash('Admin@123', 10);
   const organizerPassword = await bcrypt.hash('Organizer@123', 10);
 
-  //
+  // --------------------------------
   // Users
-  //
+  // --------------------------------
+
   const [admin] = await db
     .insert(users)
     .values({
@@ -113,17 +64,18 @@ async function seed() {
     })
     .$returningId();
 
-  //
-  // Assign roles
-  //
+  // --------------------------------
+  // Assign Roles
+  // --------------------------------
+
   await db.insert(userRoles).values([
     {
       userId: admin.id,
-      roleId: 1,
+      roleId: adminRole.id,
     },
     {
       userId: organizer.id,
-      roleId: 2,
+      roleId: organizerRole.id,
     },
   ]);
 
@@ -133,6 +85,6 @@ async function seed() {
 seed()
   .then(() => process.exit(0))
   .catch((err) => {
-    console.error(err);
+    console.error('❌ Authentication seed failed:', err);
     process.exit(1);
   });

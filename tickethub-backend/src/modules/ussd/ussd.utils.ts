@@ -16,10 +16,8 @@ export const numberOfTickets = (context: sessionContext) =>
   context.data.numberOfTickets;
 
 export const totalPrice = (context: sessionContext) =>
-  Number(
-    (context.data?.ticketType.split('*')[2] + 10) *
-      context.data.numberOfTickets,
-  );
+  (Number(context.data?.ticketType.split('*')[2]) + 10) *
+  Number(context.data.numberOfTickets);
 
 export const categoryId = (context: sessionContext) =>
   context.data.category.split('*')[0];
