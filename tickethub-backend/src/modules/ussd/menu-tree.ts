@@ -127,7 +127,7 @@ export const tree: Record<string, MenuNode> = {
       ` ${eventName(context)}\n
     ${(context.eventDetails as EventDetails).location}
      ${dateTimeFormat((context.eventDetails as EventDetails).time)}\n
-      \n1. Confirm\n2. Leave to main menu`,
+      \n1. Buy Ticket\n2. Leave to main menu`,
     options: { '1': 'selectTicketType', '2': 'home' },
     onSelect: {
       '2': async (context) => {
@@ -171,7 +171,7 @@ export const tree: Record<string, MenuNode> = {
       const eventTicketId = selected?.eventTicketId;
       return selected
         ? String(
-            `${eventTicketId}*${selected.name}*${selected.price}*${selected.remaining}`,
+            `${eventTicketId}*${selected.name}*${selected.price + 10}*${selected.remaining}`,
           )
         : undefined;
     },
@@ -259,8 +259,9 @@ export const tree: Record<string, MenuNode> = {
         // Build payment fields with orderId in metadata
         const fields: PaystackPaymentFields = {
           amount: totalPrice(context),
-          email: attendee.email,
+          email: 'donaldfifonsi@gmail.com',
           currency: 'GHS',
+          channels:['mobile_money'],
           mobile_money: {
             phone: context.phoneNumber,
             provider: context.telcoProvider,

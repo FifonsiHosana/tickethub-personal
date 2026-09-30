@@ -6,9 +6,11 @@ export function roundToTwo(value: number) {
   return Math.round(value * 100) / 100;
 }
 
-export function computeTotalWithFee(subtotal: number, feePercent: number) {
-  const feeAmount = 10;
-  //  roundToTwo((subtotal * feePercent) / 100);
+export function computeTotalWithFee(
+  subtotal: number,
+   feePercent: number // feeAmount
+) {
+  const feeAmount = feePercent
 
   return { feeAmount, total: roundToTwo(subtotal + feeAmount) };
 }

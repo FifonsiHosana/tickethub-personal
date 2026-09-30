@@ -21,10 +21,14 @@ export const initiatePayment = async (fields: PaystackPaymentFields) => {
       },
       {
         headers: {
-          Authorization: config.payment.paystack_api_key,
+          Authorization: `Bearer ${config.payment.paystack_api_key}`,
         },
       },
     );
+
+    // logger.info()
+    console.log(`Paystack cHARGE ${response.data.status}`);
+
     return response.data;
   } catch (error) {
     console.log(error);
