@@ -262,10 +262,10 @@ export const tree: Record<string, MenuNode> = {
 
         // Build payment fields with orderId in metadata
         const fields: PaystackPaymentFields = {
-          amount: totalPrice(context),
+          amount: totalPrice(context) * 100,
           email: 'donaldfifonsi@gmail.com',
           currency: 'GHS',
-          channels: ['mobile_money'],
+          // channels: ['mobile_money'],
           mobile_money: {
             phone: context.phoneNumber,
             provider: context.telcoProvider,

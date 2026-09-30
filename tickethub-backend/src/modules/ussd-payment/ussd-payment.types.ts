@@ -27,7 +27,7 @@ export interface PaystackPaymentFields {
   amount: number;
   email: string;
   currency: string;
-  channels: string[];
+  // channels: string[];
   mobile_money: {
     phone: string;
     provider: 'mtn' | 'vod' | 'atl';
