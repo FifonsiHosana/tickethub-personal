@@ -22,7 +22,7 @@ export async function sendMail(
   });
 
   const mailOptions: nodemailer.SendMailOptions = {
-    from: config.email.from_email,
+    from: { name: 'Tickethubgh', address: config.email.from_email },
     to,
     subject,
     text,
