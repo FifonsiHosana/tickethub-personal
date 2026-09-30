@@ -18,6 +18,7 @@ import settingsRoutes from '@/modules/settings/settings.routes.js';
 import smsRoutes from '@/modules/sms/sms.routes.js';
 import creditRoutes from '@/modules/credit/credit.routes.js';
 import ussdRoutes from '@/modules/ussd/ussd.routes.js';
+import ussdPaymentRoutes from '@/modules/ussd-payment/ussd-payment.routes.js';
 
 const app = express();
 
@@ -50,6 +51,7 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/organizer/sms', smsRoutes);
 app.use('/api/organizer/credit', creditRoutes);
 app.use('/api/ussd', ussdRoutes);
+app.use('/api/payweb', ussdPaymentRoutes);
 
 // error handling)
 

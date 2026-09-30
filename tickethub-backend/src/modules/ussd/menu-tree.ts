@@ -124,7 +124,10 @@ export const tree: Record<string, MenuNode> = {
   root: {
     id: 'event-root',
     prompt: async (context) =>
-      `Confirm Event Details\nEvent: ${eventName(context)}\nTime: ${dateTimeFormat((context.eventDetails as EventDetails).time)}\nLocation: ${(context.eventDetails as EventDetails).location}\n1. Confirm\n2. Leave to main menu`,
+      ` ${eventName(context)}\n
+    ${(context.eventDetails as EventDetails).location}
+     ${dateTimeFormat((context.eventDetails as EventDetails).time)}\n
+      \n1. Confirm\n2. Leave to main menu`,
     options: { '1': 'selectTicketType', '2': 'home' },
     onSelect: {
       '2': async (context) => {
@@ -153,7 +156,7 @@ export const tree: Record<string, MenuNode> = {
           ? '\n#. More'
           : '';
       const less = page > 0 ? '\n##. Less' : '';
-      return `${eventName(context)}\nSelect Ticket Type\n${lines}${more}${less}`;
+      return `${eventName(context)} Tickets\n${lines}${more}${less}`;
     },
     data: 'ticketType',
     next: 'NumberOfTickets',
@@ -205,7 +208,7 @@ export const tree: Record<string, MenuNode> = {
   Confirmation: {
     id: 'confirmation',
     prompt: async (context) =>
-      `Confirmation Page\n\nEvent: ${eventName(context)}\nTicket: ${ticketType(context)}\nTotal:${numberOfTickets(context) > 1 ? ` ${singleTicketPrice(context)} x ${numberOfTickets(context)} =` : ''} GHC ${totalPrice(context)}\nFor: ${context.data?.receiveNumber ?? context.phoneNumber}\n1. Confirm`,
+      `Confirmation \n\nEvent: ${eventName(context)}\nTicket: ${ticketType(context)}\nTotal:${numberOfTickets(context) > 1 ? ` ${singleTicketPrice(context)} x ${numberOfTickets(context)} =` : ''} GHC ${totalPrice(context)}\nFor: ${context.data?.receiveNumber ?? context.phoneNumber}\n1. Confirm`,
     options: {
       '1': 'paymentInitiation',
       '2': 'Cancel',
