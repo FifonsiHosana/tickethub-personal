@@ -37,7 +37,14 @@ export const initiatePayment = async (fields: PaystackPaymentFields) => {
 
     return response.data;
   } catch (error) {
-    console.log(error);
+    if (axios.isAxiosError(error)) {
+      console.error(
+        'PAYSTACK ERROR:',
+        JSON.stringify(error.response?.data, null, 2),
+      );
+    }
+
+    throw error;
   }
 };
 

@@ -91,9 +91,16 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
                   className={`flex flex-col w-full ${isSoldOut ? "flex-row justify-between" : ""}`}
                 >
                   <div className="flex flex-row items-center justify-between">
-                    <h4 className="font-sans font-semibold text-foreground text-lg">
-                      {ticket.ticketName}
-                    </h4>
+                    <div className="flex flex-col gap-1">
+                      <h4 className="font-sans font-semibold text-foreground text-lg">
+                        {ticket.ticketName}
+                      </h4>
+                      {ticket.description && (
+                        <p className="text-xs text-neutral-600 mt-1">
+                          {ticket.description}
+                        </p>
+                      )}
+                    </div>
                     {!isSoldOut && (
                       <p className="text-sm text-neutral-800">
                         {Number(ticket.price) === 0
@@ -103,11 +110,11 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
                     )}
                   </div>
 
-                  {ticket.description && (
+                  {/* {ticket.description && (
                     <p className="text-xs text-neutral-600 mt-1">
                       {ticket.description}
                     </p>
-                  )}
+                  )} */}
                   <span className="text-lg text-red-500 font-bold">
                     {
                       isSoldOut && "Sold Out"
