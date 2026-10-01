@@ -1,6 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-
-import { getOrderHistory } from './attendee.service.js';
+import { getOrderFromReference, getOrderHistory } from './attendee.service.js';
 
 export async function getAttendeeOrderHistory(
   req: Request,
@@ -24,6 +23,25 @@ export async function getAttendeeOrderHistory(
       userId: req.user.id,
       ...orderHistoryParams,
     });
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getAttendeeOrderFromReference(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const reference = req.query.reference;
+
+    const result = await getOrderFromReference(reference as string);
 
     res.status(200).json({
       success: true,

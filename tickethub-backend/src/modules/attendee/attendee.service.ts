@@ -84,13 +84,10 @@ export async function getOrderHistory(params: OrderHistoryParams) {
           eventId: events.id,
           eventTitle: events.title,
           eventDate: events.dateAndTime,
-          ticketSummary:
-            sql<string>`GROUP_CONCAT(DISTINCT ${tickets.name} SEPARATOR ', ')`,
-          ticketType:
-            sql<string>`GROUP_CONCAT(DISTINCT ${ticketTypes.name} SEPARATOR ', ')`,
+          ticketSummary: sql<string>`GROUP_CONCAT(DISTINCT ${tickets.name} SEPARATOR ', ')`,
+          ticketType: sql<string>`GROUP_CONCAT(DISTINCT ${ticketTypes.name} SEPARATOR ', ')`,
           totalTickets: sql<number>`COUNT(${ticketOrderItems.id})`,
-          checkedInCount:
-            sql<number>`COUNT(CASE WHEN ${ticketOrderItems.checkedIn} = 1 THEN 1 END)`,
+          checkedInCount: sql<number>`COUNT(CASE WHEN ${ticketOrderItems.checkedIn} = 1 THEN 1 END)`,
         })
         .from(ticketOrderItems)
         .innerJoin(ticketOrders, eq(ticketOrderItems.orderId, ticketOrders.id))
@@ -127,10 +124,7 @@ export async function getOrderHistory(params: OrderHistoryParams) {
 
       totalTickets: orderEvents.reduce((sum, e) => sum + e.totalTickets, 0),
 
-      checkedInCount: orderEvents.reduce(
-        (sum, e) => sum + e.checkedInCount,
-        0,
-      ),
+      checkedInCount: orderEvents.reduce((sum, e) => sum + e.checkedInCount, 0),
     };
   });
 
@@ -176,4 +170,90 @@ export async function linkOrdersByEmail(
     .where(
       and(inArray(ticketOrders.id, orderIds), isNull(ticketOrders.userId)),
     );
+}
+
+export async function getOrderFromReference(reference: string) {
+  console.log('REFERENCE RECEIVED:', reference);
+  const rows = await db
+    .select({
+      // Order
+      orderId: ticketOrders.id,
+      status: ticketOrders.status,
+      quantity: ticketOrders.quantity,
+      purchasedAt: ticketOrders.createdAt,
+
+      // Customer
+      customerFirstName: ticketOrderUserDetails.firstName,
+      customerLastName: ticketOrderUserDetails.lastName,
+      customerEmail: ticketOrderUserDetails.email,
+      customerPhone: ticketOrderUserDetails.phoneNumber,
+
+      // Payment
+      amount: payments.amount,
+      currency: payments.currency,
+      provider: payments.provider,
+
+      // Individual ticket
+      ticketOrderItemId: ticketOrderItems.id,
+      ticketIdentifier: ticketOrderItems.ticketIdentifier,
+      qrCodeUrl: ticketOrderItems.qrCodeUrl,
+      checkedIn: ticketOrderItems.checkedIn,
+
+      // Event ticket information
+      eventTicketId: eventTickets.id,
+      ticketTypeId: eventTickets.ticketTypeId,
+      ticketTypeName: ticketTypes.name,
+    })
+    .from(ticketOrders)
+    .innerJoin(
+      payments,
+      and(
+        eq(payments.orderId, ticketOrders.id),
+        eq(payments.reference, reference),
+      ),
+    )
+    .innerJoin(
+      ticketOrderUserDetails,
+      eq(ticketOrders.id, ticketOrderUserDetails.orderId),
+    )
+    .innerJoin(ticketOrderItems, eq(ticketOrders.id, ticketOrderItems.orderId))
+    .leftJoin(eventTickets, eq(ticketOrderItems.eventTicketId, eventTickets.id))
+    .leftJoin(ticketTypes, eq(eventTickets.ticketTypeId, ticketTypes.id));
+
+  if (!rows.length) {
+    return null;
+  }
+
+  const first = rows[0];
+
+  return {
+    orderId: first?.orderId,
+    status: first?.status,
+    quantity: first?.quantity,
+    purchasedAt: first?.purchasedAt,
+
+    customer: {
+      firstName: first?.customerFirstName,
+      lastName: first?.customerLastName,
+      email: first?.customerEmail,
+      phoneNumber: first?.customerPhone,
+    },
+
+    payment: {
+      amount: first?.amount,
+      currency: first?.currency,
+      provider: first?.provider,
+    },
+
+    tickets: rows.map((row) => ({
+      id: row.ticketOrderItemId,
+      identifier: row.ticketIdentifier,
+      qrCodeUrl: row.qrCodeUrl,
+      checkedIn: row.checkedIn,
+
+      eventTicketId: row.eventTicketId,
+      ticketTypeId: row.ticketTypeId,
+      ticketTypeName: row.ticketTypeName,
+    })),
+  };
 }

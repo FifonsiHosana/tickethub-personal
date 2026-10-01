@@ -336,7 +336,7 @@ class EventsService {
       .where(
         and(
           eq(tickets.eventId, event?.id as number),
-          gt(ticketConfigurations.totalRemaining, 0),
+          // gt(ticketConfigurations.totalRemaining, 0),
           lte(ticketConfigurations.salesStartDate, sql`NOW()`),
           gte(ticketConfigurations.salesEndDate, sql`NOW()`),
         ),

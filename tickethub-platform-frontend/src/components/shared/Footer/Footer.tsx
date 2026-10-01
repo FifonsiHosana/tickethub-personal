@@ -21,15 +21,22 @@ export default function Footer() {
         <div className="flex flex-col gap-16 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-8 items-start">
             <div className="md:col-span-4 flex flex-col items-start gap-6">
-              <NavLink to="/">
-                <img
-                  src={assets.TicketHubLogo}
-                  alt="TicketHub Logo"
-                  className="object-contain"
-                  width={86}
-                  height={86}
-                />
-              </NavLink>
+              <div className="flex flex-col gap-2">
+                <NavLink to="/">
+                  <img
+                    src={assets.TicketHubLogo}
+                    alt="TicketHub Logo"
+                    className="object-contain"
+                    width={86}
+                    height={86}
+                  />
+                </NavLink>
+                {/* <div className="text-gray-400 ml-3 gap-0 text-sm items-center h-full justify-center  "> */}
+                <p className="text-[#ff4b14] text-xs font-semibold">
+                  From Adroit 360
+                </p>
+                {/* </div> */}
+              </div>
               <p className="text-white/60 text-sm md:text-base leading-relaxed max-w-sm font-sans">
                 Curating the moments that matter. Your trusted platform for
                 discovering and securing tickets to the most unforgettable live
@@ -101,6 +108,13 @@ export default function Footer() {
 
           {/* copyright plus icons */}
           <div className="flex flex-col-reverse md:flex-row items-center justify-between w-full gap-6">
+            <a
+              target="_blank"
+              href="https://www.adroit360.com"
+              className="text-xs md:text-sm text-white/50 font-sans"
+            >
+              Powered By Adroit 360
+            </a>
             <p className="text-xs md:text-sm text-white/50 font-sans">
               &copy; {new Date().getFullYear()} TicketHub. All rights reserved.
             </p>

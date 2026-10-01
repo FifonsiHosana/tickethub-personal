@@ -271,7 +271,11 @@ export class FinanceService {
 
       await sendTicket(
         order.TicketOrderUserDetails.phoneNumber,
-        `${orderItems[0]?.eventName}\n\n Ticket ID: ${orderItems[0]?.ticketIdentifier}\nTicket Type: ${orderItems[0]?.ticketName}\nQuantity: ${orderItems.length}\n\n View Tickets: ${orderItems[0]?.qrCodeUrl} `,
+        `${orderItems[0]?.eventName}\n\n
+         Ticket ID: ${orderItems[0]?.ticketIdentifier}\n
+         Ticket Type: ${orderItems[0]?.ticketName}\n
+         Quantity: ${orderItems.length}\n\n
+         View Tickets: ${orderItems[0]?.qrCodeUrl} `,
       );
       // await smsService.sendSms({
       //   userId: order.TicketOrderUserDetails.id,

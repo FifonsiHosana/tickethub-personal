@@ -16,12 +16,14 @@ import { useNavigate } from "react-router";
 export const Checkout: React.FC = () => {
   const navigate = useNavigate();
   const { isMobile } = useIsMobile();
-  const { totalTicketAmount: subtotal, totalTicketQuantity } =
-    useTicketCartStore();
+  const { totalTicketAmount, totalTicketQuantity } = useTicketCartStore();
   const purchaseMutation = usePurchaseTickets();
   const initiatePaymentFunction = usePayTicket();
   const processingFeePercentage = useProcessingFeePercentage();
-  const { feeAmount } = computeTotalWithFee(subtotal, processingFeePercentage);
+  const { feeAmount } = computeTotalWithFee(
+    totalTicketAmount,
+    processingFeePercentage,
+  );
   const totalFeeAmount = (feeAmount * totalTicketQuantity) as number;
 
   const { handleTicketOrderPurchase } = useCheckout({
@@ -82,7 +84,7 @@ export const Checkout: React.FC = () => {
           {/* Right Column: Sticky Pricing Summary */}
           <div className="lg:col-span-5 xl:col-span-4 sticky top-24 h-fit">
             <PricingSummary
-              subtotal={subtotal}
+              subtotal={totalTicketAmount}
               feeAmount={totalFeeAmount}
               isProcessing={
                 purchaseMutation.isPending || initiatePaymentFunction.isPending

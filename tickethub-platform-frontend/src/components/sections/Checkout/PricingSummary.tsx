@@ -21,9 +21,9 @@ export const PricingSummary: React.FC<PricingSummaryProps> = ({
   const subAmount = useTicketCartStore((s) =>
     s.items.reduce((sum, i) => sum + i.price * i.quantity, 0),
   );
-  const totalAmount = useTicketCartStore((s) =>
-    s.items.reduce((sum, i) => sum + i.price * i.quantity + feeAmount, 0),
-  );
+  // const totalAmount = useTicketCartStore((s) =>
+  //   s.items.reduce((sum, i) => sum + i.price * i.quantity + feeAmount, 0),
+  // );
 
   return (
     <div className="bg-white rounded-4xl p-6 sm:p-8 border border-neutral-100 shadow-xl shadow-neutral-200/40 flex flex-col gap-6 ">
@@ -46,7 +46,7 @@ export const PricingSummary: React.FC<PricingSummaryProps> = ({
         <div className="flex justify-between items-center">
           <span className="font-bold text-foreground">Total</span>
           <span className="text-lg font-bold text-[#1a201c]">
-            GH₵ {totalAmount.toFixed(2)}
+            GH₵ {total.toFixed(2)}
           </span>
         </div>
       </div>
