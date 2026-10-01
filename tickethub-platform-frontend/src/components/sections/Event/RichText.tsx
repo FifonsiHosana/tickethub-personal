@@ -5,7 +5,7 @@ interface RichTextProps {
   className?: string;
 }
 
-export const RichText: React.FC<RichTextProps> = ({ html, className }) => {
+export const RichText: React.FC<RichTextProps> = ({ html }) => {
   const clean = DOMPurify.sanitize(html);
 
   return (
