@@ -11,6 +11,7 @@ import {
   events,
   eventsVenues,
   ticketTypes,
+  ticketOrderUserDetails,
 } from '@/db/schema/index.js';
 import { sendMail } from '@/modules/emails/emails.service.js';
 import { ensureAccountForOrder } from '@/modules/attendee/guest-account.service.js';
@@ -19,6 +20,8 @@ import type { purchaseTicketPaymentInput } from './finance.schema.js';
 import { now } from '@/utils/timeDatehelpers.js';
 import { buildPurchaseConfirmationEmail } from '../emails/templates/ticketPurchase.template.js';
 import { computeOrderBreakdown } from './finance.pricing.js';
+import { sendTicket } from '../ussd-payment/ussd-payment.utils.js';
+import { smsService } from '../sms/sms.service.js';
 
 // eventually have a settings table, that would have the current provider
 // on the admin dashboard
@@ -130,7 +133,12 @@ export class FinanceService {
       const [order] = await tx
         .select()
         .from(ticketOrders)
+        .innerJoin(
+          ticketOrderUserDetails,
+          eq(ticketOrders.id, ticketOrderUserDetails.orderId),
+        )
         .where(eq(ticketOrders.id, orderId))
+
         .limit(1);
 
       if (!order) {
@@ -220,6 +228,7 @@ export class FinanceService {
         .select({
           ticketIdentifier: ticketOrderItems.ticketIdentifier,
           ticketType: ticketTypes.name,
+          ticketName: tickets.name,
           price: ticketConfigurations.price,
           eventName: events.title,
           eventDate: events.dateAndTime,
@@ -252,6 +261,16 @@ export class FinanceService {
           accountCreated,
           email: customerEmail,
         });
+
+      await sendTicket(
+        order.TicketOrderUserDetails.phoneNumber,
+        `${orderItems[0]?.eventName}\n\n Ticket ID: ${orderItems[0]?.ticketIdentifier}\nTicket Type: ${orderItems[0]?.ticketName}\nQuantity: ${orderItems.length}\n\n View Tickets: ${orderItems[0]?.qrCodeUrl} `,
+      );
+      // await smsService.sendSms({
+      //   userId: order.TicketOrderUserDetails.id,
+      //   message: `Your TicketHub Tickets\nTicket code: ${orderItems[0]?.ticketIdentifier}\nAmount Paid: ${amountToString} ${currency}`,
+      //   recipients: [order.TicketOrderUserDetails.phoneNumber],
+      // });
       await sendMail(
         customerEmail,
         'Your TicketHub Tickets',

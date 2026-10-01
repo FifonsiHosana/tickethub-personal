@@ -10,7 +10,12 @@ export const RichText: React.FC<RichTextProps> = ({ html, className }) => {
 
   return (
     <div
-      className={`prose max-w-none ${className ?? ""}`}
+      // className=""
+      // className={`prose max-w-none prose-p:my-4 ${className ?? ""}`}
+      className="prose max-w-none
+      prose-p:my-4
+      prose-p:first:mt-0
+      prose-p:last:mb-0"
       dangerouslySetInnerHTML={{ __html: clean }}
     />
   );

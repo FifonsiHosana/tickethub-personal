@@ -9,7 +9,13 @@ import logger from '@/utils/logger/index.js';
 import { isTransactionProcessed, sendTicket } from './ussd-payment.utils.js';
 import { FinanceService } from '../finance/finance.service.js';
 import { db } from '@/db/client.js';
-import { ticketOrderItems } from '@/db/schema/index.js';
+import {
+  events,
+  eventTickets,
+  ticketConfigurations,
+  ticketOrderItems,
+  tickets,
+} from '@/db/schema/index.js';
 import { eq } from 'drizzle-orm';
 
 export const initiatePayment = async (fields: PaystackPaymentFields) => {
@@ -105,14 +111,28 @@ export const paymentComplete = async (fields: PaymentWebhook) => {
   const financeService = new FinanceService();
   if (fields.event !== 'charge.success') return;
   const [ticketId] = await db
-    .select({ ticketIdentifier: ticketOrderItems.ticketIdentifier })
+    .select({
+      ticketIdentifier: ticketOrderItems.ticketIdentifier,
+      ticketType: eventTickets.ticketTypeId,
+      name: events.title,
+    })
     .from(ticketOrderItems)
+    .innerJoin(
+      ticketConfigurations,
+      eq(ticketOrderItems.id, ticketConfigurations.id),
+    )
+    .innerJoin(eventTickets, eq(tickets.eventId, eventTickets.id))
+    .innerJoin(events, eq(eventTickets.id, events.id))
     .where(eq(ticketOrderItems.orderId, Number(fields.data.metadata.orderId)));
   // const sourceId = fields.data.metadata.sourceId;
   // const receiveNumber = fields.data.metadata.receiveNumber; //#for gifting if feature is required later
 
   const phoneNumber = fields.data.metadata.phoneNumber;
-  const message = `Your ticket purhase was sucessful This is your ticket code ${ticketId} enjoy from the team at tickethub!`;
+  const message = `
+  ${ticketId?.name}\n
+  Ticket ID: ${ticketId?.ticketIdentifier}\n
+ 
+  `;
   const orderId = Number(fields.data.metadata.orderId);
   const paymentRef = fields.data.reference;
   const currency = fields.data.currency;

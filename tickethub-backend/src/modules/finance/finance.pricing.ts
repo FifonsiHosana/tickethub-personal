@@ -51,7 +51,7 @@ export async function getOrderSubtotalFromDb(orderId: number) {
 export async function computeOrderBreakdown(orderId: number) {
   const subtotal = await getOrderSubtotalFromDb(orderId);
   // const processingPercentageFee = await getProcessingPercentageFee();
-  const feeAmount = 10;
+  const feeAmount = 0;
   // round2(
   //   (subtotal * processingPercentageFee) / 100,
   // );
