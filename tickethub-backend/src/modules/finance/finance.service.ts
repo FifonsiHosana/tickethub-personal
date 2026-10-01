@@ -67,6 +67,7 @@ export class FinanceService {
   private async handlePayStackPayment(data: purchaseTicketPaymentInput) {
     const { subtotal, feeAmount, totalAmount } = await computeOrderBreakdown(
       data.orderId,
+      data.totalQuantity,
     );
 
     const response = await axios.post(
@@ -78,6 +79,7 @@ export class FinanceService {
         metadata: {
           orderId: data.orderId,
           phoneNumber: data.phoneNumber,
+          totalQuantity: data.totalQuantity,
         },
       }),
       {
@@ -123,9 +125,13 @@ export class FinanceService {
     currency: string,
     provider: string,
     customerEmail: string,
+    totalQuantity: number,
   ) {
     const amountToString = amount.toString();
-    const { subtotal, feeAmount } = await computeOrderBreakdown(orderId);
+    const { subtotal, feeAmount } = await computeOrderBreakdown(
+      orderId,
+      totalQuantity,
+    );
     await db.transaction(async (tx) => {
       /**
        * ensure order exists
@@ -290,6 +296,7 @@ export class FinanceService {
     // );
 
     const orderId = Number(payload.data.metadata.orderId);
+    const totalQuantity = Number(payload.data.metadata.totalQuantity);
     // const phoneNumber = payload.data.metadata.phoneNumber; // later on would send SMS to this number
     const paymentRef = payload.data.reference;
     const currency = payload.data.currency;
@@ -309,6 +316,7 @@ export class FinanceService {
       currency,
       PROVIDER,
       email,
+      totalQuantity
     );
   }
 }

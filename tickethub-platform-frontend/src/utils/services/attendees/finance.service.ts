@@ -5,6 +5,7 @@ export type purchaseTicketPaymentInput = {
   totalAmount: number;
   email: string;
   phoneNumber: string;
+  totalQuantity: number;
 };
 
 export type initiatePaystackPaymentResponse = {
@@ -17,7 +18,7 @@ export type initiatePaystackPaymentResponse = {
 };
 
 export const purchaseTicketPayment = async (
-  input: purchaseTicketPaymentInput
+  input: purchaseTicketPaymentInput,
 ) => {
   const response = await axiosInstance.post("/finance", input);
 

@@ -14,6 +14,7 @@ import {
   eventTickets,
   ticketConfigurations,
   ticketOrderItems,
+  ticketOrders,
   tickets,
 } from '@/db/schema/index.js';
 import { eq } from 'drizzle-orm';
@@ -115,8 +116,10 @@ export const paymentComplete = async (fields: PaymentWebhook) => {
       ticketIdentifier: ticketOrderItems.ticketIdentifier,
       ticketType: eventTickets.ticketTypeId,
       name: events.title,
+      totalQuantity: ticketOrders.quantity,
     })
     .from(ticketOrderItems)
+    .innerJoin(tickets, eq(ticketOrders.id, ticketOrderItems.orderId))
     .innerJoin(
       ticketConfigurations,
       eq(ticketOrderItems.id, ticketConfigurations.id),
@@ -158,6 +161,7 @@ export const paymentComplete = async (fields: PaymentWebhook) => {
     currency,
     PROVIDER,
     email,
+    Number(ticketId?.totalQuantity),
   );
 
   sendTicket(phoneNumber, message);

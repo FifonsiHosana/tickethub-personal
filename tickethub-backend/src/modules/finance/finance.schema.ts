@@ -5,6 +5,7 @@ export const purchaseTicketPaymentSchema = z.object({
   totalAmount: z.number(),
   email: z.email(),
   phoneNumber: z.string().min(10),
+  totalQuantity: z.number().min(1),
 });
 
 export type purchaseTicketPaymentInput = z.infer<
