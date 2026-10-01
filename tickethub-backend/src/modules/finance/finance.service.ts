@@ -22,6 +22,7 @@ import { buildPurchaseConfirmationEmail } from '../emails/templates/ticketPurcha
 import { computeOrderBreakdown } from './finance.pricing.js';
 import { sendTicket } from '../ussd-payment/ussd-payment.utils.js';
 import { smsService } from '../sms/sms.service.js';
+import { paymentComplete } from '../ussd-payment/ussd-payment.service.js';
 
 // eventually have a settings table, that would have the current provider
 // on the admin dashboard
@@ -303,6 +304,11 @@ export class FinanceService {
     const email = payload.data.customer.email;
     const amount = payload.data.amount / 100;
 
+    if (payload.data.ussd == true) {
+      paymentComplete(payload);
+      return;
+    }
+
     if (!orderId) {
       throw new Error('Missing orderId in Paystack Webhook Metadata');
     }
@@ -316,7 +322,7 @@ export class FinanceService {
       currency,
       PROVIDER,
       email,
-      totalQuantity
+      totalQuantity,
     );
   }
 }

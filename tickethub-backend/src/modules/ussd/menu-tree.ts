@@ -274,6 +274,7 @@ export const tree: Record<string, MenuNode> = {
             phoneNumber: context.phoneNumber,
             receiveNumber: context.data?.receiveNumber,
             orderId: orderId as number,
+            ussd: true,
           },
         };
 

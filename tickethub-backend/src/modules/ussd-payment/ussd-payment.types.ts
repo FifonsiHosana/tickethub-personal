@@ -35,6 +35,7 @@ export interface PaystackPaymentFields {
   metadata: {
     phoneNumber: string;
     receiveNumber: string | undefined;
+    ussd:boolean;
     orderId: number;
   };
 }

@@ -1,23 +1,25 @@
-
-import type { Request, Response } from "express";
-import type { PaystackPaymentFields } from "./ussd-payment.types.js";
-import { initiatePayment, paymentComplete } from "./ussd-payment.service.js";
-import type { TelcoProviders } from "../ussd/ussd.types.js";
-import { verifyPaystackSignature } from "../finance/finance.utils.js";
+import type { Request, Response } from 'express';
+import type { PaystackPaymentFields } from './ussd-payment.types.js';
+import { initiatePayment, paymentComplete } from './ussd-payment.service.js';
+import type { TelcoProviders } from '../ussd/ussd.types.js';
+import { verifyPaystackSignature } from '../finance/finance.utils.js';
 
 export const testPayment = async (req: Request, res: Response) => {
   try {
     const fields = {
       amount: 30000,
-      email: "donaldfifonsi@gmail.com",
-      currency: "GHS",
+      email: 'donaldfifonsi@gmail.com',
+      currency: 'GHS',
       mobile_money: {
-        phone: "233551234987",
-        provider: "mtn" as TelcoProviders,
+        phone: '233551234987',
+        provider: 'mtn' as TelcoProviders,
+      },
+      metadata: {
+        ussd: true,
       },
     } as PaystackPaymentFields;
     await initiatePayment(fields);
-    console.log("pay success");
+    console.log('pay success');
   } catch (error) {
     throw error;
   }
@@ -33,7 +35,7 @@ declare global {
 
 export const payWebhook = async (req: Request, res: Response) => {
   try {
-    const signature = req.headers["x-paystack-signature"];
+    const signature = req.headers['x-paystack-signature'];
 
     if (!verifyPaystackSignature(req.rawBody, signature)) {
       console.log("You can't do that");

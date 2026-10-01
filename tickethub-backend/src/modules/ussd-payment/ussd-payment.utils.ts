@@ -28,7 +28,7 @@ export const sendTicket = async (
       'https://api.mnotify.com/api/sms/quick',
       {
         recipient: [phoneNumber],
-        sender: config.sms.sender_id, // replace with your registered sender ID
+        sender: config.sms.sender_id,
         message: ticketMessage,
         is_schedule: false,
         schedule_date: '',

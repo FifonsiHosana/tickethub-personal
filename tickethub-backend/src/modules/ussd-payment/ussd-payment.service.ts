@@ -110,50 +110,59 @@ export const paystackOtp = async (otp: string, reference: string) => {
 
 export const paymentComplete = async (fields: PaymentWebhook) => {
   const financeService = new FinanceService();
+
   if (fields.event !== 'charge.success') return;
-  const [ticketId] = await db
+
+  const orderId = Number(fields.data.metadata.orderId);
+
+  const ticketItems = await db
     .select({
       ticketIdentifier: ticketOrderItems.ticketIdentifier,
       ticketType: eventTickets.ticketTypeId,
       name: events.title,
-      totalQuantity: ticketOrders.quantity,
+      quantity: ticketOrders.quantity,
     })
     .from(ticketOrderItems)
-    .innerJoin(tickets, eq(ticketOrders.id, ticketOrderItems.orderId))
+    .innerJoin(tickets, eq(tickets.id, ticketOrderItems.eventTicketId))
+    .innerJoin(ticketOrders, eq(ticketOrders.id, ticketOrderItems.orderId))
     .innerJoin(
       ticketConfigurations,
       eq(ticketOrderItems.id, ticketConfigurations.id),
     )
     .innerJoin(eventTickets, eq(tickets.eventId, eventTickets.id))
     .innerJoin(events, eq(eventTickets.id, events.id))
-    .where(eq(ticketOrderItems.orderId, Number(fields.data.metadata.orderId)));
-  // const sourceId = fields.data.metadata.sourceId;
-  // const receiveNumber = fields.data.metadata.receiveNumber; //#for gifting if feature is required later
+    .where(eq(ticketOrderItems.orderId, orderId));
 
   const phoneNumber = fields.data.metadata.phoneNumber;
-  const message = `
-  ${ticketId?.name}\n
-  Ticket ID: ${ticketId?.ticketIdentifier}\n
- 
-  `;
-  const orderId = Number(fields.data.metadata.orderId);
+
+  const message = ticketItems
+    .map((ticket, index) =>
+      `
+TICKET ${index + 1}
+
+${ticket.name}
+
+Ticket ID: ${ticket.ticketIdentifier}
+Ticket Type: ${ticket.ticketType}
+Quantity: ${ticket.quantity}
+      `.trim(),
+    )
+    .join('\n\n--------------------\n\n');
+
   const paymentRef = fields.data.reference;
   const currency = fields.data.currency;
   const email = fields.data.customer.email;
   const amount = fields.data.amount / 100;
   const PROVIDER = 'paystack';
 
-  // const giftMessage =
-  //   "We've sent your buddy his ticket! hope they pay it forward! :)"; //#gifting
-
   if (!paymentRef) {
-    throw new Error('Missing sourceId in Paystack webhook metadata');
+    throw new Error('Missing payment reference in Paystack webhook');
   }
 
   const alreadyProcessed = await isTransactionProcessed(paymentRef);
+
   if (alreadyProcessed) return;
 
-  // Thread orderId through to processPurchase and skip confirmation email for USSD orders
   await financeService.processPurchase(
     orderId,
     paymentRef,
@@ -161,20 +170,11 @@ export const paymentComplete = async (fields: PaymentWebhook) => {
     currency,
     PROVIDER,
     email,
-    Number(ticketId?.totalQuantity),
+    ticketItems.reduce((total, ticket) => total + ticket.quantity, 0),
   );
 
-  sendTicket(phoneNumber, message);
-
-  //I will eventually have to await all.
-  // if (receiveNumber) {
-  //   sendTicket(receiveNumber, message);
-  //   sendTicket(phoneNumber, giftMessage);
-  //   return;
-  // }
-  // sendTicket(phoneNumber, message);
+  await sendTicket(phoneNumber, message);
 };
-
 const checkStatus = async () => {
   //Help clients that paid and wanna know why they didn't get their tickets
   //if success and ticket not sent send ----add to the tree
