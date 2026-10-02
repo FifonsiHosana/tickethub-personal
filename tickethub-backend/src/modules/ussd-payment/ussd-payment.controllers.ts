@@ -33,20 +33,20 @@ declare global {
   }
 }
 
-export const payWebhook = async (req: Request, res: Response) => {
-  try {
-    const signature = req.headers['x-paystack-signature'];
+// export const payWebhook = async (req: Request, res: Response) => {
+//   try {
+//     const signature = req.headers['x-paystack-signature'];
 
-    if (!verifyPaystackSignature(req.rawBody, signature)) {
-      console.log("You can't do that");
-      return;
-    }
+//     if (!verifyPaystackSignature(req.rawBody, signature)) {
+//       console.log("You can't do that");
+//       return;
+//     }
 
-    paymentComplete(req.body);
+//     paymentComplete(req.body);
 
-    res.sendStatus(200);
-  } catch (error) {
-    res.sendStatus(500);
-    throw error;
-  }
-};
+//     res.sendStatus(200);
+//   } catch (error) {
+//     res.sendStatus(500);
+//     throw error;
+//   }
+// };

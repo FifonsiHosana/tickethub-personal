@@ -76,7 +76,7 @@ export class FinanceService {
       JSON.stringify({
         email: data.email,
         amount: Math.round(totalAmount * 100),
-
+        // reference: `order-${data.orderId}-${Date.now()}`,
         metadata: {
           orderId: data.orderId,
           phoneNumber: data.phoneNumber,

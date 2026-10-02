@@ -58,6 +58,7 @@ export const initiatePayment = async (fields: PaystackPaymentFields) => {
               amount: fields.amount,
               orderId: fields.metadata?.orderId,
               phoneNumber: fields.metadata?.phoneNumber,
+              totalQuantity: fields.metadata?.totalQuantity,
             });
 
           // await sendTicket(
@@ -69,6 +70,7 @@ export const initiatePayment = async (fields: PaystackPaymentFields) => {
         } catch (linkError) {
           console.error('Failed to create/send pay link', {
             orderId: fields.metadata?.orderId,
+            totalQuantity: fields.metadata?.totalQuantity,
             linkError,
           });
         }
@@ -107,6 +109,7 @@ export const createPayLink = async (opts: {
   amount: number;
   orderId: number;
   phoneNumber: string;
+  totalQuantity: number;
 }) => {
   const response = await axios.post(
     'https://api.paystack.co/transaction/initialize',
@@ -118,6 +121,7 @@ export const createPayLink = async (opts: {
         phoneNumber: opts.phoneNumber,
         orderId: opts.orderId as number,
         ussd: true,
+        totalQuantity: opts.totalQuantity as number,
       },
     }),
     {
