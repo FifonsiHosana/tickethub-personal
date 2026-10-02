@@ -87,8 +87,8 @@ export const getEvent = async (
     // const response = await db.select().from(tickets);
 
     const row = response[0];
-    console.log('row', row);
-    console.log('response', response);
+    // console.log('row', row);
+    // console.log('response', response);
 
     if (!row) return undefined;
 
@@ -199,8 +199,8 @@ export const handleUssd = async (
 
   if (isFirstRequest) {
     const cleaned = stripShortcode(text, shortcode);
-    console.log('RAW TEXT (first request):', JSON.stringify(text));
-    console.log('CLEANED:', JSON.stringify(cleaned));
+    // console.log('RAW TEXT (first request):', JSON.stringify(text));
+    // console.log('CLEANED:', JSON.stringify(cleaned));
 
     // First segment (if any) is a deep-linked event id; only segments
     // after it count as menu input (e.g. *920*658*28# -> event 28, no input).

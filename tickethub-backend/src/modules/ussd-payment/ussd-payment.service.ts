@@ -16,6 +16,7 @@ import {
   ticketOrderItems,
   ticketOrders,
   tickets,
+  ticketTypes,
 } from '@/db/schema/index.js';
 import { eq } from 'drizzle-orm';
 
@@ -185,24 +186,48 @@ export const paymentComplete = async (fields: PaymentWebhook) => {
   if (fields.event !== 'charge.success') return;
 
   const orderId = Number(fields.data.metadata.orderId);
+  console.log('paystack fields', JSON.stringify(fields));
 
+  // const ticketItems = await db
+  //   .select({
+  //     ticketIdentifier: ticketOrderItems.ticketIdentifier,
+  //     ticketType: eventTickets.ticketTypeId,
+  //     name: events.title,
+  //     quantity: ticketOrders.quantity,
+  //   })
+  //   .from(ticketOrderItems)
+  //   .innerJoin(tickets, eq(tickets.id, ticketOrderItems.eventTicketId))
+  //   .innerJoin(ticketOrders, eq(ticketOrders.id, ticketOrderItems.orderId))
+  //   .innerJoin(
+  //     ticketConfigurations,
+  //     eq(ticketOrderItems.id, ticketConfigurations.id),
+  //   )
+  //   .innerJoin(eventTickets, eq(tickets.eventId, eventTickets.id))
+  //   .innerJoin(events, eq(eventTickets.id, events.id))
+  //   .where(eq(ticketOrderItems.orderId, orderId));
   const ticketItems = await db
     .select({
       ticketIdentifier: ticketOrderItems.ticketIdentifier,
-      ticketType: eventTickets.ticketTypeId,
-      name: events.title,
-      quantity: ticketOrders.quantity,
+      ticketType: ticketTypes.name,
+      ticketName: tickets.name,
+      eventName: events.title,
+      qrCodeUrl: ticketOrderItems.qrCodeUrl,
     })
     .from(ticketOrderItems)
-    .innerJoin(tickets, eq(tickets.id, ticketOrderItems.eventTicketId))
-    .innerJoin(ticketOrders, eq(ticketOrders.id, ticketOrderItems.orderId))
     .innerJoin(
-      ticketConfigurations,
-      eq(ticketOrderItems.id, ticketConfigurations.id),
+      eventTickets,
+      eq(ticketOrderItems.eventTicketId, eventTickets.id),
     )
-    .innerJoin(eventTickets, eq(tickets.eventId, eventTickets.id))
-    .innerJoin(events, eq(eventTickets.id, events.id))
+    .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
+    .innerJoin(events, eq(tickets.eventId, events.id))
+    .innerJoin(ticketTypes, eq(eventTickets.ticketTypeId, ticketTypes.id))
     .where(eq(ticketOrderItems.orderId, orderId));
+
+  console.log('All ticketItems', ticketItems);
+
+  const totalQuantity = ticketItems.length;
+
+  console.log('total quantity ticketitems', totalQuantity);
 
   const phoneNumber = fields.data.metadata.phoneNumber;
 
@@ -211,11 +236,11 @@ export const paymentComplete = async (fields: PaymentWebhook) => {
       `
 TICKET ${index + 1}
 
-${ticket.name}
+${ticket.ticketName}
 
 Ticket ID: ${ticket.ticketIdentifier}
 Ticket Type: ${ticket.ticketType}
-Quantity: ${ticket.quantity}
+Quantity: ${totalQuantity}
       `.trim(),
     )
     .join('\n\n--------------------\n\n');
@@ -241,11 +266,12 @@ Quantity: ${ticket.quantity}
     currency,
     PROVIDER,
     email,
-    ticketItems.reduce((total, ticket) => total + ticket.quantity, 0),
+    totalQuantity,
   );
 
-  await sendTicket(phoneNumber, message);
+  // await sendTicket(phoneNumber, message);
 };
+
 const checkStatus = async () => {
   //Help clients that paid and wanna know why they didn't get their tickets
   //if success and ticket not sent send ----add to the tree

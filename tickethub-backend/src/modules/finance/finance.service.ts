@@ -133,6 +133,10 @@ export class FinanceService {
       orderId,
       totalQuantity,
     );
+
+    console.log(
+      `Processing purchase for order ${orderId} fee :${feeAmount} with reference ${paymentReference}, amount ${amountToString} ${currency}, provider ${provider}, email ${customerEmail}, totalQuantity ${totalQuantity}`,
+    );
     await db.transaction(async (tx) => {
       /**
        * ensure order exists
@@ -308,8 +312,8 @@ export class FinanceService {
     const email = payload.data.customer.email;
     const amount = payload.data.amount / 100;
 
-    if (payload.data.ussd == true) {
-      paymentComplete(payload);
+    if (payload.data.metadata?.ussd === true) {
+      await paymentComplete(payload);
       return;
     }
 
