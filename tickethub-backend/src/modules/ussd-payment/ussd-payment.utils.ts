@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import axios from 'axios';
 import config from '@/config/config.js';
 import logger from '@/utils/logger/index.js';
+import type { TelcoProviders } from '../ussd/ussd.types.js';
 
 export const isTransactionProcessed = async (
   reference: string,
@@ -18,6 +19,25 @@ export const isTransactionProcessed = async (
 };
 
 // const createTicket = async () => {};
+
+const PROVIDER_MAP: Record<string, TelcoProviders> = {
+  mtn: 'mtn',
+  vod: 'vod',
+  vodafone: 'vod',
+  telecel: 'vod',
+  atl: 'atl',
+  airteltigo: 'atl',
+  airtel: 'atl',
+  tigo: 'atl',
+};
+
+export const toPaystackProvider = (value: string): TelcoProviders => {
+  const provider = PROVIDER_MAP[value.trim().toLowerCase()];
+  if (!provider) {
+    throw new Error(`Unsupported mobile money provider: ${value}`);
+  }
+  return provider;
+};
 
 export const sendTicket = async (
   phoneNumber: string,

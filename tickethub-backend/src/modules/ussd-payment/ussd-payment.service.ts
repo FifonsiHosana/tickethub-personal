@@ -60,7 +60,8 @@ export const initiatePayment = async (fields: PaystackPaymentFields) => {
 
           await sendTicket(
             fields.metadata?.phoneNumber,
-            `Your payment could not be processed. Complete it here: ${authorization_url}`,
+            `If you haven't already, complete your payment here:\n ${authorization_url}.\n\n
+             NOTE:if you have already paid, please ignore this message.`,
           );
           // optionally save `reference` against the order
         } catch (linkError) {
@@ -101,7 +102,7 @@ export const initiatePayment = async (fields: PaystackPaymentFields) => {
 
 export const createPayLink = async (opts: {
   email: string;
-  amount: number; // pesewas, same as in your charge call
+  amount: number;
   orderId: number;
   phoneNumber: string;
 }) => {

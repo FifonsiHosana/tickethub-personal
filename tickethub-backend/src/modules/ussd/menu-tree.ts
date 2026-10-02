@@ -16,6 +16,7 @@ import TicketsService from '../tickets/tickets.service.js';
 import { initiatePayment } from '../ussd-payment/ussd-payment.service.js';
 import { getCategories, getCategoryEvents } from './ussd.services.js';
 import type { sessionContext } from './ussd.types.js';
+import { toPaystackProvider } from '../ussd-payment/ussd-payment.utils.js';
 
 type AvailableTicket = NonNullable<EventDetails['ticketTypes'][number]> & {
   remaining: number;
@@ -268,7 +269,7 @@ export const tree: Record<string, MenuNode> = {
           // channels: ['mobile_money'],
           mobile_money: {
             phone: context.phoneNumber,
-            provider: context.telcoProvider,
+            provider: toPaystackProvider(context.telcoProvider),
           },
           metadata: {
             phoneNumber: context.phoneNumber,
