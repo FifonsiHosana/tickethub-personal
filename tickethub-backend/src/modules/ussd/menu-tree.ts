@@ -264,7 +264,7 @@ export const tree: Record<string, MenuNode> = {
         // Build payment fields with orderId in metadata
         const fields: PaystackPaymentFields = {
           amount: totalPrice(context) * 100,
-          email: 'donaldfifonsi@gmail.com',
+          email: 'info@tickethubgh.com',
           currency: 'GHS',
           // channels: ['mobile_money'],
           mobile_money: {

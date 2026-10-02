@@ -51,18 +51,19 @@ export const initiatePayment = async (fields: PaystackPaymentFields) => {
 
       if (isUnprocessed) {
         try {
-          const { authorization_url, reference } = await createPayLink({
-            email: fields.email,
-            amount: fields.amount,
-            orderId: fields.metadata?.orderId,
-            phoneNumber: fields.metadata?.phoneNumber,
-          });
+          const { authorization_url, reference, access_code } =
+            await createPayLink({
+              email: fields.email,
+              amount: fields.amount,
+              orderId: fields.metadata?.orderId,
+              phoneNumber: fields.metadata?.phoneNumber,
+            });
 
-          await sendTicket(
-            fields.metadata?.phoneNumber,
-            `If you haven't already, complete your payment here:\n ${authorization_url}.\n\n
-             NOTE:if you have already paid, please ignore this message.`,
-          );
+          // await sendTicket(
+          //   fields.metadata?.phoneNumber,
+          //   `If you haven't received the payment prompt, please complete your payment here:\n${authorization_url}.\n
+          //    NOTE:if you have already recived the prompt and paid, please ignore this message.`,
+          // );
           // optionally save `reference` against the order
         } catch (linkError) {
           console.error('Failed to create/send pay link', {
@@ -108,21 +109,23 @@ export const createPayLink = async (opts: {
 }) => {
   const response = await axios.post(
     'https://api.paystack.co/transaction/initialize',
-    {
+    JSON.stringify({
       email: opts.email,
       amount: opts.amount,
-      currency: 'GHS',
-      reference: `order-${opts.orderId}-${Date.now()}`, // unique per attempt
-      channels: ['mobile_money'],
+
       metadata: {
-        orderId: opts.orderId,
         phoneNumber: opts.phoneNumber,
+        orderId: opts.orderId as number,
         ussd: true,
       },
+    }),
+    {
+      headers: {
+        Authorization: `Bearer ${config.payment.paystack_api_key}`,
+        'Content-Type': 'application/json',
+      },
     },
-    { headers: { Authorization: `Bearer ${config.payment.paystack_api_key}` } },
   );
-
   return response.data.data as {
     authorization_url: string;
     access_code: string;
