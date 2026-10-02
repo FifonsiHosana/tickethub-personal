@@ -23,25 +23,55 @@ export const initiatePayment = async (fields: PaystackPaymentFields) => {
   try {
     const response = await axios.post(
       'https://api.paystack.co/charge',
+      { ...fields },
       {
-        ...fields,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${config.payment.paystack_api_key}`,
-        },
+        headers: { Authorization: `Bearer ${config.payment.paystack_api_key}` },
       },
     );
 
-    console.log(`Paystack cHARGE ${response.data}`);
-
+    console.log('Paystack charge response', response.data); // comma, not template string
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error(
-        'PAYSTACK ERROR:',
-        JSON.stringify(error.response?.data, null, 2),
-      );
+      const body = error.response?.data;
+
+      console.error('Paystack charge failed', {
+        status: error.response?.status,
+        body,
+        orderId: fields.metadata?.orderId,
+      });
+
+      const isUnprocessed =
+        error.response?.status === 400 &&
+        body?.code === 'unprocessed_transaction' &&
+        body?.data?.status === 'failed';
+
+      const chargeUnsuccessfulMessage =
+        'Your payment could not be processed. Here is a link to your to retry payment.';
+
+      if (isUnprocessed) {
+        try {
+          const { authorization_url, reference } = await createPayLink({
+            email: fields.email,
+            amount: fields.amount,
+            orderId: fields.metadata?.orderId,
+            phoneNumber: fields.metadata?.phoneNumber,
+          });
+
+          await sendTicket(
+            fields.metadata?.phoneNumber,
+            `Your payment could not be processed. Complete it here: ${authorization_url}`,
+          );
+          // optionally save `reference` against the order
+        } catch (linkError) {
+          console.error('Failed to create/send pay link', {
+            orderId: fields.metadata?.orderId,
+            linkError,
+          });
+        }
+
+        return { handled: true, reference: body.data.reference };
+      }
     }
 
     throw error;
@@ -68,6 +98,36 @@ export const initiatePayment = async (fields: PaystackPaymentFields) => {
 //     throw error;
 //   }
 // };
+
+export const createPayLink = async (opts: {
+  email: string;
+  amount: number; // pesewas, same as in your charge call
+  orderId: number;
+  phoneNumber: string;
+}) => {
+  const response = await axios.post(
+    'https://api.paystack.co/transaction/initialize',
+    {
+      email: opts.email,
+      amount: opts.amount,
+      currency: 'GHS',
+      reference: `order-${opts.orderId}-${Date.now()}`, // unique per attempt
+      channels: ['mobile_money'],
+      metadata: {
+        orderId: opts.orderId,
+        phoneNumber: opts.phoneNumber,
+        ussd: true,
+      },
+    },
+    { headers: { Authorization: `Bearer ${config.payment.paystack_api_key}` } },
+  );
+
+  return response.data.data as {
+    authorization_url: string;
+    access_code: string;
+    reference: string;
+  };
+};
 
 const paystackHeaders = () => ({
   Authorization: `Bearer ${config.payment.paystack_api_key}`,
