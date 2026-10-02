@@ -225,7 +225,7 @@ export const paymentComplete = async (fields: PaymentWebhook) => {
 
   console.log('All ticketItems', ticketItems);
 
-  const totalQuantity = ticketItems.length;
+  const totalQuantity = Number(ticketItems.length);
 
   console.log('total quantity ticketitems', totalQuantity);
 
@@ -266,7 +266,7 @@ Quantity: ${totalQuantity}
     currency,
     PROVIDER,
     email,
-    totalQuantity,
+    totalQuantity as number,
   );
 
   // await sendTicket(phoneNumber, message);
