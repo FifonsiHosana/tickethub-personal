@@ -312,6 +312,8 @@ export class FinanceService {
     const email = payload.data.customer.email;
     const amount = payload.data.amount / 100;
 
+    console.log('Transaction payload', payload);
+
     if (payload.data.metadata?.ussd === true) {
       await paymentComplete(payload);
       return;
