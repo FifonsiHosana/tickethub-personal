@@ -23,6 +23,7 @@ import { computeOrderBreakdown } from './finance.pricing.js';
 import { sendTicket } from '../ussd-payment/ussd-payment.utils.js';
 import { smsService } from '../sms/sms.service.js';
 import { paymentComplete } from '../ussd-payment/ussd-payment.service.js';
+import { randomBytes } from 'crypto';
 
 // eventually have a settings table, that would have the current provider
 // on the admin dashboard
@@ -76,7 +77,7 @@ export class FinanceService {
       JSON.stringify({
         email: data.email,
         amount: Math.round(totalAmount * 100),
-        // reference: `order-${data.orderId}-${Date.now()}`,
+        reference: data.reference,
         metadata: {
           orderId: data.orderId,
           phoneNumber: data.phoneNumber,
@@ -272,15 +273,30 @@ export class FinanceService {
           accountCreated,
           email: customerEmail,
         });
+      const ticketLines = orderItems
+        .map(
+          (t, i) =>
+            `${i + 1}. ${t.ticketName}\n` +
+            `ID: ${t.ticketIdentifier}\n` +
+            `View: ${t.qrCodeUrl}`,
+        )
+        .join('\n\n');
 
       await sendTicket(
         order.TicketOrderUserDetails.phoneNumber,
-        `${orderItems[0]?.eventName}\n\n
-         Ticket ID: ${orderItems[0]?.ticketIdentifier}\n
-         Ticket Type: ${orderItems[0]?.ticketName}\n
-         Quantity: ${orderItems.length}\n\n
-         View Tickets: ${orderItems[0]?.qrCodeUrl} `,
+        `${orderItems[0]?.eventName}\n\n` +
+          `Quantity: ${orderItems.length}\n\n` +
+          ticketLines,
       );
+
+      // await sendTicket(
+      //   order.TicketOrderUserDetails.phoneNumber,
+      //   `${orderItems[0]?.eventName}\n\n
+      //    Ticket ID: ${orderItems[0]?.ticketIdentifier}\n
+      //    Ticket Type: ${orderItems[0]?.ticketName}\n
+      //    Quantity: ${orderItems.length}\n\n${orderItems.map(()=>{<p></>}
+      //    View Tickets: ${orderItems[0]?.qrCodeUrl}} `,
+      // );
       // await smsService.sendSms({
       //   userId: order.TicketOrderUserDetails.id,
       //   message: `Your TicketHub Tickets\nTicket code: ${orderItems[0]?.ticketIdentifier}\nAmount Paid: ${amountToString} ${currency}`,

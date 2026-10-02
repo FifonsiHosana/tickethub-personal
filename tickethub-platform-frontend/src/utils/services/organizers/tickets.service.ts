@@ -53,6 +53,21 @@ type ApiResponse<T> = {
   message?: string;
 };
 
+export type GeneratedTicket = {
+  orderId: number;
+  eventTicketId: number;
+  ticketIdentifier: string;
+  qrCodeUrl: string;
+};
+
+export type ChangeTicketStatusPayload = {
+  orderId: string;
+};
+
+export type ChangeTicketStatusResponse = {
+  orderId: number;
+};
+
 export async function getEventTickets(
   eventId: number,
 ): Promise<TicketResponse[]> {
@@ -113,10 +128,13 @@ export async function checkInTicket(
   return response.data.data;
 }
 
-export async function resendTicketEmail(orderId: string) {
-  const response = await axiosInstance.post("/tickets/resend-mail", {
-    orderId,
-  });
+export async function resendTicketEmail(
+  orderId: string,
+): Promise<{ message: string }> {
+  const response = await axiosInstance.post<ApiResponse<{ message: string }>>(
+    "/tickets/resend-mail",
+    { orderId },
+  );
   return response.data.data;
 }
 
@@ -131,6 +149,14 @@ export async function getTicketHoldersPhoneNumbers(
         groupIds.length > 0 ? { groupIds: groupIds.join(",") } : undefined,
     },
   );
+  return response.data.data;
+}
 
+export async function changeTicketStatus(
+  payload: ChangeTicketStatusPayload,
+): Promise<ChangeTicketStatusResponse> {
+  const response = await axiosInstance.post<
+    ApiResponse<ChangeTicketStatusResponse>
+  >("/tickets/status", payload);
   return response.data.data;
 }

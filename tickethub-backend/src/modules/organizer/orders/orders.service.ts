@@ -112,9 +112,8 @@ export async function getOrganizerOrders(options: GetOrganizerOrdersOptions) {
 
       quantity: ticketOrders.quantity,
 
-      amount:
-        sql<string>`COALESCE(
-        ${payments.amount},
+      amount: sql<string>`COALESCE(
+        ${payments.subtotal},
         (SELECT SUM(tc.price)
            FROM ${ticketOrderItems} toi2
            INNER JOIN ${eventTickets} et2 ON et2.id = toi2.eventTicketId
@@ -163,13 +162,11 @@ export async function getOrganizerOrders(options: GetOrganizerOrdersOptions) {
 
           eventTitle: events.title,
 
-          ticketType:
-            sql<string>`GROUP_CONCAT(DISTINCT ${ticketTypes.name} SEPARATOR ', ')`,
+          ticketType: sql<string>`GROUP_CONCAT(DISTINCT ${ticketTypes.name} SEPARATOR ', ')`,
 
           totalTickets: sql<number>`COUNT(${ticketOrderItems.id})`,
 
-          checkedInCount:
-            sql<number>`COUNT(CASE WHEN ${ticketOrderItems.checkedIn} = 1 THEN 1 END)`,
+          checkedInCount: sql<number>`COUNT(CASE WHEN ${ticketOrderItems.checkedIn} = 1 THEN 1 END)`,
         })
         .from(ticketOrderItems)
         .innerJoin(ticketOrders, eq(ticketOrderItems.orderId, ticketOrders.id))
@@ -206,10 +203,7 @@ export async function getOrganizerOrders(options: GetOrganizerOrdersOptions) {
 
       totalTickets: orderEvents.reduce((sum, e) => sum + e.totalTickets, 0),
 
-      checkedInCount: orderEvents.reduce(
-        (sum, e) => sum + e.checkedInCount,
-        0,
-      ),
+      checkedInCount: orderEvents.reduce((sum, e) => sum + e.checkedInCount, 0),
     };
   });
 

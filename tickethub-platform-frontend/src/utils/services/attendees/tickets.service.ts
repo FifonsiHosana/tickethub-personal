@@ -17,6 +17,7 @@ export interface PurchaseTicketRequest {
 export interface PurchaseTicketResponse {
   orderId: number;
   quantity: number;
+  reference: string;
 
   tickets: {
     orderId: number;
@@ -47,7 +48,7 @@ export interface TicketDetailResponse {
 }
 
 export async function purchaseTickets(
-  payload: PurchaseTicketRequest
+  payload: PurchaseTicketRequest,
 ): Promise<PurchaseTicketResponse> {
   const response = await axiosInstance.post("/tickets", payload);
 
@@ -55,7 +56,7 @@ export async function purchaseTickets(
 }
 
 export async function getTicketByIdentifier(
-  identifier: string
+  identifier: string,
 ): Promise<TicketDetailResponse> {
   const response = await axiosInstance.get(`/tickets/${identifier}`);
   return response.data.data;

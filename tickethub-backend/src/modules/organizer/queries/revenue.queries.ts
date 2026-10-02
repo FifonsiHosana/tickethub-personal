@@ -16,10 +16,7 @@ export type { DateRange };
 /**
  * Total completed revenue for an organizer
  */
-export async function getTotalRevenue(
-  organizerId: number,
-  range?: DateRange,
-) {
+export async function getTotalRevenue(organizerId: number, range?: DateRange) {
   const filters: any[] = [
     eq(payments.status, 'Completed'),
     inArray(

@@ -20,6 +20,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+// import { Button } from "@/components/ui/button";
+// import { useChangeOrganizerStatus } from "@/hooks/organizers/useOrganizerStatus";
 
 interface OrderDetailsSheetProps {
   order: OrderHistoryOrder | null;

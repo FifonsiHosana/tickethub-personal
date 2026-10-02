@@ -87,6 +87,7 @@ export async function getOrderHistory(params: OrderHistoryParams) {
           ticketSummary: sql<string>`GROUP_CONCAT(DISTINCT ${tickets.name} SEPARATOR ', ')`,
           ticketType: sql<string>`GROUP_CONCAT(DISTINCT ${ticketTypes.name} SEPARATOR ', ')`,
           totalTickets: sql<number>`COUNT(${ticketOrderItems.id})`,
+          ticketId:ticketOrderItems.eventTicketId,
           checkedInCount: sql<number>`COUNT(CASE WHEN ${ticketOrderItems.checkedIn} = 1 THEN 1 END)`,
         })
         .from(ticketOrderItems)

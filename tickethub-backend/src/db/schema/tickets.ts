@@ -70,6 +70,7 @@ export const ticketOrders = mysqlTable('TicketOrders', {
   }),
   status: mysqlEnum('order_status', ['Pending', 'Completed']).notNull(),
   quantity: int().notNull(),
+  reference: varchar({ length: 255 }),
   createdAt: datetime({ mode: 'string', fsp: 3 })
     .default(sql`(now())`)
     .notNull(),

@@ -34,6 +34,7 @@ export type OrderHistoryOrder = {
   paymentStatus: "Completed" | "Failed" | null;
   reference: string | null;
   paidAt: string | null;
+  ticketId:number
   events: OrderHistoryEventBreakdown[];
 };
 

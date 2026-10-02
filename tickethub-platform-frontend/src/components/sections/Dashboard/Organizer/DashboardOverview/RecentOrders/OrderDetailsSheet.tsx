@@ -15,6 +15,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { type OrganizerOrder } from "@/utils/services/organizers/orders.service";
+import { Button } from "@/components/ui/button";
+import { useChangeOrganizerStatus } from "@/hooks/organizers/useOrganizerStatus";
 
 interface OrderDetailsSheetProps {
   order: OrganizerOrder | null;
@@ -44,9 +46,14 @@ export const OrderDetailsSheet = ({
   open,
   onOpenChange,
 }: OrderDetailsSheetProps) => {
+  const { mutateAsync, isPending, isSuccess } = useChangeOrganizerStatus();
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-md gap-6 overflow-y-auto">
+      <SheetContent
+        side="right"
+        className="w-full sm:max-w-md gap-6 overflow-y-auto"
+      >
         <SheetHeader className="border-b border-border">
           <SheetTitle>Order Details</SheetTitle>
           <SheetDescription>Order #{order?.orderId ?? "—"}</SheetDescription>
@@ -191,6 +198,36 @@ export const OrderDetailsSheet = ({
                 <p className="text-sm text-muted-foreground">
                   No event details available.
                 </p>
+              )}
+            </section>
+            <section>
+              <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <CalendarDaysIcon className="h-4 w-4 text-muted-foreground" />
+                Actions
+              </h4>
+
+              {order.status === "Pending" && (
+                <div className="rounded-xl border border-border bg-card p-3 flex flex-col gap-1">
+                  <Button
+                    className="shrink-0"
+                    disabled={isPending}
+                    onClick={() =>{
+                      mutateAsync({
+                        orderId: String(order.orderId),
+
+                      })
+                    
+                    }
+                    }
+                  >
+                    {isPending ? "Changing status" : "Change Status"}
+                  </Button>
+                </div>
+              )}
+              {isSuccess && (
+                <div className="rounded-xl border border-border bg-card p-3 flex flex-col gap-1">
+                  Status changed
+                </div>
               )}
             </section>
           </div>

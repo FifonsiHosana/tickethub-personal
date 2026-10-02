@@ -6,6 +6,7 @@ export type purchaseTicketPaymentInput = {
   email: string;
   phoneNumber: string;
   totalQuantity: number;
+  reference: string;
 };
 
 export type initiatePaystackPaymentResponse = {

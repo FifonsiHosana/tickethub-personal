@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto';
 import config from '@/config/config.js';
 import crypto from 'crypto';
 
@@ -14,3 +15,6 @@ export const verifyPaystackSignature = (
 
   return hash === signature;
 };
+
+
+export const makeReference = () => randomBytes(9).toString('base64url').slice(0, 12);

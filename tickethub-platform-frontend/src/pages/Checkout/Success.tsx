@@ -76,13 +76,18 @@ export default function SuccessPage() {
                     </div>
 
                     <Button
+                      
                       variant="outline"
-                      onClick={() => navigate(ticket.qrCodeUrl)}
                       size="sm"
-                      className="shrink-0 bg-primary rounded-full flex p-2 text-white hover:bg-primary/90 transition-colors hover:text-white"
+                      className="shrink-0 rounded-full border-primary bg-primary px-4 py-2 text-white transition-colors hover:bg-primary/90 hover:text-white"
                     >
-                      <Ticket className="mr-2 h-4 w-4" />
-                      View Ticket
+                      <Link
+                        to={ticket.qrCodeUrl}
+                        className="flex items-center gap-2"
+                      >
+                        <Ticket className="h-4 w-4" />
+                        <span>View Ticket</span>
+                      </Link>
                     </Button>
                   </div>
                 ))

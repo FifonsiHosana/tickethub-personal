@@ -5,6 +5,7 @@ import {
   purchaseTicketSchema,
   checkInTicketSchema,
   resendMailSchema,
+  generateTicketsSchema,
 } from './tickets.schema.js';
 import {
   authenticate,
@@ -27,6 +28,17 @@ router.post(
   optionalAuthenticate,
   validate(purchaseTicketSchema),
   controller.purchaseTickets,
+);
+
+/**
+ * Staff/organizer generates tickets
+ */
+router.post(
+  '/status',
+  authenticate,
+  authorize('organizer', 'event_staff'),
+  validate(generateTicketsSchema),
+  controller.generateTickets,
 );
 
 /**

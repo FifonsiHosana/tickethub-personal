@@ -42,7 +42,8 @@ export function useCheckout({
   initiatePaymentForPurchaseOrder,
 }: CheckoutProps) {
   const navigate = useNavigate();
-  const { clearCart, items, totalTicketAmount,totalTicketQuantity } = useTicketCartStore();
+  const { clearCart, items, totalTicketAmount, totalTicketQuantity } =
+    useTicketCartStore();
   const processingFeePercentage = useProcessingFeePercentage();
   const handleTicketOrderPurchase = async (formData: CheckoutFormData) => {
     if (items.length === 0) {
@@ -68,6 +69,7 @@ export function useCheckout({
         phoneNumber: payload.attendee.phoneNumber,
         totalAmount: total,
         totalQuantity: totalTicketQuantity,
+        reference: response.reference,
       });
 
       if (!payment) return;

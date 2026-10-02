@@ -11,9 +11,10 @@ import {
   eventsVenues,
   ticketTypes,
   eventStaff,
+  payments,
 } from '@/db/schema/index.js';
 
-import { eq, and, inArray, sql } from 'drizzle-orm';
+import { eq, and, inArray, sql, asc, desc } from 'drizzle-orm';
 import { AppError } from '@/middleware/errorHandler.js';
 import type { PurchaseTicketType } from './tickets.schema.js';
 import { generateTicketIdentifier } from './tickets.utils.js';
@@ -21,6 +22,8 @@ import config from '@/config/config.js';
 import { buildPurchaseConfirmationEmail } from '../emails/templates/ticketPurchase.template.js';
 import { getOrderForResend } from './tickets.query.js';
 import { sendMail } from '../emails/emails.service.js';
+import { randomBytes } from 'crypto';
+import { sendTicket } from '../ussd-payment/ussd-payment.utils.js';
 
 class TicketsService {
   async purchaseTickets(payload: PurchaseTicketType, userId: number | null) {
@@ -87,13 +90,14 @@ class TicketsService {
         (sum, item) => sum + item.quantity,
         0,
       );
-
+      const orderReference = `${randomBytes(8).toString('hex')}`;
       const [order] = await tx
         .insert(ticketOrders)
         .values({
           userId,
           status: 'Pending',
           quantity: totalQuantity,
+          reference: orderReference,
         })
         .$returningId();
 
@@ -136,6 +140,7 @@ class TicketsService {
         orderId: order?.id,
         tickets: generatedTickets,
         quantity: totalQuantity,
+        reference: orderReference,
       };
     });
   }
@@ -274,6 +279,7 @@ class TicketsService {
       attachments,
     );
   }
+
   async getAttendeePhoneNumbersByEvent(
     eventId: number,
     selectedGroupIds: number[] = [],
@@ -315,6 +321,199 @@ class TicketsService {
 
     const phoneNumbers = results.map((row) => row.phoneNumber);
     return [...new Set(phoneNumbers)];
+  }
+
+  async generateTickets(payload: { orderId: number }) {
+    const { orderId } = payload;
+
+    // Everything that touches the DB happens in one transaction.
+    const result = await db.transaction(async (tx) => {
+      // 1. Order
+      const [order] = await tx
+        .select({
+          id: ticketOrders.id,
+          status: ticketOrders.status,
+          quantity: ticketOrders.quantity,
+        })
+        .from(ticketOrders)
+        .where(eq(ticketOrders.id, orderId));
+
+      if (!order) throw new AppError(404, 'Order not found.');
+
+      // 2. Who to send to
+      const [attendee] = await tx
+        .select({
+          firstName: ticketOrderUserDetails.firstName,
+          lastName: ticketOrderUserDetails.lastName,
+          email: ticketOrderUserDetails.email,
+          phoneNumber: ticketOrderUserDetails.phoneNumber,
+        })
+        .from(ticketOrderUserDetails)
+        .where(eq(ticketOrderUserDetails.orderId, orderId));
+
+      if (!attendee) {
+        throw new AppError(404, 'Order attendee details not found.');
+      }
+
+      // 3. Tickets that already exist on this order
+      const existing = await tx
+        .select({ eventTicketId: ticketOrderItems.eventTicketId })
+        .from(ticketOrderItems)
+        .where(eq(ticketOrderItems.orderId, orderId));
+
+      // 4. Fill the gap, only if we can tell which ticket type is missing
+      const missing = order.quantity - existing.length;
+
+      if (missing > 0) {
+        const typeIds = [
+          ...new Set(
+            existing
+              .map((i) => i.eventTicketId)
+              .filter((id): id is number => id !== null),
+          ),
+        ];
+
+        if (typeIds.length !== 1) {
+          throw new AppError(
+            409,
+            'Cannot tell which ticket type is missing on this order. Add it manually.',
+          );
+        }
+
+        const eventTicketId = typeIds[0]!;
+
+        const [info] = await tx
+          .select({ eventName: events.title })
+          .from(eventTickets)
+          .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
+          .innerJoin(events, eq(tickets.eventId, events.id))
+          .where(eq(eventTickets.id, eventTicketId));
+
+        if (!info) throw new AppError(404, 'Ticket not found.');
+
+        const newTickets = Array.from({ length: missing }, () => {
+          const identifier = generateTicketIdentifier(info.eventName);
+          return {
+            orderId,
+            eventTicketId,
+            ticketIdentifier: identifier,
+            qrCodeUrl: `${config.appUrl}/t/${identifier}`,
+          };
+        });
+
+        await tx.insert(ticketOrderItems).values(newTickets);
+      }
+
+      // 5. Load the full, final ticket list (old + new)
+      const allTickets = await tx
+        .select({
+          ticketIdentifier: ticketOrderItems.ticketIdentifier,
+          qrCodeUrl: ticketOrderItems.qrCodeUrl,
+          ticketName: tickets.name,
+          ticketType: ticketTypes.name,
+          price: ticketConfigurations.price,
+          eventName: events.title,
+          eventDate: events.dateAndTime,
+          venueName: eventsVenues.venue_name, // <-- confirm this column name
+        })
+        .from(ticketOrderItems)
+        .innerJoin(
+          eventTickets,
+          eq(ticketOrderItems.eventTicketId, eventTickets.id),
+        )
+        .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
+        .innerJoin(ticketTypes, eq(eventTickets.ticketTypeId, ticketTypes.id))
+        .innerJoin(
+          ticketConfigurations,
+          eq(eventTickets.ticketConfigurationId, ticketConfigurations.id),
+        )
+        .innerJoin(events, eq(tickets.eventId, events.id))
+        .leftJoin(eventsVenues, eq(events.eventVenueId, eventsVenues.id))
+        .where(eq(ticketOrderItems.orderId, orderId))
+        .orderBy(asc(ticketOrderItems.id));
+
+      if (allTickets.length === 0) {
+        throw new AppError(409, 'This order has no tickets to send.');
+      }
+
+      // Total: completed payment if there is one, otherwise list price
+      const [payment] = await tx
+        .select({ amount: payments.amount })
+        .from(payments)
+        .where(
+          and(eq(payments.orderId, orderId), eq(payments.status, 'Completed')),
+        )
+        .orderBy(desc(payments.id))
+        .limit(1);
+
+      const total = payment
+        ? Number(payment.amount)
+        : allTickets.reduce((sum, t) => sum + Number(t.price), 0);
+
+      return {
+        orderId: order.id,
+        attendee,
+        tickets: allTickets,
+        total,
+        generated: Math.max(missing, 0),
+      };
+    });
+
+    // 6. Notify AFTER the transaction commits, so a failed email/SMS
+    //    never rolls back tickets that were legitimately created.
+    const { attendee, tickets: finalTickets, total } = result;
+    const first = finalTickets[0]!;
+
+    const sendEmail = async () => {
+      const { html, attachments } = await buildPurchaseConfirmationEmail({
+        orderId,
+        total,
+        items: finalTickets,
+        accountCreated: false, // this is a resend, not a new signup
+        email: attendee.email,
+      });
+
+      await sendMail(
+        attendee.email,
+        'Your TicketHub Tickets',
+        'Your ticket purchase has been confirmed',
+        html,
+        undefined,
+        attachments,
+      );
+    };
+
+    const sendSms = () =>
+      sendTicket(
+        attendee.phoneNumber,
+        `${first.eventName}\n\n` +
+          `Ticket ID: ${first.ticketIdentifier}\n` +
+          `Ticket Type: ${first.ticketName}\n` +
+          `Quantity: ${finalTickets.length}\n\n` +
+          `View Tickets: ${first.qrCodeUrl}`,
+      );
+
+    // No `await` inside the array: both run in parallel, and one failing
+    // can't stop the other.
+    const [emailResult, smsResult] = await Promise.allSettled([
+      sendEmail(),
+      sendSms(),
+    ]);
+
+    await db
+      .update(ticketOrders)
+      .set({ status: 'Completed' })
+      .where(eq(ticketOrders.id, orderId));
+
+    return {
+      orderId: result.orderId,
+      generated: result.generated,
+      totalTickets: finalTickets.length,
+      tickets: finalTickets,
+      emailSent: emailResult.status === 'fulfilled',
+      // sendTicket resolves false on failure instead of throwing
+      smsSent: smsResult.status === 'fulfilled' && smsResult.value === true,
+    };
   }
 }
 

@@ -107,6 +107,22 @@ class TicketsController {
       next(error);
     }
   }
+
+  async generateTickets(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { orderId } = req.body;
+      const result = await ticketsService.generateTickets({
+        orderId,
+      });
+
+      return res.status(201).json({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new TicketsController();

@@ -25,4 +25,9 @@ export const resendMailSchema = z.object({
   orderId: z.string().min(1).max(500),
 });
 
+export const generateTicketsSchema = z.object({
+  orderId: z.string().min(1).max(500),
+});
+
 export type PurchaseTicketType = z.infer<typeof purchaseTicketSchema>;
+export type GenerateTicketsType = z.infer<typeof generateTicketsSchema>;
