@@ -39,6 +39,24 @@ export const toPaystackProvider = (value: string): TelcoProviders => {
   return provider;
 };
 
+
+export const normalizeGhanaMobileNumber = (value: string): string => {
+  const digits = value.replace(/\D/g, '');
+
+  if (digits.startsWith('233') && digits.length === 12) {
+    return digits;
+  }
+
+  if (digits.startsWith('0') && digits.length === 10) {
+    return `233${digits.slice(1)}`;
+  }
+
+  if (digits.length === 9) {
+    return `233${digits}`;
+  }
+
+  return digits;
+};
 export const sendTicket = async (
   phoneNumber: string,
   ticketMessage: string,

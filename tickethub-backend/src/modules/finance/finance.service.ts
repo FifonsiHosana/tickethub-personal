@@ -1,6 +1,7 @@
 import config from '@/config/config.js';
 import { db } from '@/db/client.js';
 import { eq } from 'drizzle-orm';
+import { AppError } from '@/middleware/errorHandler.js';
 import {
   payments,
   ticketOrders,
@@ -127,16 +128,21 @@ export class FinanceService {
     currency: string,
     provider: string,
     customerEmail: string,
-    totalQuantity: number,
+    totalQuantity?: number,
   ) {
-    const amountToString = amount.toString();
-    const { subtotal, feeAmount } = await computeOrderBreakdown(
+    const { subtotal, feeAmount, ticketQuantity } = await computeOrderBreakdown(
       orderId,
       totalQuantity,
     );
 
+    if (![amount, subtotal, feeAmount].every(Number.isFinite)) {
+      throw new AppError(400, 'Invalid payment amount calculated.');
+    }
+
+    const amountToString = amount.toString();
+
     console.log(
-      `Processing purchase for order ${orderId} fee :${feeAmount} with reference ${paymentReference}, amount ${amountToString} ${currency}, provider ${provider}, email ${customerEmail}, totalQuantity ${totalQuantity}`,
+      `Processing purchase for order ${orderId} fee :${feeAmount} with reference ${paymentReference}, amount ${amountToString} ${currency}, provider ${provider}, email ${customerEmail}, totalQuantity ${ticketQuantity}`,
     );
     await db.transaction(async (tx) => {
       /**
@@ -320,9 +326,15 @@ export class FinanceService {
     //   `This is the payload from the paystack hoook ${JSON.stringify(payload)}`,
     // );
 
-    const orderId = Number(payload.data.metadata.orderId);
-    const totalQuantity = Number(payload.data.metadata.totalQuantity);
-    // const phoneNumber = payload.data.metadata.phoneNumber; // later on would send SMS to this number
+    const metadata = payload.data.metadata ?? {};
+    const orderId = Number(metadata.orderId);
+    const rawTotalQuantity = metadata.totalQuantity;
+    const parsedTotalQuantity = Number(rawTotalQuantity);
+    const totalQuantity =
+      Number.isFinite(parsedTotalQuantity) && parsedTotalQuantity > 0
+        ? parsedTotalQuantity
+        : undefined;
+    // const phoneNumber = metadata.phoneNumber; // later on would send SMS to this number
     const paymentRef = payload.data.reference;
     const currency = payload.data.currency;
     const email = payload.data.customer.email;
@@ -330,13 +342,20 @@ export class FinanceService {
 
     console.log('Transaction payload', payload);
 
-    if (payload.data.metadata?.ussd === true) {
+    if (metadata?.ussd === true) {
       await paymentComplete(payload);
       return;
     }
 
     if (!orderId) {
       throw new Error('Missing orderId in Paystack Webhook Metadata');
+    }
+
+    if (!totalQuantity) {
+      console.warn('Invalid Paystack totalQuantity metadata; deriving from order items', {
+        orderId,
+        rawTotalQuantity,
+      });
     }
     const alreadyProcessed = await this.isTransactionProcessed(paymentRef);
     if (alreadyProcessed) return;

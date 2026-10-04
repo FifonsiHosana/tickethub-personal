@@ -266,6 +266,7 @@ export const tree: Record<string, MenuNode> = {
           amount: totalPrice(context) * 100,
           email: 'info@tickethubgh.com',
           currency: 'GHS',
+          reference: purchaseResult.reference,
           // channels: ['mobile_money'],
           mobile_money: {
             phone: context.phoneNumber,
@@ -277,6 +278,7 @@ export const tree: Record<string, MenuNode> = {
             orderId: orderId as number,
             ussd: true,
             totalQuantity: ticketQuantity,
+            source: 'ussd_direct_charge',
           },
         };
 

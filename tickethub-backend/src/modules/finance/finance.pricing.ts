@@ -1,5 +1,5 @@
 import { db } from '@/db/client.js';
-import { eq, sql } from 'drizzle-orm';
+import { count, eq, sql } from 'drizzle-orm';
 import {
   platformSettings,
   ticketConfigurations,
@@ -48,17 +48,36 @@ export async function getOrderSubtotalFromDb(orderId: number) {
   return Number(row?.subtotal ?? 0);
 }
 
+export async function getOrderTicketQuantityFromDb(orderId: number) {
+  const [row] = await db
+    .select({ quantity: count() })
+    .from(ticketOrderItems)
+    .where(eq(ticketOrderItems.orderId, orderId));
+
+  return Number(row?.quantity ?? 0);
+}
+
 export async function computeOrderBreakdown(
   orderId: number,
-  ticketQuantity: number,
+  ticketQuantity?: number,
 ) {
   const subtotal = await getOrderSubtotalFromDb(orderId);
+  const resolvedTicketQuantity =
+    Number.isFinite(ticketQuantity) && Number(ticketQuantity) > 0
+      ? Number(ticketQuantity)
+      : await getOrderTicketQuantityFromDb(orderId);
+
   // const processingPercentageFee = await getProcessingPercentageFee();
-  const feeAmount = 10 * Number(ticketQuantity);
+  const feeAmount = 10 * resolvedTicketQuantity;
   // round2(
   //   (subtotal * processingPercentageFee) / 100,
   // );
   const totalAmount = round2(subtotal + feeAmount);
 
-  return { subtotal, feeAmount, totalAmount };
+  return {
+    subtotal,
+    feeAmount,
+    totalAmount,
+    ticketQuantity: resolvedTicketQuantity,
+  };
 }

@@ -12,97 +12,184 @@ import { db } from '@/db/client.js';
 import {
   events,
   eventTickets,
-  ticketConfigurations,
   ticketOrderItems,
-  ticketOrders,
   tickets,
   ticketTypes,
 } from '@/db/schema/index.js';
 import { eq } from 'drizzle-orm';
 
-export const initiatePayment = async (fields: PaystackPaymentFields) => {
-  try {
-    const response = await axios.post(
-      'https://api.paystack.co/charge',
-      { ...fields },
-      {
-        headers: { Authorization: `Bearer ${config.payment.paystack_api_key}` },
-      },
-    );
+const PAYSTACK_CHARGE_URL = 'https://api.paystack.co/charge';
+const PAYSTACK_INITIALIZE_URL =
+  'https://api.paystack.co/transaction/initialize';
+const PENDING_CHARGE_CHECK_DELAY_MS = 10_000;
 
-    console.log('Paystack charge response', response.data); // comma, not template string
-    return response.data;
+type PaystackChargeStatus =
+  'success' | 'pay_offline' | 'pending' | 'send_pin' | 'send_otp' | 'failed';
+
+type PaystackChargeResult = {
+  status: boolean;
+  message?: string;
+  data?: {
+    status?: PaystackChargeStatus;
+    reference?: string;
+    display_text?: string;
+    message?: string;
+  };
+};
+
+const paystackHeaders = () => ({
+  Authorization: `Bearer ${config.payment.paystack_api_key}`,
+  'Content-Type': 'application/json',
+});
+
+const wait = (milliseconds: number) =>
+  new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+function buildRetryReference(orderId: number) {
+  return `ussd_retry_${orderId}_${crypto.randomBytes(5).toString('hex')}`;
+}
+
+function buildRetryMessage(authorizationUrl: string) {
+  return (
+    'Your TicketHub mobile money payment could not be processed. ' +
+    `Retry securely here: ${authorizationUrl}. ` +
+    'If you already approved payment, please ignore this message.'
+  );
+}
+
+async function checkPendingCharge(reference: string) {
+  await wait(PENDING_CHARGE_CHECK_DELAY_MS);
+
+  const response = await axios.get(`${PAYSTACK_CHARGE_URL}/${reference}`, {
+    headers: paystackHeaders(),
+  });
+
+  logger.info(
+    { reference, chargeStatus: response.data?.data?.status },
+    'Paystack pending charge checked',
+  );
+
+  return response.data as PaystackChargeResult;
+}
+
+async function createAndSendRetryLink(fields: PaystackPaymentFields) {
+  const { authorization_url, reference } = await createPayLink({
+    email: fields.email,
+    amount: fields.amount,
+    orderId: fields.metadata.orderId,
+    phoneNumber: fields.metadata.phoneNumber,
+    totalQuantity: fields.metadata.totalQuantity,
+  });
+
+  await sendTicket(
+    fields.metadata.phoneNumber,
+    buildRetryMessage(authorization_url),
+  );
+
+  return { authorizationUrl: authorization_url, reference };
+}
+
+async function handleChargeResult(
+  result: PaystackChargeResult,
+  fields: PaystackPaymentFields,
+) {
+  const status = result.data?.status;
+  const reference = result.data?.reference ?? fields.reference;
+
+  logger.info(
+    {
+      orderId: fields.metadata.orderId,
+      reference,
+      chargeStatus: status,
+      displayText: result.data?.display_text,
+    },
+    'Paystack charge response received',
+  );
+
+  // if (status === 'pay_offline') {
+  //   await sendTicket(
+  //     fields.metadata.phoneNumber,
+  //     result.data?.display_text ??
+  //       'Payment request sent. Check your mobile money approvals and authorize within 3 minutes.',
+  //   );
+  //   return result;
+  // }
+
+  if (status === 'pending' && reference) {
+    return checkPendingCharge(reference);
+  }
+
+  if (status === 'send_pin' || status === 'send_otp') {
+    logger.warn(
+      { orderId: fields.metadata.orderId, reference, chargeStatus: status },
+      'Paystack requested an interactive credential outside the USSD flow',
+    );
+    return result;
+  }
+
+  if (status === 'failed') {
+    await createAndSendRetryLink(fields);
+  }
+
+  return result;
+}
+
+export const initiatePayment = async (fields: PaystackPaymentFields) => {
+  const chargeFields: PaystackPaymentFields = {
+    ...fields,
+    mobile_money: {
+      ...fields.mobile_money,
+      phone: fields.mobile_money.phone,
+    },
+    metadata: {
+      ...fields.metadata,
+      phoneNumber: fields.metadata.phoneNumber,
+      source: fields.metadata.source ?? 'ussd_direct_charge',
+    },
+  };
+
+  try {
+    const response = await axios.post(PAYSTACK_CHARGE_URL, chargeFields, {
+      headers: paystackHeaders(),
+    });
+
+    return handleChargeResult(
+      response.data as PaystackChargeResult,
+      chargeFields,
+    );
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const body = error.response?.data;
 
-      console.error('Paystack charge failed', {
-        status: error.response?.status,
-        body,
-        orderId: fields.metadata?.orderId,
-      });
+      logger.error(
+        {
+          status: error.response?.status,
+          body,
+          orderId: chargeFields.metadata.orderId,
+          reference: chargeFields.reference,
+        },
+        'Paystack charge failed',
+      );
 
       const isUnprocessed =
         error.response?.status === 400 &&
         body?.code === 'unprocessed_transaction' &&
         body?.data?.status === 'failed';
 
-      const chargeUnsuccessfulMessage =
-        'Your payment could not be processed. Here is a link to your to retry payment.';
-
       if (isUnprocessed) {
-        try {
-          const { authorization_url, reference, access_code } =
-            await createPayLink({
-              email: fields.email,
-              amount: fields.amount,
-              orderId: fields.metadata?.orderId,
-              phoneNumber: fields.metadata?.phoneNumber,
-              totalQuantity: fields.metadata?.totalQuantity,
-            });
-
-          // await sendTicket(
-          //   fields.metadata?.phoneNumber,
-          //   `If you haven't received the payment prompt, please complete your payment here:\n${authorization_url}.\n
-          //    NOTE:if you have already recived the prompt and paid, please ignore this message.`,
-          // );
-          // optionally save `reference` against the order
-        } catch (linkError) {
-          console.error('Failed to create/send pay link', {
-            orderId: fields.metadata?.orderId,
-            totalQuantity: fields.metadata?.totalQuantity,
-            linkError,
-          });
-        }
-
-        return { handled: true, reference: body.data.reference };
+        const retry = await createAndSendRetryLink(chargeFields);
+        return {
+          handled: true,
+          reference: body.data.reference,
+          retryReference: retry.reference,
+          retryUrl: retry.authorizationUrl,
+        };
       }
     }
 
     throw error;
   }
 };
-
-// export const paystackOtp = async (otp: string, reference: string) => {
-//   try {
-//     const response = await axios.post(
-//       'https://api.paystack.co/charge/submit_otp',
-//       { otp, reference },
-//       {
-//         headers: {
-//           Authorization: `Bearer ${config.payment.paystack_api_key}`,
-//         },
-//       },
-//     );
-//     return response.data;
-//   } catch (error) {
-//     if (axios.isAxiosError(error)) {
-//       console.log('Paystack OTP error:', error.response?.data ?? error.message);
-//       return error.response?.data ?? { status: false, message: error.message };
-//     }
-//     throw error;
-//   }
-// };
 
 export const createPayLink = async (opts: {
   email: string;
@@ -111,24 +198,26 @@ export const createPayLink = async (opts: {
   phoneNumber: string;
   totalQuantity: number;
 }) => {
+  const retryReference = buildRetryReference(opts.orderId);
   const response = await axios.post(
-    'https://api.paystack.co/transaction/initialize',
+    PAYSTACK_INITIALIZE_URL,
     JSON.stringify({
       email: opts.email,
       amount: opts.amount,
-
+      currency: 'GHS',
+      channels: ['mobile_money'],
+      reference: retryReference,
+      callback_url: `${config.appUrl}/success?reference=${retryReference}`,
       metadata: {
         phoneNumber: opts.phoneNumber,
-        orderId: opts.orderId as number,
+        orderId: opts.orderId,
         ussd: true,
-        totalQuantity: opts.totalQuantity as number,
+        source: 'ussd_retry_link',
+        totalQuantity: opts.totalQuantity,
       },
     }),
     {
-      headers: {
-        Authorization: `Bearer ${config.payment.paystack_api_key}`,
-        'Content-Type': 'application/json',
-      },
+      headers: paystackHeaders(),
     },
   );
   return response.data.data as {
@@ -138,11 +227,6 @@ export const createPayLink = async (opts: {
   };
 };
 
-const paystackHeaders = () => ({
-  Authorization: `Bearer ${config.payment.paystack_api_key}`,
-  'Content-Type': 'application/json',
-});
-
 const handleError = (label: string, error: unknown) => {
   if (axios.isAxiosError(error)) {
     console.log(`${label}:`, error.response?.data ?? error.message);
@@ -150,25 +234,6 @@ const handleError = (label: string, error: unknown) => {
   }
   throw error;
 };
-
-// /**
-//  * Starts a mobile money charge.
-//  * Response shape: { status, message, data: { status, reference, display_text } }
-//  * data.status: 'send_otp' | 'pay_offline' | 'pending' | 'success' | 'failed'
-//  */
-// export const initiatePayment = async (fields: PaystackPaymentFields) => {
-//   try {
-//     const response = await axios.post(
-//       'https://api.paystack.co/charge',
-//       { ...fields },
-//       { headers: paystackHeaders() },
-//     );
-//     console.log(`Paystack charge ${response.data?.data?.status}`);
-//     return response.data;
-//   } catch (error) {
-//     return handleError('Paystack charge error', error);
-//   }
-// };
 
 /** Submits the OTP / voucher code for a charge that returned `send_otp`. */
 export const paystackOtp = async (otp: string, reference: string) => {
@@ -189,26 +254,18 @@ export const paymentComplete = async (fields: PaymentWebhook) => {
 
   if (fields.event !== 'charge.success') return;
 
-  const orderId = Number(fields.data.metadata.orderId);
-  console.log('paystack fields', JSON.stringify(fields));
+  const metadata = fields.data.metadata ?? {};
+  const orderId = Number(metadata.orderId);
 
-  // const ticketItems = await db
-  //   .select({
-  //     ticketIdentifier: ticketOrderItems.ticketIdentifier,
-  //     ticketType: eventTickets.ticketTypeId,
-  //     name: events.title,
-  //     quantity: ticketOrders.quantity,
-  //   })
-  //   .from(ticketOrderItems)
-  //   .innerJoin(tickets, eq(tickets.id, ticketOrderItems.eventTicketId))
-  //   .innerJoin(ticketOrders, eq(ticketOrders.id, ticketOrderItems.orderId))
-  //   .innerJoin(
-  //     ticketConfigurations,
-  //     eq(ticketOrderItems.id, ticketConfigurations.id),
-  //   )
-  //   .innerJoin(eventTickets, eq(tickets.eventId, eventTickets.id))
-  //   .innerJoin(events, eq(eventTickets.id, events.id))
-  //   .where(eq(ticketOrderItems.orderId, orderId));
+  if (!orderId) {
+    throw new Error('Missing orderId in Paystack USSD webhook metadata');
+  }
+
+  logger.info(
+    { orderId, reference: fields.data.reference, source: metadata.source },
+    'Processing Paystack USSD payment completion',
+  );
+
   const ticketItems = await db
     .select({
       ticketIdentifier: ticketOrderItems.ticketIdentifier,
@@ -227,28 +284,7 @@ export const paymentComplete = async (fields: PaymentWebhook) => {
     .innerJoin(ticketTypes, eq(eventTickets.ticketTypeId, ticketTypes.id))
     .where(eq(ticketOrderItems.orderId, orderId));
 
-  console.log('All ticketItems', ticketItems);
-
-  const totalQuantity = Number(ticketItems.length);
-
-  console.log('total quantity ticketitems', totalQuantity);
-
-  const phoneNumber = fields.data.metadata.phoneNumber;
-
-  const message = ticketItems
-    .map((ticket, index) =>
-      `
-TICKET ${index + 1}
-
-${ticket.ticketName}
-
-Ticket ID: ${ticket.ticketIdentifier}
-Ticket Type: ${ticket.ticketType}
-Quantity: ${totalQuantity}
-      `.trim(),
-    )
-    .join('\n\n--------------------\n\n');
-
+  const totalQuantity = ticketItems.length;
   const paymentRef = fields.data.reference;
   const currency = fields.data.currency;
   const email = fields.data.customer.email;
@@ -270,13 +306,6 @@ Quantity: ${totalQuantity}
     currency,
     PROVIDER,
     email,
-    totalQuantity as number,
+    totalQuantity,
   );
-
-  // await sendTicket(phoneNumber, message);
-};
-
-const checkStatus = async () => {
-  //Help clients that paid and wanna know why they didn't get their tickets
-  //if success and ticket not sent send ----add to the tree
 };
