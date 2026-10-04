@@ -46,7 +46,7 @@ const wait = (milliseconds: number) =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 function buildRetryReference(orderId: number) {
-  return `ussd_retry_${orderId}_${crypto.randomBytes(5).toString('hex')}`;
+  return `${crypto.randomBytes(5).toString('hex')}`;
 }
 
 function buildRetryMessage(authorizationUrl: string) {
