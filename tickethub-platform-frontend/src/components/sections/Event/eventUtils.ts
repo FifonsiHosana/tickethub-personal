@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import type { Event } from "@/types/event.types";
+import { normalizeGoogleMapLink } from "@/utils/googleMapLink";
 
 export function venueQuery(event: Event): string {
   return [event.venueName, event.address, event.city, event.country]
@@ -7,8 +8,22 @@ export function venueQuery(event: Event): string {
     .join(", ");
 }
 
+function isEmbeddableGoogleMapsUrl(link: string) {
+  try {
+    const url = new URL(link);
+    const host = url.hostname.toLowerCase();
+    return (
+      ((host === "google.com" || host === "www.google.com") &&
+        url.pathname.startsWith("/maps")) ||
+      host === "maps.google.com"
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function directionsUrl(event: Event): string {
-  const link = event.googleMapLink?.trim();
+  const link = normalizeGoogleMapLink(event.googleMapLink);
   if (link) return link;
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     venueQuery(event),
@@ -16,12 +31,13 @@ export function directionsUrl(event: Event): string {
 }
 
 export function mapEmbedUrl(event: Event): string | null {
-  const link = event.googleMapLink?.trim();
-  if (link && /google\.[^/]+\/maps|maps\.google\./i.test(link)) {
+  const link = normalizeGoogleMapLink(event.googleMapLink);
+  if (link && isEmbeddableGoogleMapsUrl(link)) {
     if (/[?&]output=embed/i.test(link)) return link;
     return `${link}${link.includes("?") ? "&" : "?"}output=embed`;
   }
-  const query = link || venueQuery(event);
+
+  const query = venueQuery(event);
   if (!query) return null;
   return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
 }

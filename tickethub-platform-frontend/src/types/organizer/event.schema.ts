@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isGoogleMapLink } from "@/utils/googleMapLink";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
@@ -34,7 +35,7 @@ export const venueSchema = z.object({
   address: z.string().optional(),
   city_or_town: z.string().min(1, "City/Town is required"),
   country: z.string().min(1, "Country is required"),
-  googleMapLink: z.string().optional(),
+  googleMapLink: z.string().optional().refine(isGoogleMapLink, "Enter a valid Google Maps link"),
 });
 
 export type VenueFormValues = z.infer<typeof venueSchema>;
@@ -158,6 +159,8 @@ export const editEventSchema = z
   );
 
 export type EditEventFormValues = z.infer<typeof editEventSchema>;
+
+
 
 
 

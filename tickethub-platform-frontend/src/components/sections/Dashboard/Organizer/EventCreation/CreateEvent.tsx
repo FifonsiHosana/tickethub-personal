@@ -15,6 +15,7 @@ import type { TicketPayload } from "@/utils/services/organizers/events.service";
 import { toEventApiDate } from "@/utils/eventDate";
 import { richTextOrUndefined } from "@/utils/richText";
 import { DEFAULT_EVENT_TERMS } from "@/utils/eventTerms";
+import { normalizeGoogleMapLink } from "@/utils/googleMapLink";
 
 import {
   Card,
@@ -127,7 +128,7 @@ export default function CreateEvent() {
                 address: values.venue.address?.trim() || undefined,
                 city_or_town: values.venue.city_or_town.trim(),
                 country: values.venue.country.trim(),
-                googleMapLink: values.venue.googleMapLink?.trim() || undefined,
+                googleMapLink: normalizeGoogleMapLink(values.venue.googleMapLink),
               },
             }),
         capacity: values.capacity,
@@ -276,5 +277,7 @@ export default function CreateEvent() {
     </div>
   );
 }
+
+
 
 

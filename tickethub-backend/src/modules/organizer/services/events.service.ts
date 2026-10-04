@@ -14,6 +14,7 @@ import {
   platformSettings,
 } from '@/db/schema/index.js';
 import { AppError } from '@/middleware/errorHandler.js';
+import { normalizeGoogleMapLink } from '@/utils/googleMapLink.js';
 import { now } from '@/utils/timeDatehelpers.js';
 
 import { and, eq, like, desc, count, inArray } from 'drizzle-orm';
@@ -75,7 +76,13 @@ export async function createEventVenue(data: {
   country: string;
   googleMapLink?: string;
 }) {
-  const [venue] = await db.insert(eventsVenues).values(data).$returningId();
+  const [venue] = await db
+    .insert(eventsVenues)
+    .values({
+      ...data,
+      googleMapLink: normalizeGoogleMapLink(data.googleMapLink),
+    })
+    .$returningId();
 
   if (!venue) {
     throw new AppError(400, 'Venue creation failed');
@@ -261,7 +268,7 @@ export async function createOrganizerEvent(organizerId: number, data: any) {
           address: data.venue.address,
           city_or_town: data.venue.city_or_town,
           country: data.venue.country,
-          googleMapLink: data.venue.googleMapLink,
+          googleMapLink: normalizeGoogleMapLink(data.venue.googleMapLink),
         })
         .$returningId();
 
@@ -388,7 +395,7 @@ export async function createOrganizerEventWithTickets(
           address: data.venue.address,
           city_or_town: data.venue.city_or_town,
           country: data.venue.country,
-          googleMapLink: data.venue.googleMapLink,
+          googleMapLink: normalizeGoogleMapLink(data.venue.googleMapLink),
         })
         .$returningId();
 
@@ -586,9 +593,7 @@ export async function updateOrganizerEvent(
         address: data.venue.address?.trim() ? data.venue.address : null,
         city_or_town: data.venue.city_or_town,
         country: data.venue.country,
-        googleMapLink: data.venue.googleMapLink?.trim()
-          ? data.venue.googleMapLink
-          : null,
+        googleMapLink: normalizeGoogleMapLink(data.venue.googleMapLink) ?? null,
       };
 
       if (existing.eventVenueId) {
@@ -757,5 +762,7 @@ export async function deleteOrganizerEvent(
     };
   });
 }
+
+
 
 

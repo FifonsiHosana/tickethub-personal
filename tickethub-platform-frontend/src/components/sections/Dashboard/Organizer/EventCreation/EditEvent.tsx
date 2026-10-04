@@ -28,6 +28,7 @@ import type {
 import { toEventApiDate, toEventFormDate } from "@/utils/eventDate";
 import { richTextOrNull } from "@/utils/richText";
 import { DEFAULT_EVENT_TERMS } from "@/utils/eventTerms";
+import { normalizeGoogleMapLink } from "@/utils/googleMapLink";
 
 import {
   Card,
@@ -180,7 +181,7 @@ export default function EditEvent({ eventId }: Props) {
           address: values.venue.address?.trim() || null,
           city_or_town: values.venue.city_or_town.trim(),
           country: values.venue.country.trim(),
-          googleMapLink: values.venue.googleMapLink?.trim() || null,
+          googleMapLink: normalizeGoogleMapLink(values.venue.googleMapLink) ?? null,
         };
       }
 
@@ -293,6 +294,8 @@ export default function EditEvent({ eventId }: Props) {
     </FormProvider>
   );
 }
+
+
 
 
 

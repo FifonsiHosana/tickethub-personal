@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isGoogleMapLink } from '@/utils/googleMapLink.js';
 
 const eventDateTimeSchema = z.union([
   z.iso.datetime(),
@@ -35,7 +36,7 @@ export const updateOrganizerEventSchema = z.object({
       address: z.string().nullable().optional(),
       city_or_town: z.string().trim().min(1, 'City/Town is required'),
       country: z.string().trim().min(1, 'Country is required'),
-      googleMapLink: z.string().nullable().optional(),
+      googleMapLink: z.string().refine(isGoogleMapLink, 'Enter a valid Google Maps link').nullable().optional(),
     })
     .optional(),
   media: z.array(eventMediaSchema).optional(),
@@ -70,7 +71,7 @@ export const createEventWithTicketsSchema = z
         address: z.string().optional(),
         city_or_town: z.string().trim().min(1, 'City/Town is required'),
         country: z.string().trim().min(1, 'Country is required'),
-        googleMapLink: z.string().optional(),
+        googleMapLink: z.string().refine(isGoogleMapLink, 'Enter a valid Google Maps link').optional(),
       })
       .optional(),
     media: z
@@ -123,7 +124,7 @@ export const createVenueSchema = z.object({
   address: z.string().optional(),
   city_or_town: z.string().min(1, 'City/Town is required'),
   country: z.string().min(1, 'Country is required'),
-  googleMapLink: z.string().optional(),
+  googleMapLink: z.string().refine(isGoogleMapLink, 'Enter a valid Google Maps link').optional(),
 });
 
 export const assignStaffSchema = z.object({
@@ -137,4 +138,5 @@ export const listOrganizerStaffQuerySchema = z.object({
 export type CreateVenueType = z.infer<typeof createVenueSchema>;
 export type AssignStaffType = z.infer<typeof assignStaffSchema>;
 export type ListOrganizerStaffQueryType = z.infer<typeof listOrganizerStaffQuerySchema>;
+
 

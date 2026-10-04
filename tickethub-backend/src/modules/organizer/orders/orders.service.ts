@@ -12,7 +12,7 @@ import {
   events,
 } from '@/db/schema/index.js';
 
-import { and, desc, eq, inArray, like, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, like, or, sql } from 'drizzle-orm';
 import { applyDateRange } from '@/utils/dateRange.js';
 
 export interface GetOrganizerOrdersOptions {
@@ -71,8 +71,22 @@ function buildFilters({
 
   applyDateRange(filters, ticketOrders.createdAt, { from, to });
 
-  if (search) {
-    filters.push(like(ticketOrderUserDetails.email, `%${search}%`));
+  const searchTerm = search?.trim();
+
+  if (searchTerm) {
+    const pattern = `%${searchTerm}%`;
+    filters.push(
+      or(
+        like(ticketOrderUserDetails.email, pattern),
+        like(ticketOrderUserDetails.firstName, pattern),
+        like(ticketOrderUserDetails.lastName, pattern),
+        like(ticketOrderUserDetails.phoneNumber, pattern),
+        like(
+          sql<string>`CONCAT(${ticketOrderUserDetails.firstName}, ' ', ${ticketOrderUserDetails.lastName})`,
+          pattern,
+        ),
+      )!,
+    );
   }
 
   return filters;
@@ -230,3 +244,5 @@ export async function getOrganizerOrders(options: GetOrganizerOrdersOptions) {
     },
   };
 }
+
+

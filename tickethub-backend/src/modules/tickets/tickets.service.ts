@@ -570,10 +570,10 @@ class TicketsService {
 
     // No `await` inside the array: both run in parallel, and one failing
     // can't stop the other.
-    const [emailResult, smsResult] = await Promise.allSettled([
-      sendEmail(),
-      sendSms(),
-    ]);
+    // const [emailResult, smsResult] = await Promise.allSettled([
+    //   sendEmail(),
+    //   sendSms(),
+    // ]);
 
     await db
       .update(ticketOrders)
@@ -585,12 +585,11 @@ class TicketsService {
       generated: result.generated,
       totalTickets: finalTickets.length,
       tickets: finalTickets,
-      emailSent: emailResult.status === 'fulfilled',
+      // emailSent: emailResult.status === 'fulfilled',
       // sendTicket resolves false on failure instead of throwing
-      smsSent: smsResult.status === 'fulfilled' && smsResult.value === true,
+      // smsSent: smsResult.status === 'fulfilled' && smsResult.value === true,
     };
   }
 }
 
 export default new TicketsService();
-
