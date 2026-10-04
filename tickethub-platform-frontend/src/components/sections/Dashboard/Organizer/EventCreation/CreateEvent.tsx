@@ -14,6 +14,7 @@ import { useOrganizerMedia } from "@/hooks/organizers/useOrganizerMedia";
 import type { TicketPayload } from "@/utils/services/organizers/events.service";
 import { toEventApiDate } from "@/utils/eventDate";
 import { richTextOrUndefined } from "@/utils/richText";
+import { DEFAULT_EVENT_TERMS } from "@/utils/eventTerms";
 
 import {
   Card,
@@ -74,7 +75,7 @@ export default function CreateEvent() {
       capacity: undefined,
       dateAndTime: "",
       dateAndTimeEnd: "",
-      // termsAndConditions: "",
+      termsAndConditions: "",
       categoryIds: [],
       bannerImage: undefined,
       tickets: [],
@@ -88,8 +89,6 @@ export default function CreateEvent() {
 
   const { fields, remove } = ticketFieldArray;
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const DEFAULT_TERMS =
-    "By purchasing a ticket, you agree to abide by the event organizer's policies. All sales are final unless otherwise stated.";
 
   function onInvalid(errors: unknown) {
     toast.error(
@@ -138,7 +137,7 @@ export default function CreateEvent() {
         dateAndTimeEnd: toEventApiDate(values.dateAndTimeEnd),
         termsAndConditions: values.termsAndConditions?.trim()
           ? values.termsAndConditions
-          : DEFAULT_TERMS,
+          : DEFAULT_EVENT_TERMS,
         categoryIds: values.categoryIds,
         media: [{ imageUrl: url, type: "Banner" }],
         tickets,
@@ -279,4 +278,3 @@ export default function CreateEvent() {
     </div>
   );
 }
-

@@ -27,6 +27,7 @@ import type {
 } from "@/utils/services/organizers/events.service";
 import { toEventApiDate, toEventFormDate } from "@/utils/eventDate";
 import { richTextOrNull } from "@/utils/richText";
+import { DEFAULT_EVENT_TERMS } from "@/utils/eventTerms";
 
 import {
   Card,
@@ -170,7 +171,7 @@ export default function EditEvent({ eventId }: Props) {
         dateAndTimeEnd: toEventApiDate(values.dateAndTimeEnd) ?? null,
         termsAndConditions: values.termsAndConditions?.trim()
           ? values.termsAndConditions
-          : null,
+          : DEFAULT_EVENT_TERMS,
         categoryIds: values.categoryIds,
       };
 
@@ -293,4 +294,3 @@ export default function EditEvent({ eventId }: Props) {
     </FormProvider>
   );
 }
-

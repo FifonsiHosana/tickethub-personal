@@ -59,7 +59,7 @@ export const createEventSchema = z
 
     dateAndTimeEnd: z.string().min(1, "Please select an end date and time"),
 
-    termsAndConditions: z.string(),
+    termsAndConditions: z.string().optional(),
 
     categoryIds: z.array(z.number().int().positive()).optional(),
 
@@ -122,7 +122,7 @@ export const editEventSchema = z
 
     dateAndTimeEnd: z.string().optional(),
 
-    termsAndConditions: z.string(),
+    termsAndConditions: z.string().optional(),
 
     categoryIds: z.array(z.number().int().positive()).optional(),
 

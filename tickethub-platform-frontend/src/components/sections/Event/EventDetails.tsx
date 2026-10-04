@@ -13,6 +13,7 @@ import { MobileTicketBar } from "./MobileTicketBar";
 import { useBannerColor } from "./useBannerColor";
 import { useTicketsVisibility } from "./useTicketsVisibility";
 import { getBannerUrl } from "./eventUtils";
+import { DEFAULT_EVENT_TERMS } from "@/utils/eventTerms";
 
 export const EventDetails: React.FC = () => {
   const { data: event, isLoading, isError, error } = useEvent();
@@ -76,6 +77,13 @@ export const EventDetails: React.FC = () => {
 
               {/* Venue */}
               <EventVenue event={event} />
+
+              <div className="space-y-3">
+                <h2 className="text-2xl font-semibold">Terms & Conditions</h2>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                  {event.termsAndConditions?.trim() || DEFAULT_EVENT_TERMS}
+                </p>
+              </div>
             </div>
 
             {/* Tickets */}
