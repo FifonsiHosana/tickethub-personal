@@ -40,6 +40,7 @@ export type GetOrganizerEventsResponse = {
 
 export interface OrganizerEventResponse {
   id: number;
+  slug: string | null;
   title: string;
   description?: string | null;
   status: "Draft" | "Published" | "Completed" | "Cancelled";
@@ -76,6 +77,7 @@ export interface OrganizerEventTicketDetail {
 
 export interface OrganizerEventDetail {
   id: number;
+  slug: string | null;
   title: string;
   description?: string | null;
   status: "Draft" | "Published" | "Completed" | "Cancelled";
@@ -101,9 +103,11 @@ export interface OrganizerEventDetail {
 }
 
 export async function getOrganizerEventById(
-  eventId: number,
+  eventIdentifier: string | number,
 ): Promise<OrganizerEventDetail> {
-  const response = await axiosInstance.get(`/organizer/events/${eventId}`);
+  const response = await axiosInstance.get(
+    `/organizer/events/${eventIdentifier}`,
+  );
   return response.data.data;
 }
 
@@ -148,11 +152,11 @@ export async function createOrganizerEventWithTickets(
 }
 
 export async function updateOrganizerEvent(
-  eventId: number,
+  eventIdentifier: string | number,
   payload: UpdateEventPayload,
 ) {
   const response = await axiosInstance.patch(
-    `/organizer/events/${eventId}`,
+    `/organizer/events/${eventIdentifier}`,
     payload,
   );
 
@@ -199,4 +203,7 @@ export async function createCategory(payload: CreateCategoryPayload) {
   );
   return response.data.data;
 }
+
+
+
 

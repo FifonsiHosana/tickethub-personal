@@ -56,11 +56,11 @@ export function useOrganizerEvents(params?: GetOrganizerEventsParams) {
   });
 }
 
-export function useOrganizerEvent(eventId: number) {
+export function useOrganizerEvent(eventIdentifier: string | number) {
   return useQuery({
-    queryKey: ["organizer-event", eventId],
-    queryFn: () => getOrganizerEventById(eventId),
-    enabled: !!eventId,
+    queryKey: ["organizer-event", eventIdentifier],
+    queryFn: () => getOrganizerEventById(eventIdentifier),
+    enabled: !!eventIdentifier,
   });
 }
 
@@ -99,7 +99,7 @@ export function useUpdateOrganizerEvent() {
       eventId,
       payload,
     }: {
-      eventId: number;
+      eventId: string | number;
       payload: UpdateEventPayload;
     }) => updateOrganizerEvent(eventId, payload),
     onSuccess: (_, variables) => {
@@ -139,3 +139,4 @@ export function useDeleteOrganizerEvent() {
     },
   });
 }
+

@@ -62,7 +62,7 @@ async function urlToFile(url: string): Promise<File | undefined> {
 }
 
 interface Props {
-  eventId: number;
+  eventId: string | number;
 }
 
 export default function EditEvent({ eventId }: Props) {
@@ -294,6 +294,7 @@ export default function EditEvent({ eventId }: Props) {
     </FormProvider>
   );
 }
+
 
 
 

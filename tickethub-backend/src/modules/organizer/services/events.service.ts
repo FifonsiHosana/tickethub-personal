@@ -21,7 +21,7 @@ import { and, eq, like, desc, count, inArray } from 'drizzle-orm';
 
 import { formatDateForMySQL } from '@/utils/timeDatehelpers.js';
 import logger from '@/utils/logger/index.js';
-import { toKebabCase } from '../organizer.utils.js';
+import { createUniqueEventSlug } from '@/modules/events/event-slug.service.js';
 function formatEventDateForMySQL(value: string): string {
   const trimmed = value.trim();
   const localMatch = trimmed.match(
@@ -36,12 +36,20 @@ function formatEventDateForMySQL(value: string): string {
 }
 
 interface GetOrganizerEventsParams {
+
   organizerId: number;
   staffUserId?: number;
   page?: number;
   pageSize?: number;
   search?: string;
   status?: 'Draft' | 'Published' | 'Completed' | 'Cancelled';
+}
+
+function eventIdentifierFilter(identifier: string | number) {
+  const value = String(identifier).trim();
+  return /^\d+$/.test(value)
+    ? eq(events.id, Number(value))
+    : eq(events.slug, value);
 }
 
 /**
@@ -114,6 +122,7 @@ export async function getOrganizerEvents(params: GetOrganizerEventsParams) {
   let dataQuery = db
     .select({
       id: events.id,
+      slug: events.slug,
       title: events.title,
       description: events.description,
       status: events.status,
@@ -186,17 +195,19 @@ export async function getOrganizerEvents(params: GetOrganizerEventsParams) {
  */
 export async function getOrganizerEventById(
   organizerId: number,
-  eventId: number,
+  eventIdentifier: string | number,
 ) {
   const [result] = await db
     .select()
     .from(events)
-    .where(and(eq(events.id, eventId), eq(events.organizerId, organizerId)))
+    .where(and(eventIdentifierFilter(eventIdentifier), eq(events.organizerId, organizerId)))
     .limit(1);
 
   if (!result) {
     throw new Error('Event not found');
   }
+
+  const eventId = result.id;
 
   const media = await db
     .select()
@@ -239,7 +250,7 @@ export async function getOrganizerEventById(
       ticketConfigurations,
       eq(eventTickets.ticketConfigurationId, ticketConfigurations.id),
     )
-    .where(eq(tickets.eventId, eventId));
+    .where(eq(tickets.eventId, result.id));
 
   return {
     ...result,
@@ -258,6 +269,7 @@ export async function createOrganizerEvent(organizerId: number, data: any) {
   const autoApprove = await isAutoApproveEnabled();
 
   return await db.transaction(async (tx) => {
+    const slug = await createUniqueEventSlug(tx as any, data.title);
     let eventVenueId = data.eventVenueId;
 
     if (!eventVenueId && data.venue) {
@@ -284,6 +296,7 @@ export async function createOrganizerEvent(organizerId: number, data: any) {
       .values({
         title: data.title,
         description: data.description,
+        slug,
         eventVenueId,
         organizerId,
         capacity: data.capacity,
@@ -383,7 +396,7 @@ export async function createOrganizerEventWithTickets(
   }
 
   return await db.transaction(async (tx) => {
-    const slug = `${toKebabCase(data.title) || 'event'}-${Math.random().toString(36).slice(2, 7)}`;
+    const slug = await createUniqueEventSlug(tx as any, data.title);
 
     let eventVenueId = data.eventVenueId;
 
@@ -415,7 +428,6 @@ export async function createOrganizerEventWithTickets(
       .values({
         title: data.title,
         description: data.description,
-        // slug: toKebabCase(data.title),
         slug,
         eventVenueId,
         organizerId,
@@ -572,20 +584,25 @@ export async function createOrganizerEventWithTickets(
  * Update organizer event
  */
 export async function updateOrganizerEvent(
-  eventId: number,
+  eventIdentifier: string | number,
   organizerId: number,
   data: any,
 ) {
+  let updatedEventId = 0;
+
   await db.transaction(async (tx) => {
     const [existing] = await tx
-      .select({ eventVenueId: events.eventVenueId })
+      .select({ id: events.id, eventVenueId: events.eventVenueId })
       .from(events)
-      .where(and(eq(events.id, eventId), eq(events.organizerId, organizerId)))
+      .where(and(eventIdentifierFilter(eventIdentifier), eq(events.organizerId, organizerId)))
       .limit(1);
 
     if (!existing) {
       throw new AppError(404, 'Event not found or unauthorized');
     }
+
+    const eventId = existing.id;
+    updatedEventId = eventId;
 
     if (data.venue && !data.eventVenueId) {
       const venueValues = {
@@ -621,7 +638,6 @@ export async function updateOrganizerEvent(
 
     if (data.title !== undefined) {
       eventValues.title = data.title;
-      eventValues.slug = toKebabCase(data.title);
     }
 
     if (data.description !== undefined) {
@@ -708,7 +724,7 @@ export async function updateOrganizerEvent(
 
   return {
     message: 'Event updated successfully',
-    event: await getOrganizerEventById(organizerId, eventId),
+    event: await getOrganizerEventById(organizerId, updatedEventId),
   };
 }
 /**
@@ -762,6 +778,9 @@ export async function deleteOrganizerEvent(
     };
   });
 }
+
+
+
 
 
 

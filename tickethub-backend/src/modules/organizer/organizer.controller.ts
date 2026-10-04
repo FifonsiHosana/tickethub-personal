@@ -127,9 +127,9 @@ export async function organizerEventById(
   try {
     const organizerId = req.user.id;
 
-    const eventId = Number(req.params.id);
+    const eventIdentifier = String(req.params.id ?? "");
 
-    const result = await getOrganizerEventById(organizerId, eventId);
+    const result = await getOrganizerEventById(organizerId, eventIdentifier);
 
     res.status(200).json({
       success: true,
@@ -178,10 +178,10 @@ export async function updateEvent(
   try {
     const organizerId = req.user.id;
 
-    const eventId = Number(req.params.id);
+    const eventIdentifier = String(req.params.id ?? "");
 
     const result = await updateOrganizerEvent(
-      eventId,
+      eventIdentifier,
 
       organizerId,
 
@@ -417,3 +417,6 @@ export async function updatePayoutDetails(
     next(err);
   }
 }
+
+
+

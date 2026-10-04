@@ -42,12 +42,12 @@ const profileSchema = z
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
 type Props = {
-  email: string;
+  identifier: string;
   otp: string;
   onBack: () => void;
 };
 
-export function SignUpProfileStep({ email, otp, onBack }: Props) {
+export function SignUpProfileStep({ identifier, otp, onBack }: Props) {
   const navigate = useNavigate();
   const { setAuth } = useAuthStorage();
   const { mutateAsync: complete, isPending } = useCompleteRegister();
@@ -72,7 +72,7 @@ export function SignUpProfileStep({ email, otp, onBack }: Props) {
   const onSubmit = async (data: ProfileFormValues) => {
     try {
       const response = await complete({
-        email,
+        identifier,
         otp,
         password: data.password,
         firstName: data.firstName,
@@ -216,3 +216,4 @@ export function SignUpProfileStep({ email, otp, onBack }: Props) {
     </div>
   );
 }
+

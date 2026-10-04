@@ -185,6 +185,7 @@ class EventsService {
     const [event] = await db
       .select({
         id: events.id,
+        slug: events.slug,
         title: events.title,
         description: events.description,
         dateAndTime: events.dateAndTime,
@@ -345,3 +346,4 @@ class EventsService {
 }
 
 export default new EventsService();
+

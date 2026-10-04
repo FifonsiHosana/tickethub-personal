@@ -12,18 +12,29 @@ import {
   getOtpExpiry,
   hashPassword,
 } from '../auth.utils.js';
+import { parseAuthIdentity } from '../auth.identity.js';
+import {
+  sendPhonePasswordResetOtp,
+  verifyPhonePasswordResetOtp,
+} from './auth.otp.service.js';
 
 const RESET_LINK_TTL_MINUTES = 60;
 
 const GENERIC_MESSAGE =
-  'If an account exists for that email, a password reset link has been sent.';
+  'If an account exists for that email or phone, password reset instructions have been sent.';
 
 export class PasswordResetService {
-  /**
-   * Issue a one-time reset link for the email. The response is identical
-   * whether the account exists or not (anti-enumeration, mirrors resendOtp).
-   */
-  async requestPasswordReset(email: string) {
+  async requestPasswordReset(identifier: string) {
+    const identity = parseAuthIdentity(identifier);
+
+    if (identity.type === 'phone') {
+      return this.requestPhonePasswordReset(identity.value);
+    }
+
+    return this.requestEmailPasswordReset(identity.value);
+  }
+
+  private async requestEmailPasswordReset(email: string) {
     const [user] = await db
       .select({ id: users.id, email: users.email })
       .from(users)
@@ -58,13 +69,27 @@ export class PasswordResetService {
       await sendMail(email, subject, text, html);
     }
 
-    return { message: GENERIC_MESSAGE };
+    return { message: GENERIC_MESSAGE, channel: 'email' as const };
   }
 
-  /**
-   * Redeem a reset token: hash the submitted token against stored hashes,
-   * then set the user's password and mark the link as used.
-   */
+  private async requestPhonePasswordReset(phoneNumber: string) {
+    const [user] = await db
+      .select({
+        id: users.id,
+        isVerified: users.isVerified,
+        isActive: users.isActive,
+      })
+      .from(users)
+      .where(eq(users.phoneNumber, phoneNumber))
+      .limit(1);
+
+    if (user?.isVerified && user.isActive) {
+      await sendPhonePasswordResetOtp(phoneNumber, user.id);
+    }
+
+    return { message: GENERIC_MESSAGE, channel: 'phone' as const };
+  }
+
   async resetPassword(token: string, password: string) {
     const candidates = await db
       .select()
@@ -89,15 +114,49 @@ export class PasswordResetService {
       throw new AppError(400, 'Invalid or expired reset link.');
     }
 
-    if (match.userId == null) {
-      throw new AppError(400, 'Invalid or expired reset link.');
+    return this.updatePasswordFromVerification(match, password, {
+      expiredMessage: 'This reset link has expired.',
+      invalidMessage: 'Invalid or expired reset link.',
+    });
+  }
+
+  async resetPasswordWithPhoneOtp(
+    identifier: string,
+    otp: string,
+    password: string,
+  ) {
+    const identity = parseAuthIdentity(identifier);
+    if (identity.type !== 'phone') {
+      throw new AppError(400, 'Enter a phone number to verify an SMS code.');
     }
 
-    const userId = match.userId;
-    const isExpired = new Date(match.expiresAt) < new Date();
+    const verification = await verifyPhonePasswordResetOtp(identity.value, otp);
+
+    return this.updatePasswordFromVerification(verification, password, {
+      expiredMessage: 'Verification code has expired.',
+      invalidMessage: 'Invalid verification code.',
+      alreadyMarkedUsed: true,
+    });
+  }
+
+  private async updatePasswordFromVerification(
+    verification: typeof otpVerifications.$inferSelect,
+    password: string,
+    options: {
+      expiredMessage: string;
+      invalidMessage: string;
+      alreadyMarkedUsed?: boolean;
+    },
+  ) {
+    if (verification.userId == null) {
+      throw new AppError(400, options.invalidMessage);
+    }
+
+    const userId = verification.userId;
+    const isExpired = new Date(verification.expiresAt) < new Date();
 
     if (isExpired) {
-      throw new AppError(400, 'This reset link has expired.');
+      throw new AppError(400, options.expiredMessage);
     }
 
     const passwordHash = await hashPassword(password);
@@ -108,12 +167,15 @@ export class PasswordResetService {
         .set({ passwordHash, updatedAt: now() })
         .where(eq(users.id, userId));
 
-      await tx
-        .update(otpVerifications)
-        .set({ isUsed: true, updatedAt: now() })
-        .where(eq(otpVerifications.id, match.id));
+      if (!options.alreadyMarkedUsed) {
+        await tx
+          .update(otpVerifications)
+          .set({ isUsed: true, updatedAt: now() })
+          .where(eq(otpVerifications.id, verification.id));
+      }
     });
 
     return { message: 'Password updated successfully. Please sign in.' };
   }
 }
+

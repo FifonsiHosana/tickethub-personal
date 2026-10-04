@@ -32,6 +32,7 @@ import type {
 } from "@/utils/services/organizers/events.service";
 import { statusColor } from "@/utils/statusColors";
 import { Input } from "@/components/ui/input";
+import { getEventPath } from "@/utils/routes/eventRoutes";
 
 interface Props {
   events: OrganizerEventResponse[] | undefined;
@@ -64,7 +65,7 @@ export function OrganizerEventsGrid({
     setSheetOpen(true);
   };
   const handleEdit = (e: OrganizerEventResponse) => {
-    navigate(`/organizer/events/${e.id}/edit`);
+    navigate(`/organizer/events/${e.slug || e.id}/edit`);
   };
   const handleCancel = (e: OrganizerEventResponse) => {
     setSelected(e);
@@ -269,7 +270,7 @@ export function OrganizerEventsGrid({
                         variant="outline"
                         size="icon"
                         aria-label="Open public page"
-                        onClick={() => navigate(`/events/${event.id}`)}
+                        onClick={() => navigate(getEventPath(event))}
                       >
                         <ExternalLink />
                       </Button>
@@ -317,3 +318,5 @@ export function OrganizerEventsGrid({
     </div>
   );
 }
+
+

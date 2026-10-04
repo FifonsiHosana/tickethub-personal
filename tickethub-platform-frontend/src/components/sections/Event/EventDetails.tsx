@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate, useParams } from "react-router";
 import { useEvent, useEvents } from "@/hooks/attendees/events/useEvent";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Loader } from "@/components/ui/loader";
@@ -16,6 +17,8 @@ import { getBannerUrl } from "./eventUtils";
 import { DEFAULT_EVENT_TERMS } from "@/utils/eventTerms";
 
 export const EventDetails: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { data: event, isLoading, isError, error } = useEvent();
   const { isMobile } = useIsMobile();
   const { data: eventsResponse } = useEvents({
@@ -28,6 +31,12 @@ export const EventDetails: React.FC = () => {
   const bgColor = useBannerColor(event);
   const { ticketsSectionRef, isTicketsVisible, scrollToTickets } =
     useTicketsVisibility(isMobile);
+
+  useEffect(() => {
+    if (event?.slug && id && /^\d+$/.test(id)) {
+      navigate(`/events/${event.slug}`, { replace: true });
+    }
+  }, [event?.slug, id, navigate]);
 
   if (isLoading) return <Loader loading={isLoading} fullScreen={true} />;
 
@@ -59,12 +68,10 @@ export const EventDetails: React.FC = () => {
         onGetTickets={scrollToTickets}
       />
 
-      {/* Main content */}
       <div className="mx-auto px-5 pb-16 pt-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-16">
             <div className="w-full lg:w-[60%] space-y-6">
-              {/* About Section */}
               <div className="space-y-3 mt-5">
                 <h2 className="text-2xl font-semibold">About This Event</h2>
                 <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
@@ -72,10 +79,7 @@ export const EventDetails: React.FC = () => {
                 </div>
               </div>
 
-              {/* Date & Time */}
               <EventDateTime event={event} />
-
-              {/* Venue */}
               <EventVenue event={event} />
 
               <div className="space-y-3">
@@ -86,7 +90,6 @@ export const EventDetails: React.FC = () => {
               </div>
             </div>
 
-            {/* Tickets */}
             <div
               ref={ticketsSectionRef}
               id="tickets-section"
@@ -101,7 +104,6 @@ export const EventDetails: React.FC = () => {
           </div>
         </div>
 
-        {/* Similar events */}
         {(eventsResponse?.data.length as number) > 1 && (
           <div className="mx-auto py-16">
             <div className="text-2xl font-bold text-stone-900 mb-8">

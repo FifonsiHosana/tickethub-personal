@@ -9,13 +9,19 @@ import {
 } from '@/db/schema/index.js';
 import { hashPassword, generateAccessToken } from '../auth.utils.js';
 import { now } from '@/utils/timeDatehelpers.js';
-import { sendVerificationOtp, verifyEmailOtp } from './auth.otp.service.js';
+import {
+  sendPhoneVerificationOtp,
+  sendVerificationOtp,
+  verifyEmailOtp,
+  verifyPhoneOtp,
+} from './auth.otp.service.js';
 import { linkOrdersByEmail } from '@/modules/attendee/attendee.service.js';
 import { AppError } from '@/middleware/errorHandler.js';
 import type {
   CompleteRegisterInput,
   SendOtpInput,
 } from '../auth.schema.js';
+import { parseAuthIdentity } from '../auth.identity.js';
 
 export async function getUserRoleNames(userId: number): Promise<string[]> {
   const list = await db
@@ -45,16 +51,11 @@ export async function grantRoleIfMissing(
   const [existingRelation] = await tx
     .select({ id: userRoles.id })
     .from(userRoles)
-    .where(
-      and(eq(userRoles.userId, userId), eq(userRoles.roleId, role.id)),
-    )
+    .where(and(eq(userRoles.userId, userId), eq(userRoles.roleId, role.id)))
     .limit(1);
 
   if (!existingRelation) {
-    await tx.insert(userRoles).values({
-      userId,
-      roleId: role.id,
-    });
+    await tx.insert(userRoles).values({ userId, roleId: role.id });
   }
 
   return role;
@@ -86,90 +87,94 @@ async function findCompletedOrderByEmail(email: string) {
 
 export class RegistrationService {
   async sendOtp(payload: SendOtpInput) {
-    const [existingUser] = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, payload.email))
-      .limit(1);
+    const identity = parseAuthIdentity(payload.identifier ?? payload.email ?? '');
+    const userLookup = identity.type === 'email'
+      ? eq(users.email, identity.value)
+      : eq(users.phoneNumber, identity.value);
 
-    // A fully active account owns this email — don't mint an OTP for a
-    // takeover attempt; let the UI route to login instead.
+    const [existingUser] = await db.select().from(users).where(userLookup).limit(1);
+
     if (existingUser?.passwordHash && existingUser.isVerified) {
       return {
         hasAccount: true,
         active: true,
-        message: 'An account already exists for this email.',
+        channel: identity.type,
+        message: `An account already exists for this ${identity.type}.`,
       };
     }
 
-    await sendVerificationOtp(payload.email, existingUser?.id ?? null);
+    if (identity.type === 'email') {
+      await sendVerificationOtp(identity.value, existingUser?.id ?? null);
+    } else {
+      await sendPhoneVerificationOtp(identity.value, existingUser?.id ?? null);
+    }
 
     return {
       hasAccount: !!existingUser,
       active: false,
+      channel: identity.type,
+      identifier: identity.value,
       message: 'Verification code sent successfully.',
     };
   }
 
   async completeRegister(payload: CompleteRegisterInput) {
-    await verifyEmailOtp(payload.email, payload.otp);
+    const identity = parseAuthIdentity(payload.identifier ?? payload.email ?? '');
 
-    const [existingUser] = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, payload.email))
-      .limit(1);
+    if (identity.type === 'email') {
+      await verifyEmailOtp(identity.value, payload.otp);
+    } else {
+      await verifyPhoneOtp(identity.value, payload.otp);
+    }
+
+    const userLookup = identity.type === 'email'
+      ? eq(users.email, identity.value)
+      : eq(users.phoneNumber, identity.value);
+
+    const [existingUser] = await db.select().from(users).where(userLookup).limit(1);
 
     if (existingUser?.passwordHash && existingUser.isVerified) {
       throw new AppError(
         400,
-        'An account with this email already exists. Log in instead.',
+        `An account with this ${identity.type} already exists. Log in instead.`,
       );
     }
 
     const passwordHash = await hashPassword(payload.password);
-
     let userId: number;
-    let roleName = payload.roleName ?? 'attendee';
+    const roleName = payload.roleName ?? 'attendee';
 
     if (existingUser) {
-      /**
-       * Purchase-created (null password) or pending-unverified account —
-       * activate it. Names come from checkout; override when provided.
-       */
       userId = existingUser.id;
-
       await db
         .update(users)
         .set({
           firstName: payload.firstName ?? existingUser.firstName,
           lastName: payload.lastName ?? existingUser.lastName ?? '',
+          phoneNumber: identity.type === 'phone' ? identity.value : existingUser.phoneNumber,
           passwordHash,
           isVerified: true,
           updatedAt: now(),
         })
         .where(eq(users.id, userId));
     } else {
-      /**
-       * No account yet. Organizer signup provides names; otherwise fall back
-       * to the buyer details from their latest completed order (covers any
-       * webhook delay after purchase).
-       */
       let firstName = payload.firstName;
       let lastName = payload.lastName;
 
-      if (!firstName) {
-        const order = await findCompletedOrderByEmail(payload.email);
-
+      if (!firstName && identity.type === 'email') {
+        const order = await findCompletedOrderByEmail(identity.value);
         if (!order) {
           throw new AppError(
             409,
             'We are still confirming your payment. Please try again in a minute.',
           );
         }
-
         firstName = order.firstName;
         lastName = order.lastName;
+      }
+
+      if (!firstName) {
+        throw new AppError(400, 'First name is required.');
       }
 
       const [createdUser] = await db
@@ -177,7 +182,8 @@ export class RegistrationService {
         .values({
           firstName,
           lastName: lastName ?? '',
-          email: payload.email,
+          email: identity.type === 'email' ? identity.value : identity.syntheticEmail,
+          phoneNumber: identity.type === 'phone' ? identity.value : null,
           passwordHash,
           isVerified: true,
           isActive: true,
@@ -193,11 +199,13 @@ export class RegistrationService {
 
     await grantRoleIfMissing(db, userId, roleName);
 
-    // Link any guest orders placed with this email (idempotent)
-    await linkOrdersByEmail(db, userId, payload.email);
+    if (identity.type === 'email') {
+      await linkOrdersByEmail(db, userId, identity.value);
+    }
 
     const [freshUser] = await db
       .select({
+        id: users.id,
         firstName: users.firstName,
         lastName: users.lastName,
         email: users.email,
@@ -208,16 +216,8 @@ export class RegistrationService {
       .limit(1);
 
     const rolesList = await getUserRoleNames(userId);
+    const token = generateAccessToken({ id: userId, roles: rolesList });
 
-    const token = generateAccessToken({
-      id: userId,
-      roles: rolesList,
-    });
-
-    return {
-      token,
-      user: freshUser,
-      roles: rolesList,
-    };
+    return { token, user: freshUser, roles: rolesList };
   }
 }
