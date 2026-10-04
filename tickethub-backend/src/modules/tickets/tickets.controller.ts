@@ -61,7 +61,7 @@ class TicketsController {
   async resendEmail(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await ticketsService.resendEmail(
-        req.body.orderId,
+        Number(req.body.orderId),
         // req.user.id,
       );
 

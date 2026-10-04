@@ -109,6 +109,9 @@ export function useUpdateOrganizerEvent() {
       queryClient.invalidateQueries({
         queryKey: ["organizer-event", variables.eventId],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["events"],
+      });
     },
   });
 }

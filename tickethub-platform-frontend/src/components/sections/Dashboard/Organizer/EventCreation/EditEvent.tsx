@@ -25,6 +25,7 @@ import type {
   UpdateEventPayload,
   OrganizerEventDetail,
 } from "@/utils/services/organizers/events.service";
+import { toEventApiDate, toEventFormDate } from "@/utils/eventDate";
 
 import {
   Card,
@@ -45,9 +46,6 @@ import { firstErrorMessage } from "./CreateEvent";
 // Shared section components are typed for the create form; the edit form
 // carries the same field names with relaxed optionality.
 type SharedControl = Control<CreateEventFormValues>;
-
-const toLocalInput = (v?: string | null) =>
-  v ? v.replace(" ", "T").slice(0, 16) : "";
 
 async function urlToFile(url: string): Promise<File | undefined> {
   try {
@@ -121,8 +119,8 @@ export default function EditEvent({ eventId }: Props) {
           }
         : undefined,
       capacity: src.capacity,
-      dateAndTime: toLocalInput(src.dateAndTime),
-      dateAndTimeEnd: toLocalInput(src.dateAndTimeEnd),
+      dateAndTime: toEventFormDate(src.dateAndTime),
+      dateAndTimeEnd: toEventFormDate(src.dateAndTimeEnd),
       termsAndConditions: src.termsAndConditions ?? "",
       categoryIds: src.categoryIds ?? [],
       bannerImage: undefined,
@@ -133,8 +131,8 @@ export default function EditEvent({ eventId }: Props) {
           price: Number(t.price),
           totalCount: t.totalCount ?? undefined,
           benefits: t.benefits ?? undefined,
-          salesStartDate: toLocalInput(t.salesStartDate) || undefined,
-          salesEndDate: toLocalInput(t.salesEndDate) || undefined,
+          salesStartDate: toEventFormDate(t.salesStartDate) || undefined,
+          salesEndDate: toEventFormDate(t.salesEndDate) || undefined,
         }),
       ),
     });
@@ -165,23 +163,23 @@ export default function EditEvent({ eventId }: Props) {
     try {
       const payload: UpdateEventPayload = {
         title: values.title,
-        description: values.description || undefined,
+        description: values.description?.trim() ? values.description : null,
         capacity: values.capacity,
-        dateAndTime: new Date(values.dateAndTime).toISOString(),
-        dateAndTimeEnd: values.dateAndTimeEnd?.trim()
-          ? new Date(values.dateAndTimeEnd).toISOString()
-          : undefined,
-        termsAndConditions: values.termsAndConditions,
+        dateAndTime: toEventApiDate(values.dateAndTime) ?? "",
+        dateAndTimeEnd: toEventApiDate(values.dateAndTimeEnd) ?? null,
+        termsAndConditions: values.termsAndConditions?.trim()
+          ? values.termsAndConditions
+          : null,
         categoryIds: values.categoryIds,
       };
 
       if (values.venue?.venue_name?.trim()) {
         payload.venue = {
           venue_name: values.venue.venue_name.trim(),
-          address: values.venue.address?.trim() || undefined,
+          address: values.venue.address?.trim() || null,
           city_or_town: values.venue.city_or_town.trim(),
           country: values.venue.country.trim(),
-          googleMapLink: values.venue.googleMapLink?.trim() || undefined,
+          googleMapLink: values.venue.googleMapLink?.trim() || null,
         };
       }
 

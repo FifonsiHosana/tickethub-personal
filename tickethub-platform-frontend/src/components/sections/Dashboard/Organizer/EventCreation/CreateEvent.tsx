@@ -12,6 +12,7 @@ import {
 import { useCreateOrganizerEventWithTickets } from "@/hooks/organizers/useOrganizerEvents";
 import { useOrganizerMedia } from "@/hooks/organizers/useOrganizerMedia";
 import type { TicketPayload } from "@/utils/services/organizers/events.service";
+import { toEventApiDate } from "@/utils/eventDate";
 
 import {
   Card,
@@ -102,9 +103,6 @@ export default function CreateEvent() {
       const [{ url }] = await uploadMedia([values.bannerImage]);
       if (!url) throw new Error("Upload failed");
 
-      const toIso = (v?: string) =>
-        v?.trim() ? new Date(v).toISOString() : undefined;
-
       const tickets: TicketPayload[] = values.tickets.map((t) => ({
         name: t.name,
         ...(t.ticketTypeId ? { ticketTypeId: t.ticketTypeId } : {}),
@@ -112,11 +110,11 @@ export default function CreateEvent() {
         price: t.price,
         ...(t.totalCount ? { totalCount: t.totalCount } : {}),
         ...(t.benefits ? { benefits: t.benefits } : {}),
-        ...(toIso(t.salesStartDate)
-          ? { salesStartDate: toIso(t.salesStartDate) }
+        ...(toEventApiDate(t.salesStartDate)
+          ? { salesStartDate: toEventApiDate(t.salesStartDate) }
           : {}),
-        ...(toIso(t.salesEndDate)
-          ? { salesEndDate: toIso(t.salesEndDate) }
+        ...(toEventApiDate(t.salesEndDate)
+          ? { salesEndDate: toEventApiDate(t.salesEndDate) }
           : {}),
       }));
 
@@ -135,8 +133,8 @@ export default function CreateEvent() {
               },
             }),
         capacity: values.capacity,
-        dateAndTime: new Date(values.dateAndTime).toISOString(),
-        dateAndTimeEnd: new Date(values.dateAndTimeEnd).toISOString(),
+        dateAndTime: toEventApiDate(values.dateAndTime) ?? "",
+        dateAndTimeEnd: toEventApiDate(values.dateAndTimeEnd),
         termsAndConditions: values.termsAndConditions?.trim()
           ? values.termsAndConditions
           : DEFAULT_TERMS,

@@ -22,7 +22,7 @@ const AttendeesTableActions = ({
   const { mutate: check_user_in_manually } = useCheckInTicket();
 
   const {
-    // mutate: resend_ticket_email,
+    mutate: resend_ticket_email,
     isPending,
     isSuccess,
   } = useResendTicketEmail();
@@ -33,8 +33,10 @@ const AttendeesTableActions = ({
     <div className="flex gap-2">
       <Button
         disabled={isSuccess}
-        onClick={() => console.log(orderId)}
-        // resend_ticket_email(orderId)}
+        onClick={() =>
+          // console.log(orderId)}
+          resend_ticket_email(orderId)
+        }
         className={"dark:text-white underline cursor-pointer"}
         size={"xs"}
         variant={"link"}

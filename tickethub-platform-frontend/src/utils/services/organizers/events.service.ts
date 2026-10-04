@@ -3,13 +3,13 @@ import type { Category } from "@/types/event.types";
 
 export interface CreateEventPayload {
   title: string;
-  description?: string;
+  description?: string | null;
   eventVenueId?: number;
   venue?: CreateVenuePayload;
   capacity: number;
   dateAndTime: string;
-  dateAndTimeEnd?: string;
-  termsAndConditions?: string;
+  dateAndTimeEnd?: string | null;
+  termsAndConditions?: string | null;
   categoryIds?: number[];
   media?: {
     imageUrl: string;
@@ -41,12 +41,12 @@ export type GetOrganizerEventsResponse = {
 export interface OrganizerEventResponse {
   id: number;
   title: string;
-  description?: string;
+  description?: string | null;
   status: "Draft" | "Published" | "Completed" | "Cancelled";
   approvalStatus: "Pending" | "Approved" | "Rejected";
   capacity: number;
   dateAndTime: string;
-  dateAndTimeEnd?: string;
+  dateAndTimeEnd?: string | null;
   venue?: string | null;
   banner?: string | null;
   createdAt: string;
@@ -126,13 +126,13 @@ export interface TicketPayload {
 
 export interface CreateEventWithTicketsPayload {
   title: string;
-  description?: string;
+  description?: string | null;
   eventVenueId?: number;
   venue?: CreateVenuePayload;
   capacity: number;
   dateAndTime: string;
-  dateAndTimeEnd?: string;
-  termsAndConditions?: string;
+  dateAndTimeEnd?: string | null;
+  termsAndConditions?: string | null;
   categoryIds?: number[];
   media?: { imageUrl: string; type: "Banner" | "Gallery" | "Sponsor" }[];
   tickets: TicketPayload[];
@@ -178,10 +178,10 @@ export async function getEventVenues() {
 
 export interface CreateVenuePayload {
   venue_name: string;
-  address?: string;
+  address?: string | null;
   city_or_town: string;
   country: string;
-  googleMapLink?: string;
+  googleMapLink?: string | null;
 }
 
 export async function createEventVenue(payload: CreateVenuePayload) {

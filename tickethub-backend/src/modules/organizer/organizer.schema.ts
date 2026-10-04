@@ -1,5 +1,12 @@
 import { z } from 'zod';
 
+const eventDateTimeSchema = z.union([
+  z.iso.datetime(),
+  z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?$/),
+]);
+
 const eventMediaSchema = z.object({
   imageUrl: z.url(),
 
@@ -12,8 +19,8 @@ export const createOrganizerEventSchema = z.object({
   eventVenueId: z.number().int().positive().optional(),
 
   media: z.array(eventMediaSchema).optional(),
-  dateAndTime: z.iso.datetime(),
-  dateAndTimeEnd: z.iso.datetime().optional(),
+  dateAndTime: eventDateTimeSchema,
+  dateAndTimeEnd: eventDateTimeSchema.optional(),
   capacity: z.number().int().positive(),
   termsAndConditions: z.string().max(5000).optional(),
 });
@@ -25,18 +32,18 @@ export const updateOrganizerEventSchema = z.object({
   venue: z
     .object({
       venue_name: z.string().trim().min(1, 'Venue name is required'),
-      address: z.string().optional(),
+      address: z.string().nullable().optional(),
       city_or_town: z.string().trim().min(1, 'City/Town is required'),
       country: z.string().trim().min(1, 'Country is required'),
-      googleMapLink: z.string().optional(),
+      googleMapLink: z.string().nullable().optional(),
     })
     .optional(),
   media: z.array(eventMediaSchema).optional(),
-  dateAndTime: z.iso.datetime().optional(),
-  dateAndTimeEnd: z.iso.datetime().optional(),
+  dateAndTime: eventDateTimeSchema.optional(),
+  dateAndTimeEnd: eventDateTimeSchema.nullable().optional(),
   capacity: z.number().int().positive().optional(),
   categoryIds: z.array(z.number().int().positive()).optional(),
-  termsAndConditions: z.string().max(5000).optional(),
+  termsAndConditions: z.string().max(5000).nullable().optional(),
 });
 
 export const organizerEventsQuerySchema = z.object({
@@ -74,8 +81,8 @@ export const createEventWithTicketsSchema = z
         }),
       )
       .optional(),
-    dateAndTime: z.iso.datetime(),
-    dateAndTimeEnd: z.iso.datetime().optional(),
+    dateAndTime: eventDateTimeSchema,
+    dateAndTimeEnd: eventDateTimeSchema.optional(),
     capacity: z.number().int().positive(),
     termsAndConditions: z.string().max(5000).optional(),
     categoryIds: z.array(z.number().int().positive()).optional(),

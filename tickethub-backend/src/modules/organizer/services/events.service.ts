@@ -21,6 +21,18 @@ import { and, eq, like, desc, count, inArray } from 'drizzle-orm';
 import { formatDateForMySQL } from '@/utils/timeDatehelpers.js';
 import logger from '@/utils/logger/index.js';
 import { toKebabCase } from '../organizer.utils.js';
+function formatEventDateForMySQL(value: string): string {
+  const trimmed = value.trim();
+  const localMatch = trimmed.match(
+    /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})(?::(\d{2})(?:\.\d{1,3})?)?$/,
+  );
+
+  if (localMatch) {
+    return `${localMatch[1]} ${localMatch[2]}:${localMatch[3] ?? '00'}.000`;
+  }
+
+  return formatDateForMySQL(new Date(trimmed));
+}
 
 interface GetOrganizerEventsParams {
   organizerId: number;
@@ -268,9 +280,9 @@ export async function createOrganizerEvent(organizerId: number, data: any) {
         eventVenueId,
         organizerId,
         capacity: data.capacity,
-        dateAndTime: formatDateForMySQL(new Date(data.dateAndTime)),
+        dateAndTime: formatEventDateForMySQL(data.dateAndTime),
         dateAndTimeEnd: data.dateAndTimeEnd
-          ? formatDateForMySQL(new Date(data.dateAndTimeEnd))
+          ? formatEventDateForMySQL(data.dateAndTimeEnd)
           : undefined,
         status: autoApprove ? 'Published' : 'Draft',
         approvalStatus: autoApprove ? 'Approved' : 'Pending',
@@ -402,9 +414,9 @@ export async function createOrganizerEventWithTickets(
         eventVenueId,
         organizerId,
         capacity: data.capacity,
-        dateAndTime: formatDateForMySQL(new Date(data.dateAndTime)),
+        dateAndTime: formatEventDateForMySQL(data.dateAndTime),
         dateAndTimeEnd: data.dateAndTimeEnd
-          ? formatDateForMySQL(new Date(data.dateAndTimeEnd))
+          ? formatEventDateForMySQL(data.dateAndTimeEnd)
           : undefined,
         status: autoApprove ? 'Published' : 'Draft',
         approvalStatus: autoApprove ? 'Approved' : 'Pending',
@@ -493,13 +505,11 @@ export async function createOrganizerEventWithTickets(
       }
 
       const totalCount = ticketData.totalCount ?? data.capacity;
-      const configSalesStart = formatDateForMySQL(
-        new Date(ticketData.salesStartDate ?? data.dateAndTime),
+      const configSalesStart = formatEventDateForMySQL(
+        ticketData.salesStartDate ?? data.dateAndTime,
       );
-      const configSalesEnd = formatDateForMySQL(
-        new Date(
-          ticketData.salesEndDate ?? data.dateAndTimeEnd ?? data.dateAndTime,
-        ),
+      const configSalesEnd = formatEventDateForMySQL(
+        ticketData.salesEndDate ?? data.dateAndTimeEnd ?? data.dateAndTime,
       );
 
       const [configuration] = await tx
@@ -551,7 +561,7 @@ export async function updateOrganizerEvent(
   organizerId: number,
   data: any,
 ) {
-  return await db.transaction(async (tx) => {
+  await db.transaction(async (tx) => {
     const [existing] = await tx
       .select({ eventVenueId: events.eventVenueId })
       .from(events)
@@ -565,10 +575,12 @@ export async function updateOrganizerEvent(
     if (data.venue && !data.eventVenueId) {
       const venueValues = {
         venue_name: data.venue.venue_name,
-        address: data.venue.address,
+        address: data.venue.address?.trim() ? data.venue.address : null,
         city_or_town: data.venue.city_or_town,
         country: data.venue.country,
-        googleMapLink: data.venue.googleMapLink,
+        googleMapLink: data.venue.googleMapLink?.trim()
+          ? data.venue.googleMapLink
+          : null,
       };
 
       if (existing.eventVenueId) {
@@ -590,23 +602,48 @@ export async function updateOrganizerEvent(
       }
     }
 
+    const eventValues: any = {
+      updatedAt: now(),
+    };
+
+    if (data.title !== undefined) {
+      eventValues.title = data.title;
+      eventValues.slug = toKebabCase(data.title);
+    }
+
+    if (data.description !== undefined) {
+      eventValues.description = data.description?.trim()
+        ? data.description
+        : null;
+    }
+
+    if (data.capacity !== undefined) {
+      eventValues.capacity = data.capacity;
+    }
+
+    if (data.dateAndTime !== undefined) {
+      eventValues.dateAndTime = formatEventDateForMySQL(data.dateAndTime);
+    }
+
+    if (data.dateAndTimeEnd !== undefined) {
+      eventValues.dateAndTimeEnd = data.dateAndTimeEnd
+        ? formatEventDateForMySQL(data.dateAndTimeEnd)
+        : null;
+    }
+
+    if (data.eventVenueId !== undefined) {
+      eventValues.eventVenueId = data.eventVenueId;
+    }
+
+    if (data.termsAndConditions !== undefined) {
+      eventValues.termsAndConditions = data.termsAndConditions?.trim()
+        ? data.termsAndConditions
+        : null;
+    }
+
     await tx
       .update(events)
-      .set({
-        ...(data.title !== undefined
-          ? { title: data.title, slug: toKebabCase(data.title) }
-          : {}),
-        description: data.description,
-        capacity: data.capacity,
-        dateAndTime: data.dateAndTime
-          ? formatDateForMySQL(new Date(data.dateAndTime))
-          : undefined,
-        dateAndTimeEnd: data.dateAndTimeEnd
-          ? formatDateForMySQL(new Date(data.dateAndTimeEnd))
-          : undefined,
-        eventVenueId: data.eventVenueId,
-        updatedAt: now(),
-      })
+      .set(eventValues)
 
       .where(and(eq(events.id, eventId), eq(events.organizerId, organizerId)));
 
@@ -654,11 +691,12 @@ export async function updateOrganizerEvent(
         })),
       );
     }
-
-    return {
-      message: 'Event updated successfully',
-    };
   });
+
+  return {
+    message: 'Event updated successfully',
+    event: await getOrganizerEventById(organizerId, eventId),
+  };
 }
 /**
  * Cancel organizer event

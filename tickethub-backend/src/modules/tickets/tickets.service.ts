@@ -20,10 +20,32 @@ import type { PurchaseTicketType } from './tickets.schema.js';
 import { generateTicketIdentifier } from './tickets.utils.js';
 import config from '@/config/config.js';
 import { buildPurchaseConfirmationEmail } from '../emails/templates/ticketPurchase.template.js';
-import { getOrderForResend } from './tickets.query.js';
+import { getOrderForResend, type ResendTicketItem } from './tickets.query.js';
 import { sendMail } from '../emails/emails.service.js';
 import { randomBytes } from 'crypto';
 import { sendTicket } from '../ussd-payment/ussd-payment.utils.js';
+
+function buildResendTicketSms(params: {
+  attendeeName: string;
+  orderId: number;
+  tickets: ResendTicketItem[];
+}) {
+  const ticketLines = params.tickets
+    .map(
+      (ticket, index) =>
+        `${index + 1}. ${ticket.eventName}\n` +
+        `Ticket: ${ticket.ticketName}\n` +
+        `Type: ${ticket.ticketType}\n` +
+        `Code: ${ticket.ticketIdentifier}\n` +
+        `Link: ${ticket.qrCodeUrl}`,
+    )
+    .join('\n\n');
+
+  return (
+    `Hi ${params.attendeeName || 'there'}, your TicketHub tickets for order #${params.orderId}:\n\n` +
+    ticketLines
+  );
+}
 
 class TicketsService {
   async purchaseTickets(payload: PurchaseTicketType, userId: number | null) {
@@ -258,28 +280,53 @@ class TicketsService {
       orderItems,
       amount,
       customerEmail,
+      customerPhoneNumber,
+      attendeeName,
       accountCreated,
     } = await getOrderForResend(orderId);
 
-    const { html: emailHtml, attachments } =
-      await buildPurchaseConfirmationEmail({
-        orderId: id,
-        items: orderItems,
-        total: Number(amount),
-        accountCreated,
-        email: customerEmail,
-      });
+    const sendEmail = async () => {
+      const { html: emailHtml, attachments } =
+        await buildPurchaseConfirmationEmail({
+          orderId: id,
+          items: orderItems,
+          total: Number(amount),
+          accountCreated,
+          email: customerEmail,
+        });
 
-    await sendMail(
-      customerEmail,
-      'Your TicketHub Tickets',
-      'Your ticket purchase has been confirmed',
-      emailHtml,
-      undefined,
-      attachments,
-    );
+      await sendMail(
+        customerEmail,
+        'Your TicketHub Tickets',
+        'Your ticket purchase has been confirmed',
+        emailHtml,
+        undefined,
+        attachments,
+      );
+    };
+
+    const sendSms = () =>
+      sendTicket(
+        customerPhoneNumber,
+        buildResendTicketSms({
+          attendeeName,
+          orderId: id,
+          tickets: orderItems,
+        }),
+      );
+
+    const [emailResult, smsResult] = await Promise.allSettled([
+      sendEmail(),
+      sendSms(),
+    ]);
+
+    return {
+      orderId: id,
+      totalTickets: orderItems.length,
+      emailSent: emailResult.status === 'fulfilled',
+      smsSent: smsResult.status === 'fulfilled' && smsResult.value === true,
+    };
   }
-
   async getAttendeePhoneNumbersByEvent(
     eventId: number,
     selectedGroupIds: number[] = [],

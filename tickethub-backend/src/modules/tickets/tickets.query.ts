@@ -8,21 +8,25 @@ import {
   ticketOrderItems,
   ticketOrders,
   ticketOrderUserDetails,
+  tickets,
   ticketTypes,
 } from '@/db/schema/index.js';
-import { eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import type { TicketItem } from '../emails/templates/ticketPurchase.template.js';
 import { AppError } from '@/middleware/errorHandler.js';
 
+export interface ResendTicketItem extends TicketItem {
+  ticketName: string;
+}
+
 export async function getOrderForResend(orderId: number) {
-  // 1. Order + purchaser contact details (guest checkout email lives here,
-  //    not on Users, so this is the correct source for customerEmail)
   const [order] = await db
     .select({
       orderId: ticketOrders.id,
       status: ticketOrders.status,
       quantity: ticketOrders.quantity,
       customerEmail: ticketOrderUserDetails.email,
+      customerPhoneNumber: ticketOrderUserDetails.phoneNumber,
       firstName: ticketOrderUserDetails.firstName,
       lastName: ticketOrderUserDetails.lastName,
     })
@@ -35,17 +39,18 @@ export async function getOrderForResend(orderId: number) {
     .limit(1);
 
   if (!order) {
-    throw new AppError(
-      409,
-      'Order not found confirm payment was completed and try again in a minute.',
-    );
+    throw new AppError(404, 'Order not found.');
   }
 
-  // 2. Line items: each ticket sold, with its type/price and the event it belongs to
-  const orderItems: TicketItem[] = await db
+  if (!order.customerEmail || !order.customerPhoneNumber) {
+    throw new AppError(409, 'Order buyer contact details are incomplete.');
+  }
+
+  const orderItems: ResendTicketItem[] = await db
     .select({
       ticketIdentifier: ticketOrderItems.ticketIdentifier,
       qrCodeUrl: ticketOrderItems.qrCodeUrl,
+      ticketName: tickets.name,
       ticketType: ticketTypes.name,
       price: ticketConfigurations.price,
       eventName: events.title,
@@ -57,25 +62,29 @@ export async function getOrderForResend(orderId: number) {
       eventTickets,
       eq(eventTickets.id, ticketOrderItems.eventTicketId),
     )
+    .innerJoin(tickets, eq(tickets.id, eventTickets.ticketId))
+    .innerJoin(events, eq(events.id, tickets.eventId))
     .innerJoin(ticketTypes, eq(ticketTypes.id, eventTickets.ticketTypeId))
     .innerJoin(
       ticketConfigurations,
       eq(ticketConfigurations.id, eventTickets.ticketConfigurationId),
     )
-    .innerJoin(events, eq(events.id, eventTickets.id))
     .leftJoin(eventsVenues, eq(eventsVenues.id, events.eventVenueId))
     .where(eq(ticketOrderItems.orderId, orderId));
 
-  // 3. Amount actually charged (Payments.amount is the authoritative total,
-  //    not a sum of ticket prices, since it reflects fees/subtotal handling)
+  if (orderItems.length === 0) {
+    throw new AppError(409, 'This order has no tickets to resend.');
+  }
+
   const [payment] = await db
     .select({ amount: payments.amount })
     .from(payments)
-    .where(eq(payments.orderId, orderId))
+    .where(and(eq(payments.orderId, orderId), eq(payments.status, 'Completed')))
+    .orderBy(desc(payments.id))
     .limit(1);
 
   if (!payment) {
-    throw new Error(`No payment record found for order ${orderId}`);
+    throw new AppError(409, `No completed payment record found for order ${orderId}.`);
   }
 
   return {
@@ -83,6 +92,8 @@ export async function getOrderForResend(orderId: number) {
     orderItems,
     amount: payment.amount,
     customerEmail: order.customerEmail,
+    customerPhoneNumber: order.customerPhoneNumber,
+    attendeeName: `${order.firstName} ${order.lastName}`.trim(),
     accountCreated: false,
   };
 }
