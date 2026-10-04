@@ -88,9 +88,14 @@ export function useCheckInTicket() {
 
   return useMutation({
     mutationFn: (ticketIdentifier: string) => checkInTicket(ticketIdentifier),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["organizer-event-attendees"] });
-      toast.success("Attendee manually checked-in");
+    onSuccess: (result) => {
+      if (result.status === "valid") {
+        qc.invalidateQueries({ queryKey: ["organizer-event-attendees"] });
+        toast.success("Attendee manually checked-in");
+        return;
+      }
+
+      toast.warning("Ticket has already been used");
     },
   });
 }
@@ -103,3 +108,4 @@ export function useResendTicketEmail() {
     },
   });
 }
+

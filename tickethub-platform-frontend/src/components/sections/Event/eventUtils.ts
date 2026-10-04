@@ -43,3 +43,11 @@ export function formatEventDates(event: Event) {
     timeEndStr: end ? format(end, "h:mm a") : "",
   };
 }
+
+export function organizerDisplayName(event: Event): string {
+  return (
+    event.organizerLastName?.trim() ||
+    event.organizerFirstName?.trim() ||
+    "Organizer"
+  );
+}

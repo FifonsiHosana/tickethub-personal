@@ -10,7 +10,7 @@ const passwordSchema = z
 
 export const registerSchema = z.object({
   firstName: z.string().trim().min(2).max(100),
-  lastName: z.string().trim().min(2).max(100),
+  lastName: z.string().trim().max(100).optional(),
   email: z.email().transform((email) => email.toLowerCase()),
   password: passwordSchema,
   roleId: z.number().int().positive(),
@@ -41,7 +41,7 @@ export const completeRegisterSchema = z.object({
   otp: z.string().length(6).regex(/^\d+$/),
   password: passwordSchema,
   firstName: z.string().trim().min(2).max(100).optional(),
-  lastName: z.string().trim().min(2).max(100).optional(),
+  lastName: z.string().trim().max(100).optional(),
   roleName: z.enum(['attendee', 'organizer']).optional(),
 });
 

@@ -26,6 +26,7 @@ import type {
   OrganizerEventDetail,
 } from "@/utils/services/organizers/events.service";
 import { toEventApiDate, toEventFormDate } from "@/utils/eventDate";
+import { richTextOrNull } from "@/utils/richText";
 
 import {
   Card,
@@ -163,7 +164,7 @@ export default function EditEvent({ eventId }: Props) {
     try {
       const payload: UpdateEventPayload = {
         title: values.title,
-        description: values.description?.trim() ? values.description : null,
+        description: richTextOrNull(values.description),
         capacity: values.capacity,
         dateAndTime: toEventApiDate(values.dateAndTime) ?? "",
         dateAndTimeEnd: toEventApiDate(values.dateAndTimeEnd) ?? null,
@@ -292,3 +293,4 @@ export default function EditEvent({ eventId }: Props) {
     </FormProvider>
   );
 }
+

@@ -47,6 +47,10 @@ export const normalizeGhanaMobileNumber = (value: string): string => {
     return digits;
   }
 
+  if (digits.startsWith('223') && digits.length === 12) {
+    return `233${digits.slice(3)}`;
+  }
+
   if (digits.startsWith('0') && digits.length === 10) {
     return `233${digits.slice(1)}`;
   }
@@ -57,6 +61,7 @@ export const normalizeGhanaMobileNumber = (value: string): string => {
 
   return digits;
 };
+
 export const sendTicket = async (
   phoneNumber: string,
   ticketMessage: string,
@@ -65,7 +70,7 @@ export const sendTicket = async (
     const response = await axios.post(
       'https://api.mnotify.com/api/sms/quick',
       {
-        recipient: [phoneNumber],
+        recipient: [normalizeGhanaMobileNumber(phoneNumber)],
         sender: config.sms.sender_id,
         message: ticketMessage,
         is_schedule: false,
@@ -80,20 +85,20 @@ export const sendTicket = async (
 
     if (response.data?.status !== 'success') {
       logger.error(
-        { phoneNumber, response: response.data },
+        { phoneNumber: normalizeGhanaMobileNumber(phoneNumber), response: response.data },
         'mNotify rejected SMS',
       );
       return false;
     }
 
-    logger.info({ phoneNumber }, 'Ticket SMS sent');
+    logger.info({ phoneNumber: normalizeGhanaMobileNumber(phoneNumber) }, 'Ticket SMS sent');
     return true;
   } catch (err) {
     // log only safe fields, never the full axios error (it contains the API key in the URL)
     if (axios.isAxiosError(err)) {
       logger.error(
         {
-          phoneNumber,
+          phoneNumber: normalizeGhanaMobileNumber(phoneNumber),
           status: err.response?.status,
           data: err.response?.data,
           message: err.message,
@@ -101,7 +106,7 @@ export const sendTicket = async (
         'Failed to send ticket SMS',
       );
     } else {
-      logger.error({ phoneNumber, err }, 'Failed to send ticket SMS');
+      logger.error({ phoneNumber: normalizeGhanaMobileNumber(phoneNumber), err }, 'Failed to send ticket SMS');
     }
     return false;
   }

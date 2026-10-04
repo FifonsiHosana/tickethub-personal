@@ -2,7 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getOrganizerOrders,
   type GetOrganizerOrdersParams,
+  type GetOrganizerOrdersResponse,
 } from "@/utils/services/organizers/orders.service";
+
+export type { GetOrganizerOrdersResponse };
 
 export const organizerOrdersKeys = {
   all: ["organizer-orders"] as const,

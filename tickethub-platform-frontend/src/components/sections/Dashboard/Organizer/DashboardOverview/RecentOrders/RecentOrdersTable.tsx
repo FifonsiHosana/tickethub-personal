@@ -31,6 +31,12 @@ function getOrderStatusClass(status: Order["status"]) {
 export default function RecentOrdersTable({ orders }: Props) {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
+  function handleStatusChanged(orderId: number, status: Order["status"]) {
+    setSelectedOrder((current) =>
+      current?.orderId === orderId ? { ...current, status } : current,
+    );
+  }
+
   if (!orders?.length) {
     return (
       <div className="text-center py-12 text-muted-foreground">
@@ -134,6 +140,7 @@ export default function RecentOrdersTable({ orders }: Props) {
         onOpenChange={(open) => {
           if (!open) setSelectedOrder(null);
         }}
+        onStatusChanged={handleStatusChanged}
       />
     </>
   );

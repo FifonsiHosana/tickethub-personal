@@ -16,7 +16,10 @@ import TicketsService from '../tickets/tickets.service.js';
 import { initiatePayment } from '../ussd-payment/ussd-payment.service.js';
 import { getCategories, getCategoryEvents } from './ussd.services.js';
 import type { sessionContext } from './ussd.types.js';
-import { toPaystackProvider } from '../ussd-payment/ussd-payment.utils.js';
+import {
+  // normalizeGhanaMobileNumber,
+  toPaystackProvider,
+} from '../ussd-payment/ussd-payment.utils.js';
 
 type AvailableTicket = NonNullable<EventDetails['ticketTypes'][number]> & {
   remaining: number;

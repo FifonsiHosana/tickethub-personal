@@ -80,7 +80,7 @@ export class AuthService {
         .update(users)
         .set({
           firstName: payload.firstName,
-          lastName: payload.lastName,
+          lastName: payload.lastName ?? '',
           phoneNumber: payload.phoneNumber,
           passwordHash,
           updatedAt: now(),
@@ -102,7 +102,7 @@ export class AuthService {
         .insert(users)
         .values({
           firstName: payload.firstName,
-          lastName: payload.lastName,
+          lastName: payload.lastName ?? '',
           email: payload.email,
           phoneNumber: payload.phoneNumber,
           passwordHash,

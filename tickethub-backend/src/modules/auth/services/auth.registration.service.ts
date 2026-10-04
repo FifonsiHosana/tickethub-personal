@@ -143,7 +143,7 @@ export class RegistrationService {
         .update(users)
         .set({
           firstName: payload.firstName ?? existingUser.firstName,
-          lastName: payload.lastName ?? existingUser.lastName,
+          lastName: payload.lastName ?? existingUser.lastName ?? '',
           passwordHash,
           isVerified: true,
           updatedAt: now(),
@@ -158,7 +158,7 @@ export class RegistrationService {
       let firstName = payload.firstName;
       let lastName = payload.lastName;
 
-      if (!firstName || !lastName) {
+      if (!firstName) {
         const order = await findCompletedOrderByEmail(payload.email);
 
         if (!order) {
@@ -176,7 +176,7 @@ export class RegistrationService {
         .insert(users)
         .values({
           firstName,
-          lastName,
+          lastName: lastName ?? '',
           email: payload.email,
           passwordHash,
           isVerified: true,

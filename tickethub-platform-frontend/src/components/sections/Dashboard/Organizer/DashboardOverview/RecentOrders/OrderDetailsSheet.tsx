@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { format } from "date-fns";
 import {
   CalendarDaysIcon,
@@ -13,15 +14,17 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { type OrganizerOrder } from "@/utils/services/organizers/orders.service";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import type { OrganizerOrder } from "@/utils/services/organizers/orders.service";
 import { useChangeOrganizerStatus } from "@/hooks/organizers/useOrganizerStatus";
+import { CompleteOrderConfirmDialog } from "./CompleteOrderConfirmDialog";
 
 interface OrderDetailsSheetProps {
   order: OrganizerOrder | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onStatusChanged: (orderId: number, status: OrganizerOrder["status"]) => void;
 }
 
 const orderStatusStyles: Record<string, string> = {
@@ -45,8 +48,23 @@ export const OrderDetailsSheet = ({
   order,
   open,
   onOpenChange,
+  onStatusChanged,
 }: OrderDetailsSheetProps) => {
-  const { mutateAsync, isPending, isSuccess } = useChangeOrganizerStatus();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const { mutateAsync, isPending } = useChangeOrganizerStatus();
+
+  async function completeOrder() {
+    if (!order) return;
+
+    setConfirmOpen(false);
+    onStatusChanged(order.orderId, "Completed");
+
+    try {
+      await mutateAsync({ orderId: String(order.orderId) });
+    } catch {
+      onStatusChanged(order.orderId, "Pending");
+    }
+  }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -200,39 +218,34 @@ export const OrderDetailsSheet = ({
                 </p>
               )}
             </section>
-            <section>
-              <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <CalendarDaysIcon className="h-4 w-4 text-muted-foreground" />
-                Actions
-              </h4>
 
-              {order.status === "Pending" && (
+            {order.status === "Pending" && (
+              <section>
+                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <CalendarDaysIcon className="h-4 w-4 text-muted-foreground" />
+                  Actions
+                </h4>
                 <div className="rounded-xl border border-border bg-card p-3 flex flex-col gap-1">
                   <Button
                     className="shrink-0"
                     disabled={isPending}
-                    onClick={() =>{
-                      mutateAsync({
-                        orderId: String(order.orderId),
-
-                      })
-                    
-                    }
-                    }
+                    onClick={() => setConfirmOpen(true)}
                   >
                     {isPending ? "Changing status" : "Change Status"}
                   </Button>
                 </div>
-              )}
-              {isSuccess && (
-                <div className="rounded-xl border border-border bg-card p-3 flex flex-col gap-1">
-                  Status changed
-                </div>
-              )}
-            </section>
+              </section>
+            )}
           </div>
         )}
       </SheetContent>
+      <CompleteOrderConfirmDialog
+        order={order}
+        open={confirmOpen}
+        isPending={isPending}
+        onOpenChange={setConfirmOpen}
+        onConfirm={completeOrder}
+      />
     </Sheet>
   );
 };

@@ -217,26 +217,32 @@ class TicketsService {
       .select({
         id: ticketOrderItems.id,
         checkedIn: ticketOrderItems.checkedIn,
+        checkedInAt: ticketOrderItems.checkedInAt,
         ticketIdentifier: ticketOrderItems.ticketIdentifier,
+        firstName: ticketOrderUserDetails.firstName,
+        lastName: ticketOrderUserDetails.lastName,
+        ticketType: ticketTypes.name,
         eventId: events.id,
         organizerId: events.organizerId,
       })
       .from(ticketOrderItems)
+      .innerJoin(ticketOrders, eq(ticketOrderItems.orderId, ticketOrders.id))
+      .innerJoin(
+        ticketOrderUserDetails,
+        eq(ticketOrders.id, ticketOrderUserDetails.orderId),
+      )
       .innerJoin(
         eventTickets,
         eq(ticketOrderItems.eventTicketId, eventTickets.id),
       )
       .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
       .innerJoin(events, eq(tickets.eventId, events.id))
+      .innerJoin(ticketTypes, eq(eventTickets.ticketTypeId, ticketTypes.id))
       .where(eq(ticketOrderItems.ticketIdentifier, ticketIdentifier))
       .limit(1);
 
     if (!ticket) {
       throw new AppError(404, 'Ticket not found.');
-    }
-
-    if (ticket.checkedIn) {
-      throw new AppError(400, 'Ticket has already been checked in.');
     }
 
     if (ticket.organizerId !== checkedInBy) {
@@ -259,18 +265,40 @@ class TicketsService {
       }
     }
 
+    const attendeeName = [ticket.firstName, ticket.lastName]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
+
+    if (ticket.checkedIn) {
+      return {
+        status: 'already_used' as const,
+        message: 'Ticket has already been checked in.',
+        ticketIdentifier: ticket.ticketIdentifier,
+        attendeeName,
+        ticketType: ticket.ticketType,
+        checkedInAt: ticket.checkedInAt,
+      };
+    }
+
+    const checkedInAt = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
     await db
       .update(ticketOrderItems)
       .set({
         checkedIn: true,
-        checkedInAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
+        checkedInAt,
         checkedInBy,
       })
       .where(eq(ticketOrderItems.id, ticket.id));
 
     return {
+      status: 'valid' as const,
       message: 'Ticket checked in successfully.',
       ticketIdentifier: ticket.ticketIdentifier,
+      attendeeName,
+      ticketType: ticket.ticketType,
+      checkedInAt,
     };
   }
 

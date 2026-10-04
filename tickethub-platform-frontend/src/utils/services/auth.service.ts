@@ -3,7 +3,7 @@ import type { User } from "@/types";
 
 export type AuthRegisterPayload = {
   firstName: string;
-  lastName: string;
+  lastName?: string;
   email: string;
   password: string;
   phoneNumber?: string;

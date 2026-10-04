@@ -68,6 +68,15 @@ export type ChangeTicketStatusResponse = {
   orderId: number;
 };
 
+export type CheckInTicketResponse = {
+  status: "valid" | "already_used";
+  message: string;
+  ticketIdentifier: string;
+  attendeeName: string;
+  ticketType: string;
+  checkedInAt?: string | null;
+};
+
 export async function getEventTickets(
   eventId: number,
 ): Promise<TicketResponse[]> {
@@ -121,10 +130,11 @@ export async function createTicketType(
 
 export async function checkInTicket(
   ticketIdentifier: string,
-): Promise<{ message: string; ticketIdentifier: string }> {
-  const response = await axiosInstance.post<
-    ApiResponse<{ message: string; ticketIdentifier: string }>
-  >("/tickets/check-in", { ticketIdentifier });
+): Promise<CheckInTicketResponse> {
+  const response = await axiosInstance.post<ApiResponse<CheckInTicketResponse>>(
+    "/tickets/check-in",
+    { ticketIdentifier },
+  );
   return response.data.data;
 }
 

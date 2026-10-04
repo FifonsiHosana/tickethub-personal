@@ -30,10 +30,7 @@ const profileSchema = z
       .string()
       .trim()
       .min(2, "First name must be at least 2 characters"),
-    lastName: z
-      .string()
-      .trim()
-      .min(2, "Last name must be at least 2 characters"),
+    lastName: z.string().trim().optional(),
     password: passwordSchema,
     confirmPassword: z.string(),
   })
@@ -79,7 +76,7 @@ export function SignUpProfileStep({ email, otp, onBack }: Props) {
         otp,
         password: data.password,
         firstName: data.firstName,
-        lastName: data.lastName,
+        lastName: data.lastName?.trim() || undefined,
         roleName: "organizer",
       });
 
@@ -126,7 +123,7 @@ export function SignUpProfileStep({ email, otp, onBack }: Props) {
               )}
             </Field>
             <Field>
-              <FieldLabel htmlFor="lastName">Last Name</FieldLabel>
+              <FieldLabel htmlFor="lastName">Company Name</FieldLabel>
               <Controller
                 name="lastName"
                 control={control}
@@ -134,7 +131,7 @@ export function SignUpProfileStep({ email, otp, onBack }: Props) {
                   <Input
                     type="text"
                     id="lastName"
-                    placeholder="Doe"
+                    placeholder="TicketHub Events"
                     {...field}
                   />
                 )}

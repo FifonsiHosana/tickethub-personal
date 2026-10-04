@@ -155,3 +155,19 @@ html {
   pointer-events: none;
   color: var(--color-neutral-400, #a3a3a3);
 }
+.tiptap-content p:empty::before,
+.rich-text-content p:empty::before {
+  content: "\00a0";
+}
+
+.tiptap-content p:empty,
+.rich-text-content p:empty {
+  min-height: 1.5em;
+}
+
+.rich-text-content br {
+  display: block;
+  content: "";
+  margin-top: 0.75rem;
+}
+

@@ -10,11 +10,12 @@ import { Button } from "@/components/ui/button";
 import { useCheckInTicket } from "@/hooks/organizers/useOrganizerEventTickets";
 import { logger } from "@/utils/logger";
 import { extractTicketIdentifier } from "@/utils/tickets";
+import type { CheckInTicketResponse } from "@/utils/services/organizers/tickets.service";
 import Scanner, { type ScannerHandle } from "./Scanner";
 
 type ScanResult =
-  | { status: "success"; message: string }
-  | { status: "error"; message: string }
+  | (CheckInTicketResponse & { status: "valid" | "already_used" })
+  | { status: "invalid"; message: string; ticketIdentifier: string }
   | null;
 
 interface Props {
@@ -22,6 +23,18 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   onScanned: () => void;
 }
+
+const statusLabels = {
+  valid: "Valid",
+  already_used: "Already Used",
+  invalid: "Invalid",
+} as const;
+
+const statusStyles = {
+  valid: "bg-green-50 border-green-200 text-green-800",
+  already_used: "bg-amber-50 border-amber-200 text-amber-800",
+  invalid: "bg-red-50 border-red-200 text-red-800",
+} as const;
 
 export default function ScannerDialog({
   open,
@@ -36,18 +49,25 @@ export default function ScannerDialog({
     const identifier = extractTicketIdentifier(decodedText);
 
     try {
-      await checkInTicket(identifier);
-      setResult({ status: "success", message: `Ticket checked in.` });
-      onScanned();
+      const scanResult = await checkInTicket(identifier);
+      setResult(scanResult);
+
+      if (scanResult.status === "valid") {
+        onScanned();
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Check-in failed.";
-      setResult({ status: "error", message: msg });
+      setResult({
+        status: "invalid",
+        message: msg,
+        ticketIdentifier: identifier,
+      });
       logger.error(`${err}`);
     }
   };
 
   const handleScannerError = (message: string) => {
-    setResult({ status: "error", message });
+    setResult({ status: "invalid", message, ticketIdentifier: "" });
   };
 
   const handleOpenChange = async (nextOpen: boolean) => {
@@ -74,13 +94,27 @@ export default function ScannerDialog({
           )}
           {result && (
             <div
-              className={`p-3 rounded-lg text-sm font-medium ${
-                result.status === "success"
-                  ? "bg-green-50 border border-green-200 text-green-700"
-                  : "bg-red-50 border border-red-200 text-red-700"
-              }`}
+              className={`rounded-lg border p-3 text-sm ${statusStyles[result.status]}`}
             >
-              {result.message}
+              <div className="flex items-center justify-between gap-3">
+                <p className="font-semibold">{statusLabels[result.status]}</p>
+                {result.ticketIdentifier && (
+                  <p className="font-mono text-xs">{result.ticketIdentifier}</p>
+                )}
+              </div>
+              <p className="mt-1 font-medium">{result.message}</p>
+              {"attendeeName" in result && (
+                <div className="mt-3 space-y-1 text-xs">
+                  <p>
+                    <span className="font-semibold">Attendee:</span>{" "}
+                    {result.attendeeName || "Unnamed attendee"}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Ticket type:</span>{" "}
+                    {result.ticketType || "Not specified"}
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>

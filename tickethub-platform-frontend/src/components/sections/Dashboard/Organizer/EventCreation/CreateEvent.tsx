@@ -13,6 +13,7 @@ import { useCreateOrganizerEventWithTickets } from "@/hooks/organizers/useOrgani
 import { useOrganizerMedia } from "@/hooks/organizers/useOrganizerMedia";
 import type { TicketPayload } from "@/utils/services/organizers/events.service";
 import { toEventApiDate } from "@/utils/eventDate";
+import { richTextOrUndefined } from "@/utils/richText";
 
 import {
   Card,
@@ -120,7 +121,7 @@ export default function CreateEvent() {
 
       const result = (await createEvent({
         title: values.title,
-        description: values.description || undefined,
+        description: richTextOrUndefined(values.description),
         ...(values.eventVenueId
           ? { eventVenueId: values.eventVenueId }
           : {
@@ -278,3 +279,4 @@ export default function CreateEvent() {
     </div>
   );
 }
+
