@@ -89,13 +89,8 @@ export const createEventWithTicketsSchema = z
     tickets: z
       .array(
         z.object({
-          name: z
-            .string()
-            .trim()
-            .min(3, 'Ticket name must be at least 3 characters'),
           ticketTypeId: z.number().int().positive().optional(),
           ticketTypeName: z.string().trim().min(2).optional(),
-          ticketTypeDescription: z.string().max(255).optional(),
           price: z.number().positive(),
           totalCount: z.number().int().positive().optional(),
           salesStartDate: z.iso.datetime().optional(),
@@ -142,3 +137,4 @@ export const listOrganizerStaffQuerySchema = z.object({
 export type CreateVenueType = z.infer<typeof createVenueSchema>;
 export type AssignStaffType = z.infer<typeof assignStaffSchema>;
 export type ListOrganizerStaffQueryType = z.infer<typeof listOrganizerStaffQuerySchema>;
+

@@ -21,3 +21,4 @@ export interface EventTicket {
   salesEnd: string;
   benefits: string | null;
 }
+

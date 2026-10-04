@@ -57,7 +57,7 @@ class TicketsService {
           id: eventTickets.id,
           ticketId: eventTickets.ticketId,
           configurationId: eventTickets.ticketConfigurationId,
-          ticketName: tickets.name,
+          ticketName: ticketTypes.name,
           eventName: events.title,
           price: ticketConfigurations.price,
           totalSold: ticketConfigurations.totalSold,
@@ -175,7 +175,7 @@ class TicketsService {
         qrCodeUrl: ticketOrderItems.qrCodeUrl,
         checkedIn: ticketOrderItems.checkedIn,
         checkedInAt: ticketOrderItems.checkedInAt,
-        ticketName: tickets.name,
+        ticketName: ticketTypes.name,
         ticketType: ticketTypes.name,
         price: ticketConfigurations.price,
         eventName: events.title,
@@ -484,7 +484,7 @@ class TicketsService {
         .select({
           ticketIdentifier: ticketOrderItems.ticketIdentifier,
           qrCodeUrl: ticketOrderItems.qrCodeUrl,
-          ticketName: tickets.name,
+          ticketName: ticketTypes.name,
           ticketType: ticketTypes.name,
           price: ticketConfigurations.price,
           eventName: events.title,
@@ -563,7 +563,7 @@ class TicketsService {
         attendee.phoneNumber,
         `${first.eventName}\n\n` +
           `Ticket ID: ${first.ticketIdentifier}\n` +
-          `Ticket Type: ${first.ticketName}\n` +
+          `Ticket Type: ${first.ticketType || first.ticketName}\n` +
           `Quantity: ${finalTickets.length}\n\n` +
           `View Tickets: ${first.qrCodeUrl}`,
       );
@@ -593,3 +593,4 @@ class TicketsService {
 }
 
 export default new TicketsService();
+

@@ -104,8 +104,6 @@ export default function CreateEvent() {
       if (!url) throw new Error("Upload failed");
 
       const tickets: TicketPayload[] = values.tickets.map((t) => ({
-        name: t.name,
-        ...(t.ticketTypeId ? { ticketTypeId: t.ticketTypeId } : {}),
         ...(t.ticketTypeName ? { ticketTypeName: t.ticketTypeName } : {}),
         price: t.price,
         ...(t.totalCount ? { totalCount: t.totalCount } : {}),
@@ -278,3 +276,5 @@ export default function CreateEvent() {
     </div>
   );
 }
+
+

@@ -127,9 +127,8 @@ export default function EditEvent({ eventId }: Props) {
       categoryIds: src.categoryIds ?? [],
       bannerImage: undefined,
       tickets: (src.tickets ?? []).map(
-        (t): TicketFormValues => ({
-          name: t.name,
-          ticketTypeId: t.ticketTypeId ?? undefined,
+        (t, index): TicketFormValues => ({
+          ticketTypeName: t.ticketType ?? `Ticket type ${index + 1}`,
           price: Number(t.price),
           totalCount: t.totalCount ?? undefined,
           benefits: t.benefits ?? undefined,
@@ -294,3 +293,6 @@ export default function EditEvent({ eventId }: Props) {
     </FormProvider>
   );
 }
+
+
+

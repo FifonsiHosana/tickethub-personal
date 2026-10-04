@@ -50,7 +50,7 @@ export async function getOrderForResend(orderId: number) {
     .select({
       ticketIdentifier: ticketOrderItems.ticketIdentifier,
       qrCodeUrl: ticketOrderItems.qrCodeUrl,
-      ticketName: tickets.name,
+      ticketName: ticketTypes.name,
       ticketType: ticketTypes.name,
       price: ticketConfigurations.price,
       eventName: events.title,
@@ -97,3 +97,4 @@ export async function getOrderForResend(orderId: number) {
     accountCreated: false,
   };
 }
+

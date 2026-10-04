@@ -246,7 +246,7 @@ export class FinanceService {
         .select({
           ticketIdentifier: ticketOrderItems.ticketIdentifier,
           ticketType: ticketTypes.name,
-          ticketName: tickets.name,
+          ticketName: ticketTypes.name,
           price: ticketConfigurations.price,
           eventName: events.title,
           eventDate: events.dateAndTime,
@@ -371,3 +371,4 @@ export class FinanceService {
     );
   }
 }
+

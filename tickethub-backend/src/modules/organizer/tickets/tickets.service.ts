@@ -14,7 +14,6 @@ import type {
   CreateTicketTypeType,
 } from './tickets.schema.js';
 import { formatDateForMySQL } from '@/utils/timeDatehelpers.js';
-import { string } from 'zod';
 
 /**
  * Get all ticket types
@@ -120,16 +119,25 @@ export async function createOrganizerTicket(
     // 2. Resolve ticket type (use existing or create new)
 
     let ticketTypeId: number;
+    let ticketTypeName: string;
 
     if (data.ticketTypeId) {
-      ticketTypeId = data.ticketTypeId;
+      const [type] = await tx
+        .select({ id: ticketTypes.id, name: ticketTypes.name })
+        .from(ticketTypes)
+        .where(eq(ticketTypes.id, data.ticketTypeId))
+        .limit(1);
+
+      if (!type) {
+        throw new AppError(400, 'Ticket type not found');
+      }
+
+      ticketTypeId = type.id;
+      ticketTypeName = type.name;
     } else if (data.ticketTypeName) {
       const [type] = await tx
         .insert(ticketTypes)
-        .values({
-          name: data.ticketTypeName,
-          description: data.ticketTypeDescription,
-        })
+        .values({ name: data.ticketTypeName })
         .$returningId();
 
       if (!type) {
@@ -137,6 +145,7 @@ export async function createOrganizerTicket(
       }
 
       ticketTypeId = type.id;
+      ticketTypeName = data.ticketTypeName;
     } else {
       throw new AppError(
         400,
@@ -149,11 +158,10 @@ export async function createOrganizerTicket(
     const [ticket] = await tx
       .insert(tickets)
       .values({
-        name: data.name,
+        name: data.name ?? ticketTypeName,
         eventId,
       })
       .$returningId();
-
     if (!ticket) {
       throw new AppError(400, 'Ticket creation failed');
     }
@@ -234,11 +242,25 @@ export async function updateOrganizerTicket(
 
   const updateValues: Record<string, unknown> = {};
 
-  if (data.name !== undefined) {
-    await db
-      .update(tickets)
-      .set({ name: data.name })
-      .where(eq(tickets.id, ticketId));
+  if (!mapping || !mapping.ticketTypeId || !mapping.ticketConfigurationId) {
+    throw new AppError(404, 'Ticket mapping not found');
+  }
+
+  const ticketTypeId = Number(mapping.ticketTypeId);
+  const ticketConfigurationId = Number(mapping.ticketConfigurationId);
+
+  if (data.ticketTypeName !== undefined) {
+    const typeName = data.ticketTypeName.trim();
+    await db.transaction(async (tx) => {
+      await tx
+        .update(ticketTypes)
+        .set({ name: typeName })
+        .where(eq(ticketTypes.id, ticketTypeId));
+      await tx
+        .update(tickets)
+        .set({ name: typeName })
+        .where(eq(tickets.id, ticketId));
+    });
   }
 
   if (data.price !== undefined) {
@@ -249,7 +271,7 @@ export async function updateOrganizerTicket(
     const [config] = await db
       .select()
       .from(ticketConfigurations)
-      .where(eq(ticketConfigurations.id, mapping!.ticketConfigurationId!));
+      .where(eq(ticketConfigurations.id, ticketConfigurationId));
 
     const totalSold = Number(config?.totalSold ?? 0);
     updateValues.totalCount = data.totalCount;
@@ -274,7 +296,7 @@ export async function updateOrganizerTicket(
     await db
       .update(ticketConfigurations)
       .set(updateValues)
-      .where(eq(ticketConfigurations.id, mapping!.ticketConfigurationId!));
+      .where(eq(ticketConfigurations.id, ticketConfigurationId));
   }
 
   return {
@@ -314,10 +336,16 @@ export async function deleteOrganizerTicket(
     .from(eventTickets)
     .where(eq(eventTickets.ticketId, ticketId));
 
+  if (!mapping || !mapping.ticketConfigurationId) {
+    throw new AppError(404, 'Ticket mapping not found');
+  }
+
+  const ticketConfigurationId = Number(mapping.ticketConfigurationId);
+
   const [configuration] = await db
     .select()
     .from(ticketConfigurations)
-    .where(eq(ticketConfigurations.id, mapping!.ticketConfigurationId!));
+    .where(eq(ticketConfigurations.id, ticketConfigurationId));
 
   if (Number(configuration?.totalSold ?? 0) > 0) {
     throw new AppError(
@@ -330,7 +358,7 @@ export async function deleteOrganizerTicket(
     await tx.delete(eventTickets).where(eq(eventTickets.ticketId, ticketId));
     await tx
       .delete(ticketConfigurations)
-      .where(eq(ticketConfigurations.id, mapping!.ticketConfigurationId!));
+      .where(eq(ticketConfigurations.id, ticketConfigurationId));
     await tx.delete(tickets).where(eq(tickets.id, ticketId));
   });
 
@@ -338,3 +366,6 @@ export async function deleteOrganizerTicket(
     message: 'Ticket deleted successfully',
   };
 }
+
+
+

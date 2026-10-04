@@ -113,10 +113,9 @@ export async function createOrganizerEvent(payload: CreateEventPayload) {
 }
 
 export interface TicketPayload {
-  name: string;
+  name?: string;
   ticketTypeId?: number;
   ticketTypeName?: string;
-  ticketTypeDescription?: string;
   price: number;
   totalCount?: number;
   salesStartDate?: string;
@@ -200,3 +199,4 @@ export async function createCategory(payload: CreateCategoryPayload) {
   );
   return response.data.data;
 }
+

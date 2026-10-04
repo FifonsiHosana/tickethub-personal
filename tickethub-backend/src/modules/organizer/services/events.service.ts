@@ -350,10 +350,9 @@ export async function createOrganizerEventWithTickets(
     termsAndConditions?: string;
     categoryIds?: number[];
     tickets: {
-      name: string;
+      name?: string;
       ticketTypeId?: number;
       ticketTypeName?: string;
-      ticketTypeDescription?: string;
       price: number;
       totalCount?: number;
       salesStartDate?: string;
@@ -466,18 +465,27 @@ export async function createOrganizerEventWithTickets(
       ticketConfigurationId: number;
     }[] = [];
 
-    for (const ticketData of data.tickets) {
+    for (const [index, ticketData] of data.tickets.entries()) {
       let ticketTypeId: number;
+      let ticketTypeLabel: string;
 
       if (ticketData.ticketTypeId) {
-        ticketTypeId = ticketData.ticketTypeId;
+        const [type] = await tx
+          .select({ id: ticketTypes.id, name: ticketTypes.name })
+          .from(ticketTypes)
+          .where(eq(ticketTypes.id, ticketData.ticketTypeId))
+          .limit(1);
+
+        if (!type) {
+          throw new AppError(400, 'Ticket type not found');
+        }
+
+        ticketTypeId = type.id;
+        ticketTypeLabel = type.name;
       } else if (ticketData.ticketTypeName) {
         const [type] = await tx
           .insert(ticketTypes)
-          .values({
-            name: ticketData.ticketTypeName,
-            description: ticketData.ticketTypeDescription,
-          })
+          .values({ name: ticketData.ticketTypeName })
           .$returningId();
 
         if (!type) {
@@ -485,6 +493,7 @@ export async function createOrganizerEventWithTickets(
         }
 
         ticketTypeId = type.id;
+        ticketTypeLabel = ticketData.ticketTypeName;
       } else {
         throw new AppError(
           400,
@@ -495,11 +504,10 @@ export async function createOrganizerEventWithTickets(
       const [ticket] = await tx
         .insert(tickets)
         .values({
-          name: ticketData.name,
+          name: ticketData.name ?? (ticketTypeLabel || `Ticket type ${index + 1}`),
           eventId,
         })
         .$returningId();
-
       if (!ticket) {
         throw new AppError(400, 'Ticket creation failed');
       }
@@ -749,3 +757,5 @@ export async function deleteOrganizerEvent(
     };
   });
 }
+
+

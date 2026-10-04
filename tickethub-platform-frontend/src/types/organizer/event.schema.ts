@@ -18,9 +18,8 @@ const imageSchema = z
   );
 
 export const ticketSchema = z.object({
-  name: z.string().min(3, "Ticket name must be at least 3 characters"),
   ticketTypeId: z.number().positive().optional(),
-  ticketTypeName: z.string().optional(),
+  ticketTypeName: z.string().trim().min(2, "Ticket type is required"),
   price: z.number().positive("Price must be positive"),
   totalCount: z.number().positive("Quantity must be positive").optional(),
   benefits: z.string().optional(),
@@ -159,3 +158,7 @@ export const editEventSchema = z
   );
 
 export type EditEventFormValues = z.infer<typeof editEventSchema>;
+
+
+
+

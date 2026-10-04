@@ -71,7 +71,7 @@ export default function SuccessPage() {
                   >
                     <div className="min-w-0">
                       <p className="font-medium truncate">
-                        {ticket.ticketTypeName}
+                        {ticket.ticketTypeName || `Ticket type ${orders.tickets.indexOf(ticket) + 1}`}
                       </p>
                     </div>
 
@@ -111,3 +111,4 @@ export default function SuccessPage() {
     </section>
   );
 }
+

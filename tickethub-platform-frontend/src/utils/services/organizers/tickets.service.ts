@@ -1,10 +1,9 @@
 import { axiosInstance } from "@/utils/api/axiosInstance";
 
 export type CreateTicketPayload = {
-  name: string;
+  name?: string;
   ticketTypeId?: number;
   ticketTypeName?: string;
-  ticketTypeDescription?: string;
   price: number;
   totalCount?: number;
   salesStartDate?: string;
@@ -13,7 +12,7 @@ export type CreateTicketPayload = {
 };
 
 export type UpdateTicketPayload = {
-  name?: string;
+  ticketTypeName?: string;
   price?: number;
   totalCount?: number;
   salesStartDate?: string;

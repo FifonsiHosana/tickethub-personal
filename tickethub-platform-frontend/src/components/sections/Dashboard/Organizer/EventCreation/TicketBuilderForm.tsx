@@ -9,7 +9,7 @@ export function TicketBuilderForm({
   onCancelEdit,
 }: TicketBuilderFormProps) {
   const key = editingTicket
-    ? `edit-${editingTicket.ticketTypeId}-${editingTicket.name}`
+    ? `edit-${editingTicket.ticketTypeName}-${editingTicket.price}-${editingTicket.totalCount ?? ""}`
     : "new";
 
   return (
@@ -21,3 +21,4 @@ export function TicketBuilderForm({
     />
   );
 }
+
