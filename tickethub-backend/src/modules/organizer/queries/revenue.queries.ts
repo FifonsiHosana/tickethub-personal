@@ -41,7 +41,7 @@ export async function getTotalRevenue(organizerId: number, range?: DateRange) {
 
   const [result] = await db
     .select({
-      totalRevenue: sql<string>`COALESCE(SUM(${payments.amount}), 0)`,
+      totalRevenue: sql<string>`COALESCE(SUM(${payments.subtotal}), 0)`,
     })
     .from(payments)
     .innerJoin(ticketOrders, eq(payments.orderId, ticketOrders.id))
