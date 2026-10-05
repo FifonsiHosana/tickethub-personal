@@ -12,8 +12,16 @@ import {
   optionalAuthenticate,
 } from '@/middleware/auth/auth.middleware.js';
 import { authorize } from '@/middleware/auth/role.middleware.js';
+import { checkoutAttemptLimit } from '@/middleware/rateLimit.js';
 
 const router = Router();
+
+router.get(
+  '/events/:eventId/phone-numbers',
+  authenticate,
+  authorize('organizer', 'event_staff'),
+  controller.getAtttendeesPhoneNumber,
+);
 
 /**
  * Public ticket detail (no auth)
@@ -26,6 +34,7 @@ router.get('/:ticketIdentifier', controller.getTicketByIdentifier);
 router.post(
   '/',
   optionalAuthenticate,
+  checkoutAttemptLimit,
   validate(purchaseTicketSchema),
   controller.purchaseTickets,
 );
@@ -65,10 +74,5 @@ router.post(
   controller.resendEmail,
 );
 
-router.get(
-  '/events/:eventId/phone-numbers',
-  authenticate,
-  authorize('organizer', 'event_staff'),
-  controller.getAtttendeesPhoneNumber,
-);
 export default router;
+

@@ -37,11 +37,11 @@ export default function OverviewTabs({
 }: Props) {
   return (
     <Card className="shadow-sm">
-      <Tabs defaultValue="upcoming">
+      <Tabs defaultValue="recent-orders">
         <CardHeader className="px-2">
           <TabsList>
-            <TabsTrigger value="upcoming">Upcoming Events</TabsTrigger>
             <TabsTrigger value="recent-orders">Recent Orders</TabsTrigger>
+            <TabsTrigger value="upcoming">Upcoming Events</TabsTrigger>
             <TabsTrigger value="top-selling">Top Selling</TabsTrigger>
           </TabsList>
         </CardHeader>

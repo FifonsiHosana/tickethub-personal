@@ -490,9 +490,10 @@ class TicketsService {
           ticketName: ticketTypes.name,
           ticketType: ticketTypes.name,
           price: ticketConfigurations.price,
+          configId: ticketConfigurations.id,
           eventName: events.title,
           eventDate: events.dateAndTime,
-          venueName: eventsVenues.venue_name, // <-- confirm this column name
+          venueName: eventsVenues.venue_name,
         })
         .from(ticketOrderItems)
         .innerJoin(
@@ -553,10 +554,36 @@ class TicketsService {
         paymentCreated = true;
       }
 
+      // Only adjust stock when this call is what completes the order.
+      // Resends of already-completed orders must not deduct again.
+      const wasPending = order.status === 'Pending';
+
       await tx
         .update(ticketOrders)
         .set({ status: 'Completed' })
         .where(eq(ticketOrders.id, orderId));
+
+      if (wasPending) {
+        // Count tickets per configuration (an order can mix ticket types)
+        const countByConfig = new Map<number, number>();
+        for (const t of allTickets) {
+          countByConfig.set(
+            t.configId,
+            (countByConfig.get(t.configId) ?? 0) + 1,
+          );
+        }
+
+        for (const [configId, qty] of countByConfig) {
+          await tx
+            .update(ticketConfigurations)
+            .set({
+              totalSold: sql`${ticketConfigurations.totalSold} + ${qty}`,
+              // GREATEST stops it going negative if stock was already exhausted
+              totalRemaining: sql`GREATEST(${ticketConfigurations.totalRemaining} - ${qty}, 0)`,
+            })
+            .where(eq(ticketConfigurations.id, configId));
+        }
+      }
 
       return {
         orderId: order.id,
@@ -625,3 +652,4 @@ class TicketsService {
 }
 
 export default new TicketsService();
+

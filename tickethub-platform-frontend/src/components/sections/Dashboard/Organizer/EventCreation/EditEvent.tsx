@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   useForm,
+  useWatch,
   FormProvider,
   useFieldArray,
   type Control,
@@ -61,6 +62,26 @@ async function urlToFile(url: string): Promise<File | undefined> {
   }
 }
 
+// Walks RHF's dirtyFields map and returns only the values that changed.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function pickDirty(dirty: unknown, values: any): any {
+  if (dirty === true) return values;
+  if (Array.isArray(dirty)) {
+    return dirty.map((d, i) => pickDirty(d, values?.[i]));
+  }
+  if (dirty && typeof dirty === "object") {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const out: Record<string, any> = {};
+    for (const key of Object.keys(dirty)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const v = pickDirty((dirty as any)[key], values?.[key]);
+      if (v !== undefined) out[key] = v;
+    }
+    return Object.keys(out).length ? out : undefined;
+  }
+  return undefined;
+}
+
 interface Props {
   eventId: string | number;
 }
@@ -99,13 +120,29 @@ export default function EditEvent({ eventId }: Props) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [originalBanner, setOriginalBanner] = useState<File | null>(null);
 
+  // Reading these during render subscribes the component to dirty state.
+  const { isDirty, dirtyFields } = form.formState;
+  const currentBanner = useWatch({
+    control: form.control,
+    name: "bannerImage",
+  });
+  const bannerChanged = !!currentBanner && currentBanner !== originalBanner;
+  const canSave = isDirty || bannerChanged;
+
   useEffect(() => {
     if (!detail) return;
     let cancelled = false;
+
+    console.log("[EditEvent] form.reset from detail", {
+      wasDirty: form.formState.isDirty,
+      detail,
+    });
+
     // Accept both the unwrapped event and the raw { success, data } envelope
     // so prefilling never silently blanks when layers drift.
-    const src = (detail as OrganizerEventDetail & { data?: OrganizerEventDetail })
-      .data ?? detail;
+    const src =
+      (detail as OrganizerEventDetail & { data?: OrganizerEventDetail }).data ??
+      detail;
     const bannerUrl = src.media?.find((m) => m.type === "Banner")?.imageUrl;
 
     form.reset({
@@ -144,7 +181,9 @@ export default function EditEvent({ eventId }: Props) {
       urlToFile(bannerUrl).then((file) => {
         if (!cancelled && file) {
           setOriginalBanner(file);
-          form.setValue("bannerImage", file, { shouldValidate: true });
+          // Sets BOTH the value and the default, so the form stays clean.
+          form.resetField("bannerImage", { defaultValue: file });
+          form.trigger("bannerImage");
         }
       });
     }
@@ -153,7 +192,15 @@ export default function EditEvent({ eventId }: Props) {
     };
   }, [detail, form]);
 
+  console.log(dirtyFields);
+
   function onInvalid(errors: unknown) {
+    console.log(
+      "[EditEvent] validation errors:",
+      errors,
+      "dirty:",
+      form.formState.dirtyFields,
+    );
     toast.error(
       firstErrorMessage(errors) ?? "Please fix the highlighted fields.",
     );
@@ -162,6 +209,12 @@ export default function EditEvent({ eventId }: Props) {
   const submitForm = form.handleSubmit(onSubmit, onInvalid);
 
   async function onSubmit(values: EditEventFormValues) {
+    const currentDirty = form.formState.dirtyFields;
+    console.groupCollapsed("[EditEvent] submit");
+    console.log("dirtyFields:", currentDirty);
+    console.log("dirty values:", pickDirty(currentDirty, values));
+    console.log("bannerChanged:", bannerChanged);
+
     try {
       const payload: UpdateEventPayload = {
         title: values.title,
@@ -181,7 +234,8 @@ export default function EditEvent({ eventId }: Props) {
           address: values.venue.address?.trim() || null,
           city_or_town: values.venue.city_or_town.trim(),
           country: values.venue.country.trim(),
-          googleMapLink: normalizeGoogleMapLink(values.venue.googleMapLink) ?? null,
+          googleMapLink:
+            normalizeGoogleMapLink(values.venue.googleMapLink) ?? null,
         };
       }
 
@@ -191,10 +245,14 @@ export default function EditEvent({ eventId }: Props) {
         payload.media = [{ imageUrl: url, type: "Banner" }];
       }
 
+      console.log("payload:", payload);
       await updateEvent({ eventId, payload });
+      console.groupEnd();
       toast.success("Event updated!");
       navigate("/organizer/events");
-    } catch {
+    } catch (err) {
+      console.error("[EditEvent] update failed:", err);
+      console.groupEnd();
       toast.error("Failed to update event. Please try again.");
     }
   }
@@ -278,7 +336,7 @@ export default function EditEvent({ eventId }: Props) {
                 <Button
                   type="button"
                   onClick={submitForm}
-                  disabled={isUploading || isSaving}
+                  disabled={isUploading || isSaving || !canSave}
                   className="flex-1"
                 >
                   {(isUploading || isSaving) && (
@@ -294,9 +352,3 @@ export default function EditEvent({ eventId }: Props) {
     </FormProvider>
   );
 }
-
-
-
-
-
-

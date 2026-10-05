@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, FormProvider, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router";
@@ -82,6 +82,16 @@ export default function CreateEvent() {
       tickets: [],
     },
   });
+  // useEffect(() => {
+  //   const sub = form.watch((value, { name, type }) => {
+  //     console.log("[watch]", {
+  //       name,
+  //       type,
+  //       value: name ? form.getValues(name) : undefined,
+  //     });
+  //   });
+  //   return () => sub.unsubscribe();
+  // }, [form]);
 
   const ticketFieldArray = useFieldArray({
     control: form.control,
@@ -128,7 +138,9 @@ export default function CreateEvent() {
                 address: values.venue.address?.trim() || undefined,
                 city_or_town: values.venue.city_or_town.trim(),
                 country: values.venue.country.trim(),
-                googleMapLink: normalizeGoogleMapLink(values.venue.googleMapLink),
+                googleMapLink: normalizeGoogleMapLink(
+                  values.venue.googleMapLink,
+                ),
               },
             }),
         capacity: values.capacity,
@@ -277,7 +289,3 @@ export default function CreateEvent() {
     </div>
   );
 }
-
-
-
-

@@ -25,3 +25,17 @@ export const verificationQueueQuerySchema = z.object({
 });
 
 export type ListUsersQueryType = z.infer<typeof listUsersQuerySchema>;
+
+export const organizerDetailQuerySchema = z.object({
+  from: z.string().optional(),
+  to: z.string().optional(),
+});
+
+export const organizerDetailListQuerySchema = organizerDetailQuerySchema.extend({
+  page: z.string().optional().transform((v) => Number(v ?? 1)),
+  pageSize: z.string().optional().transform((v) => Number(v ?? 10)),
+  search: z.string().optional(),
+});
+
+export type OrganizerDetailQueryType = z.infer<typeof organizerDetailQuerySchema>;
+export type OrganizerDetailListQueryType = z.infer<typeof organizerDetailListQuerySchema>;

@@ -169,7 +169,9 @@ export async function deleteOrganizerEvent(eventId: number) {
 }
 
 export async function cancelOrganizerEvent(eventId: number) {
-  const response = await axiosInstance.patch(`/organizer/events/${eventId}/cancel`);
+  const response = await axiosInstance.patch(
+    `/organizer/events/${eventId}/cancel`,
+  );
   return response.data;
 }
 
@@ -197,13 +199,9 @@ export interface CreateCategoryPayload {
 }
 
 export async function createCategory(payload: CreateCategoryPayload) {
-  const response = await axiosInstance.post<{ success: boolean; data: Category }>(
-    "/organizer/categories",
-    payload,
-  );
+  const response = await axiosInstance.post<{
+    success: boolean;
+    data: Category;
+  }>("/organizer/categories", payload);
   return response.data.data;
 }
-
-
-
-

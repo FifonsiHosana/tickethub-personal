@@ -5,6 +5,7 @@ import logger from '@/utils/logger/index.js';
 import { morganStream } from '@/utils/logger/stream.js';
 import cors from 'cors';
 import { errorHandler, notFoundHandler } from '@/middleware/errorHandler.js';
+import { globalApiRateLimit } from '@/middleware/rateLimit.js';
 
 import authRoutes from '@/modules/auth/auth.routes.js';
 import eventsRoutes from '@/modules/events/events.routes.js';
@@ -32,6 +33,7 @@ app.use(morgan(morganFormat, { stream: morganStream }));
 
 // CORS configuration would set it up better later
 app.use(cors());
+app.use('/api', globalApiRateLimit);
 
 app.get('/', (_, res: Response) => {
   logger.info('Handling GET /');
@@ -59,3 +61,4 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 export default app;
+

@@ -17,6 +17,7 @@ import RecentOrdersTable from "./RecentOrders/RecentOrdersTable";
 
 export default function RecentOrdersTab() {
   const [eventId, setEventId] = useState<number | "all">("all");
+  const [status, setStatus] = useState<"Completed" | "Pending" | "all">("Completed");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -29,6 +30,7 @@ export default function RecentOrdersTab() {
 
   const { data: ordersData, isError } = useOrganizerOrders({
     eventId: eventId === "all" ? undefined : Number(eventId),
+    status: status === "all" ? undefined : status,
     page,
     pageSize,
     from: range?.from ?? undefined,
@@ -68,6 +70,23 @@ export default function RecentOrdersTab() {
               className="pl-9"
             />
           </div>
+          <Select
+            value={status}
+            onValueChange={(val) => {
+              if (!val) return;
+              setStatus(val);
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Completed">Completed</SelectItem>
+              <SelectItem value="Pending">Pending</SelectItem>
+              <SelectItem value="all">All statuses</SelectItem>
+            </SelectContent>
+          </Select>
           {eventsLoading ? (
             <Skeleton className="h-9 w-45" />
           ) : (
@@ -115,3 +134,6 @@ export default function RecentOrdersTab() {
     </div>
   );
 }
+
+
+

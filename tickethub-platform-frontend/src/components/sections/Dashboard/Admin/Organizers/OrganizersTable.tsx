@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import {
   Table,
   TableBody,
@@ -17,6 +18,7 @@ import {
   SearchIcon,
   ShieldCheckIcon,
   BanIcon,
+  EyeIcon,
 } from "lucide-react";
 import type {
   GetUsersResponse,
@@ -44,6 +46,7 @@ export function OrganizersTable({
   onSuspend,
   onVerify,
 }: Props) {
+  const navigate = useNavigate();
   const [confirm, setConfirm] = useState<{
     type: "suspend" | "verify";
     user: User;
@@ -125,6 +128,9 @@ export function OrganizersTable({
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right space-x-1">
+                    <Button size="sm" variant="outline" onClick={() => navigate(`/admin/organizers/${org.id}`)}>
+                      <EyeIcon className="h-3 w-3 mr-1" /> View
+                    </Button>
                     {!org.isVerified && (
                       <Button
                         size="sm"
@@ -201,3 +207,5 @@ export function OrganizersTable({
     </div>
   );
 }
+
+

@@ -35,6 +35,7 @@ import EventStaff from "@/pages/Dashboard/Organizer/Attendees/EventStaff";
 import PublicTicket from "@/pages/PublicTicket/PublicTicket";
 import AdminDashboard from "@/pages/Dashboard/Admin/AdminDashboard";
 import AdminOrganizers from "@/pages/Dashboard/Admin/AdminOrganizers";
+import AdminOrganizerDetail from "@/pages/Dashboard/Admin/AdminOrganizerDetail";
 import AdminAnalytics from "@/pages/Dashboard/Admin/AdminAnalytics";
 // import AdminPayouts from "@/pages/Dashboard/Admin/AdminPayouts";
 import AdminSettings from "@/pages/Dashboard/Admin/AdminSettings";
@@ -179,6 +180,7 @@ export default function RouterLayout() {
 
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/organizers/:id" element={<AdminOrganizerDetail />} />
             <Route path="/admin/organizers" element={<AdminOrganizers />} />
             {/* <Route path="/admin/events" element={<AdminEvents />} /> */}
             <Route path="/admin/analytics" element={<AdminAnalytics />} />
@@ -192,3 +194,5 @@ export default function RouterLayout() {
     </motion.div>
   );
 }
+
+

@@ -17,6 +17,10 @@ export function EventBasicFields() {
     formState: { errors },
   } = useFormContext<CreateEventFormValues>();
 
+  const { watch } = useFormContext<CreateEventFormValues>();
+  console.log("title now:", watch("title"));
+  
+
   const { isMobile } = useIsMobile();
 
   return (
