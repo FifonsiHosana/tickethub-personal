@@ -33,12 +33,21 @@ function clientKey(req: Request) {
 
 function checkoutBanDuration(violations: number) {
   if (violations <= 1) {
-    return readPositiveNumber(process.env.CHECKOUT_BAN_LEVEL_1_MS, BAN_LEVEL_1_MS);
+    return readPositiveNumber(
+      process.env.CHECKOUT_BAN_LEVEL_1_MS,
+      BAN_LEVEL_1_MS,
+    );
   }
   if (violations === 2) {
-    return readPositiveNumber(process.env.CHECKOUT_BAN_LEVEL_2_MS, BAN_LEVEL_2_MS);
+    return readPositiveNumber(
+      process.env.CHECKOUT_BAN_LEVEL_2_MS,
+      BAN_LEVEL_2_MS,
+    );
   }
-  return readPositiveNumber(process.env.CHECKOUT_BAN_LEVEL_3_MS, BAN_LEVEL_3_MS);
+  return readPositiveNumber(
+    process.env.CHECKOUT_BAN_LEVEL_3_MS,
+    BAN_LEVEL_3_MS,
+  );
 }
 
 function rejectCheckout(res: Response) {
@@ -64,7 +73,11 @@ export const globalApiRateLimit = rateLimit({
   ),
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => skippedPaths.has(req.path) || req.path.startsWith('/payweb/'),
+  skip: (req) =>
+    skippedPaths.has(req.path) ||
+    req.path === '/ussd' ||
+    req.path.startsWith('/ussd/') ||
+    req.path.startsWith('/payweb/'),
   handler: (_req, res) => {
     res.status(429).json({
       success: false,
@@ -96,11 +109,14 @@ export function checkoutAttemptLimit(
       current && now - current.violationWindowStart <= BAN_HISTORY_WINDOW_MS
         ? current.violations
         : 0;
-    const violationWindowStart = violations ? current!.violationWindowStart : now;
+    const violationWindowStart = violations
+      ? current!.violationWindowStart
+      : now;
     checkoutAttempts.set(key, {
       count: 1,
       windowStart: now,
-      banUntil: current?.banUntil && current.banUntil > now ? current.banUntil : 0,
+      banUntil:
+        current?.banUntil && current.banUntil > now ? current.banUntil : 0,
       violations,
       violationWindowStart,
     });
