@@ -74,6 +74,7 @@ class TicketsService {
           ticketConfigurations,
           eq(eventTickets.ticketConfigurationId, ticketConfigurations.id),
         )
+        .innerJoin(ticketTypes, eq(eventTickets.ticketTypeId, ticketTypes.id))
         .where(inArray(eventTickets.id, ticketIds));
 
       if (availableTickets.length !== payload.items.length) {
