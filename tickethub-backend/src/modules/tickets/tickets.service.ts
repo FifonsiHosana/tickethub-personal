@@ -24,6 +24,8 @@ import { getOrderForResend, type ResendTicketItem } from './tickets.query.js';
 import { sendMail } from '../emails/emails.service.js';
 import { randomBytes } from 'crypto';
 import { sendTicket } from '../ussd-payment/ussd-payment.utils.js';
+import { computeOrderBreakdown } from '../finance/finance.pricing.js';
+import { now } from '@/utils/timeDatehelpers.js';
 
 function buildResendTicketSms(params: {
   attendeeName: string;
@@ -409,6 +411,7 @@ class TicketsService {
           id: ticketOrders.id,
           status: ticketOrders.status,
           quantity: ticketOrders.quantity,
+          reference: ticketOrders.reference,
         })
         .from(ticketOrders)
         .where(eq(ticketOrders.id, orderId));
@@ -511,7 +514,7 @@ class TicketsService {
         throw new AppError(409, 'This order has no tickets to send.');
       }
 
-      // Total: completed payment if there is one, otherwise list price
+      // Total: completed payment if there is one, otherwise create one now.
       const [payment] = await tx
         .select({ amount: payments.amount })
         .from(payments)
@@ -521,9 +524,39 @@ class TicketsService {
         .orderBy(desc(payments.id))
         .limit(1);
 
-      const total = payment
-        ? Number(payment.amount)
-        : allTickets.reduce((sum, t) => sum + Number(t.price), 0);
+      let paymentCreated = false;
+      const paymentReference =
+        order.reference || `manual-complete-order-${orderId}`;
+      let total = payment ? Number(payment.amount) : 0;
+
+      if (!payment) {
+        const { subtotal, feeAmount, totalAmount } =
+          await computeOrderBreakdown(orderId, undefined, tx as any);
+
+        if (![subtotal, feeAmount, totalAmount].every(Number.isFinite)) {
+          throw new AppError(400, 'Invalid payment amount calculated.');
+        }
+
+        await tx.insert(payments).values({
+          orderId,
+          provider: 'paystack',
+          reference: paymentReference,
+          amount: totalAmount.toString(),
+          subtotal: subtotal.toString(),
+          feeAmount: feeAmount.toString(),
+          currency: 'GHS',
+          status: 'Completed',
+          paidAt: now(),
+        } as typeof payments.$inferInsert);
+
+        total = totalAmount;
+        paymentCreated = true;
+      }
+
+      await tx
+        .update(ticketOrders)
+        .set({ status: 'Completed' })
+        .where(eq(ticketOrders.id, orderId));
 
       return {
         orderId: order.id,
@@ -531,6 +564,8 @@ class TicketsService {
         tickets: allTickets,
         total,
         generated: Math.max(missing, 0),
+        paymentCreated,
+        paymentReference,
       };
     });
 
@@ -570,24 +605,21 @@ class TicketsService {
 
     // No `await` inside the array: both run in parallel, and one failing
     // can't stop the other.
-    // const [emailResult, smsResult] = await Promise.allSettled([
-    //   sendEmail(),
-    //   sendSms(),
-    // ]);
-
-    await db
-      .update(ticketOrders)
-      .set({ status: 'Completed' })
-      .where(eq(ticketOrders.id, orderId));
+    const [emailResult, smsResult] = await Promise.allSettled([
+      sendEmail(),
+      sendSms(),
+    ]);
 
     return {
       orderId: result.orderId,
       generated: result.generated,
       totalTickets: finalTickets.length,
       tickets: finalTickets,
-      // emailSent: emailResult.status === 'fulfilled',
+      paymentCreated: result.paymentCreated,
+      paymentReference: result.paymentReference,
+      emailSent: emailResult.status === 'fulfilled',
       // sendTicket resolves false on failure instead of throwing
-      // smsSent: smsResult.status === 'fulfilled' && smsResult.value === true,
+      smsSent: smsResult.status === 'fulfilled' && smsResult.value === true,
     };
   }
 }

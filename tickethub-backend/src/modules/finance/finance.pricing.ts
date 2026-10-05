@@ -10,12 +10,14 @@ import {
 export const PROCESSING_FEE_PERCENTAGE_KEY = 'processing_fee_percentage';
 export const DEFAULT_PROCESSING_FEE_PERCENTAGE = 2;
 
+type DbLike = typeof db;
+
 export function round2(value: number) {
   return Math.round(value * 100) / 100;
 }
 
-export async function getProcessingPercentageFee() {
-  const [row] = await db
+export async function getProcessingPercentageFee(dbLike: DbLike = db) {
+  const [row] = await dbLike
     .select({ value: platformSettings.value })
     .from(platformSettings)
     .where(eq(platformSettings.key, PROCESSING_FEE_PERCENTAGE_KEY))
@@ -29,8 +31,8 @@ export async function getProcessingPercentageFee() {
     : DEFAULT_PROCESSING_FEE_PERCENTAGE;
 }
 
-export async function getOrderSubtotalFromDb(orderId: number) {
-  const [row] = await db
+export async function getOrderSubtotalFromDb(orderId: number, dbLike: DbLike = db) {
+  const [row] = await dbLike
     .select({
       subtotal: sql<string>`COALESCE(SUM(${ticketConfigurations.price}), 0)`,
     })
@@ -48,8 +50,11 @@ export async function getOrderSubtotalFromDb(orderId: number) {
   return Number(row?.subtotal ?? 0);
 }
 
-export async function getOrderTicketQuantityFromDb(orderId: number) {
-  const [row] = await db
+export async function getOrderTicketQuantityFromDb(
+  orderId: number,
+  dbLike: DbLike = db,
+) {
+  const [row] = await dbLike
     .select({ quantity: count() })
     .from(ticketOrderItems)
     .where(eq(ticketOrderItems.orderId, orderId));
@@ -60,18 +65,15 @@ export async function getOrderTicketQuantityFromDb(orderId: number) {
 export async function computeOrderBreakdown(
   orderId: number,
   ticketQuantity?: number,
+  dbLike: DbLike = db,
 ) {
-  const subtotal = await getOrderSubtotalFromDb(orderId);
+  const subtotal = await getOrderSubtotalFromDb(orderId, dbLike);
   const resolvedTicketQuantity =
     Number.isFinite(ticketQuantity) && Number(ticketQuantity) > 0
       ? Number(ticketQuantity)
-      : await getOrderTicketQuantityFromDb(orderId);
+      : await getOrderTicketQuantityFromDb(orderId, dbLike);
 
-  // const processingPercentageFee = await getProcessingPercentageFee();
   const feeAmount = 10 * resolvedTicketQuantity;
-  // round2(
-  //   (subtotal * processingPercentageFee) / 100,
-  // );
   const totalAmount = round2(subtotal + feeAmount);
 
   return {
