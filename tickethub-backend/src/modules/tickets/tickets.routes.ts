@@ -12,7 +12,6 @@ import {
   optionalAuthenticate,
 } from '@/middleware/auth/auth.middleware.js';
 import { authorize } from '@/middleware/auth/role.middleware.js';
-import { checkoutAttemptLimit } from '@/middleware/rateLimit.js';
 
 const router = Router();
 
@@ -34,7 +33,6 @@ router.get('/:ticketIdentifier', controller.getTicketByIdentifier);
 router.post(
   '/',
   optionalAuthenticate,
-  checkoutAttemptLimit,
   validate(purchaseTicketSchema),
   controller.purchaseTickets,
 );
