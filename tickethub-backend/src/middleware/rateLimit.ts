@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
+import logger from '@/utils/logger/index.js';
 
 const DEFAULT_WINDOW_MS = 15 * 60 * 1000;
 const DEFAULT_MAX_REQUESTS = 300;
@@ -138,8 +139,20 @@ export function checkoutAttemptLimit(
 
     current.violations += 1;
     current.banUntil = now + checkoutBanDuration(current.violations);
+    logger.warn(
+      {
+        key,
+        ip: req.ip,
+        ips: req.ips,
+        forwardedFor: req.headers['x-forwarded-for'],
+        violations: current.violations,
+        banUntil: new Date(current.banUntil).toISOString(),
+      },
+      'Checkout attempt ban applied',
+    );
     return rejectCheckout(res);
   }
 
   return next();
 }
+

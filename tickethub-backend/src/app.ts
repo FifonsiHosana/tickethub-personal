@@ -23,6 +23,9 @@ import ussdPaymentRoutes from '@/modules/ussd-payment/ussd-payment.routes.js';
 
 const app = express();
 
+const trustProxy = process.env.TRUST_PROXY ?? 'loopback';
+app.set('trust proxy', trustProxy);
+
 app.use(express.json());
 // favicon and public stuff latter
 
