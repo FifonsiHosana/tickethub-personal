@@ -4,7 +4,7 @@ import rateLimit from 'express-rate-limit';
 const DEFAULT_WINDOW_MS = 15 * 60 * 1000;
 const DEFAULT_MAX_REQUESTS = 300;
 const CHECKOUT_WINDOW_MS = 15 * 60 * 1000;
-const CHECKOUT_MAX_ATTEMPTS = 5;
+const CHECKOUT_MAX_ATTEMPTS = 3;
 const BAN_HISTORY_WINDOW_MS = 24 * 60 * 60 * 1000;
 const BAN_LEVEL_1_MS = 30 * 60 * 1000;
 const BAN_LEVEL_2_MS = 2 * 60 * 60 * 1000;
