@@ -1,7 +1,8 @@
+import { useEffect } from "react";
 import { useDashboardDateRange } from "@/components/shared/date/useDashboardDateRange";
+import { useDashboardEventFilter } from "@/components/shared/date/useDashboardEventFilter";
 import { chartRange } from "@/utils/dateRanges";
 import { useAnalyticsOverviewFilters } from "./useAnalyticsOverviewFilters";
-import EventSelectDropdown from "../Shared/EventSelectDropdown";
 import TicketTypeFilter from "./TicketTypeFilter";
 import { AnalyticsSummaryCards } from "../Sales/AnalyticsSummaryCards";
 import { RevenueChart } from "../Sales/RevenueChart";
@@ -13,33 +14,34 @@ import { TopEventsPanel } from "./TopEventsPanel";
 
 export default function AnalyticsOverview() {
   const { range } = useDashboardDateRange();
+  const { eventIdNumber } = useDashboardEventFilter();
   const { from, to } = chartRange(range);
+  const { ticketId, setTicketId } = useAnalyticsOverviewFilters();
 
-  const { eventId, ticketId, setEventId, setTicketId } =
-    useAnalyticsOverviewFilters();
+  useEffect(() => {
+    setTicketId("");
+  }, [eventIdNumber, setTicketId]);
 
-  const eventFilter = eventId ? Number(eventId) : undefined;
   const ticketFilter = ticketId ? Number(ticketId) : undefined;
 
   return (
     <div className="flex-1 min-w-0 space-y-2 min-h-[calc(100vh-3rem)]">
       <div className="lg:hidden flex flex-col sm:flex-row gap-3">
-        <EventSelectDropdown value={eventId} onChange={setEventId} />
         <TicketTypeFilter
           value={ticketId}
           onChange={setTicketId}
-          eventId={eventFilter}
+          eventId={eventIdNumber}
         />
       </div>
 
-      <AnalyticsSummaryCards eventId={eventFilter} ticketId={ticketFilter} />
+      <AnalyticsSummaryCards eventId={eventIdNumber} ticketId={ticketFilter} />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-2">
         <div className="lg:col-span-4">
           <RevenueChart
             from={from}
             to={to}
-            eventId={eventFilter}
+            eventId={eventIdNumber}
             ticketId={ticketFilter}
           />
         </div>
@@ -47,7 +49,7 @@ export default function AnalyticsOverview() {
           <TicketSalesOverTime
             from={from}
             to={to}
-            eventId={eventFilter}
+            eventId={eventIdNumber}
             ticketId={ticketFilter}
           />
         </div>
@@ -55,7 +57,7 @@ export default function AnalyticsOverview() {
           <DailySalesBreakdown
             from={from}
             to={to}
-            eventId={eventFilter}
+            eventId={eventIdNumber}
             ticketId={ticketFilter}
           />
         </div>
@@ -66,20 +68,21 @@ export default function AnalyticsOverview() {
           <TicketPerformanceChart
             from={from}
             to={to}
-            eventId={eventFilter}
+            eventId={eventIdNumber}
             ticketId={ticketFilter}
           />
         </div>
         <TicketTypeRevenueDonut
           from={from}
           to={to}
-          eventId={eventFilter}
+          eventId={eventIdNumber}
           ticketId={ticketFilter}
         />
         <div className="lg:col-span-5">
-          <TopEventsPanel from={from} to={to} />
+          <TopEventsPanel from={from} to={to} eventId={eventIdNumber} />
         </div>
       </div>
     </div>
   );
 }
+

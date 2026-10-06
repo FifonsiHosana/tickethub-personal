@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SearchIcon } from "lucide-react";
 import {
   Select,
@@ -8,28 +8,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useOrganizerEvents } from "@/hooks/organizers/useOrganizerEvents";
 import { useOrganizerOrders } from "@/hooks/organizers/useOrganizerOrders";
 import { useDashboardDateRange } from "@/components/shared/date/useDashboardDateRange";
+import { useDashboardEventFilter } from "@/components/shared/date/useDashboardEventFilter";
 import { PaginationSect } from "@/components/shared/Pagination";
 import RecentOrdersTable from "./RecentOrders/RecentOrdersTable";
 
 export default function RecentOrdersTab() {
-  const [eventId, setEventId] = useState<number | "all">("all");
   const [status, setStatus] = useState<"Completed" | "Pending" | "all">("Completed");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const { range } = useDashboardDateRange();
+  const { eventIdNumber } = useDashboardEventFilter();
 
-  const { data: eventsResponse, isLoading: eventsLoading } = useOrganizerEvents({
-    pageSize: 100,
-  });
-  const events = eventsResponse?.data ?? [];
+  useEffect(() => {
+    setPage(1);
+  }, [eventIdNumber]);
 
   const { data: ordersData, isError } = useOrganizerOrders({
-    eventId: eventId === "all" ? undefined : Number(eventId),
+    eventId: eventIdNumber,
     status: status === "all" ? undefined : status,
     page,
     pageSize,
@@ -41,11 +39,6 @@ export default function RecentOrdersTab() {
   const orders = ordersData?.data ?? [];
   const pagination = ordersData?.pagination;
 
-  const selectedEventTitle =
-    eventId === "all"
-      ? "All Events"
-      : events.find((e) => e.id === Number(eventId))?.title ?? "All Events";
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -54,7 +47,7 @@ export default function RecentOrdersTab() {
             Recent Orders
           </h3>
           <p className="text-sm text-muted-foreground">
-            Group of recent customer orders for the selected event.
+            Group of recent customer orders for the selected filters.
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -74,7 +67,7 @@ export default function RecentOrdersTab() {
             value={status}
             onValueChange={(val) => {
               if (!val) return;
-              setStatus(val);
+              setStatus(val as "Completed" | "Pending" | "all");
               setPage(1);
             }}
           >
@@ -87,29 +80,6 @@ export default function RecentOrdersTab() {
               <SelectItem value="all">All statuses</SelectItem>
             </SelectContent>
           </Select>
-          {eventsLoading ? (
-            <Skeleton className="h-9 w-45" />
-          ) : (
-            <Select
-              value={String(eventId)}
-              onValueChange={(val) => {
-                setEventId(val === "all" ? "all" : Number(val));
-                setPage(1);
-              }}
-            >
-              <SelectTrigger className="w-full sm:w-45">
-                <SelectValue>{selectedEventTitle}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Events</SelectItem>
-                {events.map((event) => (
-                  <SelectItem key={event.id} value={String(event.id)}>
-                    {event.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
         </div>
       </div>
 
@@ -134,6 +104,3 @@ export default function RecentOrdersTab() {
     </div>
   );
 }
-
-
-

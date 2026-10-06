@@ -1,8 +1,6 @@
 import { useLocation, useNavigate } from "react-router";
 import { useAuthStorage } from "@/hooks/useAuthStorage";
-import { navByRole, type Role } from "@/misc/dashboardData";
-// import { ConfirmDialog } from "./ConfirmDialog";
-// import { useState } from "react";
+import { navByRole, type NavItem, type Role } from "@/misc/dashboardData";
 
 const ROLE_LABELS: Partial<Record<Role, string>> = {
   organizer: "Organizer",
@@ -15,6 +13,16 @@ type Props = {
   className?: string;
 };
 
+function isNavItemActive(item: NavItem, pathname: string) {
+  const exactPaths = item.activePaths ?? [item.url];
+  const exactMatch = exactPaths.some((path) => pathname === path);
+  const prefixMatch = item.activePrefixes?.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  );
+
+  return exactMatch || Boolean(prefixMatch);
+}
+
 export function RoleSwitcher({ className }: Props = {}) {
   const { roles, activeRole, setActiveRole } = useAuthStorage();
   const navigate = useNavigate();
@@ -24,11 +32,7 @@ export function RoleSwitcher({ className }: Props = {}) {
 
   function isUrlInRole(role: Role): boolean {
     const items = navByRole[role] ?? [];
-    return items.some(
-      (item) =>
-        item.url === pathname ||
-        item.items?.some((subItem) => subItem.url === pathname),
-    );
+    return items.some((item) => isNavItemActive(item, pathname));
   }
 
   function handleSwitch(role: Role) {
@@ -42,26 +46,26 @@ export function RoleSwitcher({ className }: Props = {}) {
       className={`flex items-center gap-1 rounded-full p-1 text-xs font-medium border ${className ?? ""}`}
     >
       {roles.map((role) => {
-        const label = ROLE_LABELS[role as Role] ?? role;
+        const roleName = role as Role;
+        const label = ROLE_LABELS[roleName] ?? role;
         const isActive = role === activeRole;
 
         return (
-          <>
-            <button
-              key={role}
-              type="button"
-              onClick={() => handleSwitch(role as Role)}
-              className={`px-3 py-1 rounded-full transition-colors hover:cursor-pointer ${
-                isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "opacity-70 hover:opacity-100"
-              }`}
-            >
-              {label}
-            </button>
-          </>
+          <button
+            key={role}
+            type="button"
+            onClick={() => handleSwitch(roleName)}
+            className={`px-3 py-1 rounded-full transition-colors hover:cursor-pointer ${
+              isActive
+                ? "bg-primary text-primary-foreground"
+                : "opacity-70 hover:opacity-100"
+            }`}
+          >
+            {label}
+          </button>
         );
       })}
     </div>
   );
 }
+

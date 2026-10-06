@@ -18,8 +18,13 @@ export const paginatedQuerySchema = z.object({
     .optional()
     .transform((value) => Number(value ?? 10)),
   search: z.string().optional(),
+  eventId: z
+    .string()
+    .optional()
+    .transform((value) => (value ? Number(value) : undefined)),
   from: z.iso.date().optional(),
   to: z.iso.date().optional(),
 });
 
 export type PaginatedQuery = z.infer<typeof paginatedQuerySchema>;
+

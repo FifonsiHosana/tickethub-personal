@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CampaignComposer } from "@/components/sections/Dashboard/Organizer/SMS/CampaignComposer";
 import {
@@ -12,6 +12,7 @@ import {
   // useEventTickets,
   useTicketHoldersPhoneNumbers,
 } from "@/hooks/organizers/useOrganizerSms";
+import { useDashboardEventFilter } from "@/components/shared/date/useDashboardEventFilter";
 import {
   audienceLabel,
   normalizeRecipients,
@@ -29,6 +30,24 @@ export default function SmsCampaign() {
   });
   const [previewOpen, setPreviewOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const { eventIdNumber } = useDashboardEventFilter();
+
+  useEffect(() => {
+    setAudience((prev) => {
+      if (prev.mode !== "event") return prev;
+      if (!eventIdNumber) {
+        if (!prev.eventId) return prev;
+        return { ...prev, eventId: undefined, groupIds: [], allGroups: false };
+      }
+      if (prev.eventId === eventIdNumber) return prev;
+      return {
+        ...prev,
+        eventId: eventIdNumber,
+        groupIds: [],
+        allGroups: false,
+      };
+    });
+  }, [eventIdNumber]);
 
   const { data: wallet } = useCreditWallet();
   // const { data: eventTickets = [] } = useEventTickets(audience.mode === 'event' ? audience.eventId ?? null : null);
@@ -162,3 +181,5 @@ export default function SmsCampaign() {
     </div>
   );
 }
+
+

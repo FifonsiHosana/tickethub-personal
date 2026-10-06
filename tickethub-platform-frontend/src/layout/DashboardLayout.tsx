@@ -1,46 +1,46 @@
 import { useEffect } from "react";
 import { Link, Outlet, useLocation } from "react-router";
+import { Home } from "lucide-react";
 
 import { AppSidebar } from "@/components/sections/Dashboard/app-sidebar";
 import { RoleSwitcher } from "@/components/shared/RoleSwitcher";
-
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 import { useAuthStorage } from "@/hooks/useAuthStorage";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { Role } from "@/misc/dashboardData";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { CreateEventButton } from "@/components/shared/CreateEventButton";
 import { ThemeProvider } from "@/components/shared/Theme/ThemeContext";
 import { DashboardDateRangeProvider } from "@/components/shared/date/DashboardDateRangeProvider";
+import { DashboardEventFilterProvider } from "@/components/shared/date/DashboardEventFilterProvider";
+import { DashboardEventFilter } from "@/components/shared/date/DashboardEventFilter";
+import { useDashboardEventFilter } from "@/components/shared/date/useDashboardEventFilter";
 import { DateRangeFilter } from "@/components/shared/date/DateRangeFilter";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AnalyticsOverviewFiltersProvider } from "@/components/sections/Dashboard/Organizer/Analytics/AnalyticsOverviewFiltersProvider";
-import EventSelectDropdown from "@/components/sections/Dashboard/Organizer/Shared/EventSelectDropdown";
 import TicketTypeFilter from "@/components/sections/Dashboard/Organizer/Analytics/TicketTypeFilter";
 import { useAnalyticsOverviewFilters } from "@/components/sections/Dashboard/Organizer/Analytics/useAnalyticsOverviewFilters";
 import SmsProgress from "@/components/shared/SmsProgress";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Home } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 function HeaderAnalyticsFilters({ pathname }: { pathname: string }) {
   const { activeRole } = useAuthStorage();
-  const { eventId, ticketId, setEventId, setTicketId } =
-    useAnalyticsOverviewFilters();
+  const { ticketId, setTicketId } = useAnalyticsOverviewFilters();
+  const { eventIdNumber } = useDashboardEventFilter();
 
-  if (pathname !== "/organizer/analytics/overview") return null;
+  if (pathname !== "/organizer/analytics") return null;
   if (activeRole !== "organizer") return null;
 
   return (
     <div className="hidden lg:flex items-center gap-2">
-      <EventSelectDropdown value={eventId} onChange={setEventId} />
       <TicketTypeFilter
         value={ticketId}
         onChange={setTicketId}
-        eventId={eventId ? Number(eventId) : undefined}
+        eventId={eventIdNumber}
       />
     </div>
   );
@@ -72,39 +72,42 @@ export default function DashboardLayout() {
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme-dashboard">
       <TooltipProvider>
         <DashboardDateRangeProvider>
-          <SidebarProvider>
-            <AppSidebar />
-            <AnalyticsOverviewFiltersProvider>
-              <SidebarInset>
-                <header className="flex h-12 shrink-0 items-center justify-between md:gap-4 border-b border-border md:px-4">
-                  <div className="flex items-center gap-1">
-                    {isMobile ? (
-                      <div className="p-2">
-                        <Button variant={"outline"}>
-                          <Link to={"/home"}>
-                            <Home className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                      </div>
-                    ) : (
-                      <SidebarTrigger className="md:-ml-1" />
-                    )}
-                    <HeaderAnalyticsFilters pathname={pathname} />
+          <DashboardEventFilterProvider>
+            <SidebarProvider>
+              <AppSidebar />
+              <AnalyticsOverviewFiltersProvider>
+                <SidebarInset>
+                  <header className="flex h-12 shrink-0 items-center justify-between md:gap-4 border-b border-border md:px-4">
+                    <div className="flex items-center gap-1">
+                      {isMobile ? (
+                        <div className="p-2">
+                          <Button variant="outline">
+                            <Link to="/home">
+                              <Home className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                        </div>
+                      ) : (
+                        <SidebarTrigger className="md:-ml-1" />
+                      )}
+                      <HeaderAnalyticsFilters pathname={pathname} />
+                    </div>
+                    <div className="flex items-center gap-2 mx-2">
+                      <SmsProgress />
+                      <RoleSwitcher className="bg-muted border-border" />
+                      {activeRole !== "attendee" && <DateRangeFilter />}
+                      {activeRole === "organizer" && <DashboardEventFilter />}
+                      <CreateEventButton />
+                      <ThemeToggle />
+                    </div>
+                  </header>
+                  <div className={`grid gap-4 ${isMobile ? `p-1` : `p-4`}`}>
+                    <Outlet />
                   </div>
-                  <div className="flex items-center gap-2 mx-2">
-                    <SmsProgress />
-                    <RoleSwitcher className="bg-muted border-border" />
-                    {activeRole !== "attendee" && <DateRangeFilter />}
-                    <CreateEventButton />
-                    <ThemeToggle />
-                  </div>
-                </header>
-                <div className={`grid gap-4 ${isMobile ? `p-1` : `p-4`}`}>
-                  <Outlet />
-                </div>
-              </SidebarInset>
-            </AnalyticsOverviewFiltersProvider>
-          </SidebarProvider>
+                </SidebarInset>
+              </AnalyticsOverviewFiltersProvider>
+            </SidebarProvider>
+          </DashboardEventFilterProvider>
         </DashboardDateRangeProvider>
       </TooltipProvider>
     </ThemeProvider>

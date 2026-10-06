@@ -14,11 +14,16 @@ import {
 /**
  * Total tickets sold (completed orders only)
  */
-export async function getTicketsSold(organizerId: number, range?: DateRange) {
+export async function getTicketsSold(
+  organizerId: number,
+  range?: DateRange,
+  options?: { eventId?: number | undefined },
+) {
   const filters: any[] = [
     eq(events.organizerId, organizerId),
     eq(ticketOrders.status, 'Completed'),
   ];
+  if (options?.eventId) filters.push(eq(events.id, options.eventId));
   applyDateRange(filters, ticketOrders.createdAt, range);
 
   const [result] = await db
@@ -44,12 +49,14 @@ export async function getTicketsSold(organizerId: number, range?: DateRange) {
 export async function getCheckInCount(
   organizerId: number,
   range?: DateRange,
+  options?: { eventId?: number | undefined },
 ) {
   const filters: any[] = [
     eq(events.organizerId, organizerId),
     eq(ticketOrders.status, 'Completed'),
     eq(ticketOrderItems.checkedIn, true),
   ];
+  if (options?.eventId) filters.push(eq(events.id, options.eventId));
   applyDateRange(filters, ticketOrderItems.checkedInAt, range);
 
   const [result] = await db
@@ -72,7 +79,12 @@ export async function getCheckInCount(
 /**
  * Total tickets remaining across all event ticket configurations
  */
-export async function getTicketsRemaining(organizerId: number) {
+export async function getTicketsRemaining(
+  organizerId: number,
+  options?: { eventId?: number | undefined },
+) {
+  const filters: any[] = [eq(events.organizerId, organizerId)];
+  if (options?.eventId) filters.push(eq(events.id, options.eventId));
   const [result] = await db
     .select({
       remaining:
@@ -85,7 +97,7 @@ export async function getTicketsRemaining(organizerId: number) {
     )
     .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
     .innerJoin(events, eq(tickets.eventId, events.id))
-    .where(eq(events.organizerId, organizerId));
+    .where(and(...filters));
 
   return Number(result?.remaining ?? 0);
 }
@@ -143,6 +155,7 @@ export interface TicketPerformanceParams {
   search?: string | undefined;
   from?: string | undefined;
   to?: string | undefined;
+  eventId?: number | undefined;
 }
 
 /**
@@ -152,6 +165,7 @@ export async function getTicketPerformance(params: TicketPerformanceParams) {
   const { organizerId, page = 1, pageSize = 10, search, from, to } = params;
   const offset = (page - 1) * pageSize;
   const filters = [eq(events.organizerId, organizerId)];
+  if (params.eventId) filters.push(eq(events.id, params.eventId));
   applyDateRange(filters, ticketOrders.createdAt, { from, to });
 
   if (search) {
@@ -212,3 +226,5 @@ export async function getTicketPerformance(params: TicketPerformanceParams) {
     },
   };
 }
+
+

@@ -6,14 +6,13 @@ import {
   HistoryIcon,
   ListChecksIcon,
   ShieldCheckIcon,
-  // WalletIcon,
   LayoutDashboardIcon,
-  UserCheckIcon,
   SettingsIcon,
   Mailbox,
+  ScanLineIcon,
+  UsersIcon,
+  MoreHorizontalIcon,
 } from "lucide-react";
-// import { GiChatBubble } from "react-icons/gi";
-// import { FaLetterboxd } from "react-icons/fa6";
 
 export type Role = "organizer" | "event_staff" | "admin" | "attendee";
 
@@ -22,10 +21,8 @@ export type NavItem = {
   url: string;
   icon?: React.ReactNode;
   isActive?: boolean;
-  items?: {
-    title: string;
-    url: string;
-  }[];
+  activePaths?: string[];
+  activePrefixes?: string[];
 };
 
 const ticketOrderHistoryNavItem: NavItem = {
@@ -44,53 +41,53 @@ const organizerNav: NavItem[] = [
     title: "Events",
     url: "/organizer/events",
     icon: <CalendarIcon />,
-    items: [
-      { title: "All Events", url: "/organizer/events" },
-      { title: "Create Event", url: "/organizer/events/new" },
-    ],
+    activePrefixes: ["/organizer/events"],
   },
   {
-    title: "Tickets",
-    url: "/organizer/tickets",
+    title: "Ticket Orders",
+    url: "/organizer/orders",
     icon: <TicketIcon />,
-    items: [
-      { title: "Ticket Types", url: "/organizer/tickets" },
-      { title: "Ticket Sales", url: "/organizer/sales" },
-    ],
   },
   {
-    title: "Attendees",
-    url: "/organizer/attendees",
-    icon: <UserCheckIcon />,
-    items: [{ title: "Event Staff", url: "/organizer/attendees/staff" }],
-  },
-  {
-    title: "Analytics",
-    url: "/organizer/analytics/overview",
-    icon: <BarChart3Icon />,
-    // items: [
-    //   { title: "Analytics Overview", url: "/organizer/analytics/overview" },
-    //   // { title: "Event Performance", url: "/organizer/analytics/events" },
-    //   // { title: "Revenue & Payouts", url: "/organizer/analytics/revenue" },
-    //   // { title: "Ticket Performance", url: "/organizer/analytics/tickets" },
-    // ],
+    title: "Scan",
+    url: "/organizer/scan",
+    icon: <ScanLineIcon />,
   },
   {
     title: "SMS",
     url: "/organizer/sms",
-    icon: <Mailbox /> ,
-    items: [
-      { title: "SMS Campaign", url: "/organizer/sms" },
-      { title: "SMS History", url: "/organizer/sms/history" },
-      { title: "SMS Credits", url: "/organizer/sms/credits" },
+    icon: <Mailbox />,
+    activePaths: ["/organizer/sms"],
+  },
+  {
+    title: "Analytics",
+    url: "/organizer/analytics",
+    icon: <BarChart3Icon />,
+    activePaths: ["/organizer/analytics"],
+  },
+  {
+    title: "Staff",
+    url: "/organizer/staff",
+    icon: <UsersIcon />,
+  },
+  {
+    title: "More",
+    url: "/organizer/more",
+    icon: <MoreHorizontalIcon />,
+    activePaths: [
+      "/organizer/more",
+      "/organizer/tickets",
+      "/organizer/sales",
+      "/organizer/sales/analytics",
+      "/organizer/analytics/events",
+      "/organizer/analytics/revenue",
+      "/organizer/analytics/tickets",
+      "/organizer/sms/history",
+      "/organizer/sms/credits",
+      "/organizer/payout-settings",
+      "/ticket-order-history",
     ],
   },
-  // {
-  //   title: "Payout Settings",
-  //   url: "/organizer/payout-settings",
-  //   icon: <BanknoteIcon />,
-  // },
-  ticketOrderHistoryNavItem,
 ];
 
 const eventStaffNav: NavItem[] = [
@@ -120,12 +117,6 @@ const platformAdminNav: NavItem[] = [
     url: "/admin/analytics",
     icon: <BarChart3Icon />,
   },
-
-  // {
-  //   title: "Payouts & Settlements",
-  //   url: "/admin/payouts",
-  //   icon: <WalletIcon />,
-  // },
   {
     title: "Platform Settings",
     url: "/admin/settings",
@@ -142,3 +133,5 @@ export const navByRole: Record<Role, NavItem[]> = {
   admin: platformAdminNav,
   attendee: attendeeNav,
 };
+
+

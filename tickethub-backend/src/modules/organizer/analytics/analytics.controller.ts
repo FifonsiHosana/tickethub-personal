@@ -66,7 +66,7 @@ export async function getEventPerformanceController(
   next: NextFunction,
 ) {
   try {
-    const { page, pageSize, search, from, to } = req.query;
+    const { page, pageSize, search, from, to, eventId } = req.query;
 
     const result = await getEventPerformance({
       organizerId: req.user.id,
@@ -75,6 +75,7 @@ export async function getEventPerformanceController(
       search,
       from,
       to,
+      eventId,
     });
 
     res.status(200).json({
@@ -93,7 +94,7 @@ export async function getTicketPerformanceController(
   next: NextFunction,
 ) {
   try {
-    const { page, pageSize, search, from, to } = req.query;
+    const { page, pageSize, search, from, to, eventId } = req.query;
 
     const result = await getTicketPerformance({
       organizerId: req.user.id,
@@ -102,6 +103,7 @@ export async function getTicketPerformanceController(
       search,
       from,
       to,
+      eventId,
     });
 
     res.status(200).json({
@@ -113,3 +115,4 @@ export async function getTicketPerformanceController(
     next(error);
   }
 }
+
