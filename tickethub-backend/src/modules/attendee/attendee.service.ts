@@ -100,7 +100,7 @@ export async function getOrderHistory(params: OrderHistoryParams) {
         .innerJoin(ticketTypes, eq(eventTickets.ticketTypeId, ticketTypes.id))
         .innerJoin(events, eq(tickets.eventId, events.id))
         .where(inArray(ticketOrders.id, orderIds))
-        .groupBy(ticketOrders.id, events.id)
+        .groupBy(ticketOrders.id, events.id, ticketOrderItems.eventTicketId)
     : [];
 
   const eventsByOrder = new Map<number, OrderHistoryEventBreakdown[]>();
