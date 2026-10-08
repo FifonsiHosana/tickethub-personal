@@ -17,7 +17,14 @@ export interface CreateEventPayload {
   }[];
 }
 
-export type UpdateEventPayload = Partial<CreateEventPayload>;
+export type EventTicketMutationPayload = {
+  upsert?: (TicketPayload & { id?: number; isVisible?: boolean })[];
+  deleteIds?: number[];
+};
+
+export type UpdateEventPayload = Partial<CreateEventPayload> & {
+  tickets?: EventTicketMutationPayload;
+};
 
 export interface GetOrganizerEventsParams {
   page?: number;
@@ -73,6 +80,7 @@ export interface OrganizerEventTicketDetail {
   salesStartDate?: string | null;
   salesEndDate?: string | null;
   benefits?: string | null;
+  isVisible?: boolean;
 }
 
 export interface OrganizerEventDetail {
@@ -125,6 +133,7 @@ export interface TicketPayload {
   salesStartDate?: string;
   salesEndDate?: string;
   benefits?: string;
+  isVisible?: boolean;
 }
 
 export interface CreateEventWithTicketsPayload {

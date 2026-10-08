@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Calendars, ScanIcon } from "lucide-react";
@@ -9,6 +10,8 @@ import { useEventAttendees } from "@/hooks/organizers/useOrganizerAttendees";
 
 export default function Attendees() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { search: locationSearch, pathname } = useLocation();
   const { eventId, eventIdNumber } = useDashboardEventFilter();
   const [page, setPage] = useState(1);
   const [scannerOpen, setScannerOpen] = useState(false);
@@ -18,6 +21,16 @@ export default function Attendees() {
     setPage(1);
     setScannerOpen(false);
   }, [eventId]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(locationSearch);
+    if (params.get("openScanner") !== "1") return;
+
+    if (eventIdNumber) setScannerOpen(true);
+    params.delete("openScanner");
+    const nextSearch = params.toString();
+    navigate(`${pathname}${nextSearch ? `?${nextSearch}` : ""}`, { replace: true });
+  }, [eventIdNumber, locationSearch, navigate, pathname]);
 
   const { data, isLoading } = useEventAttendees(eventIdNumber ?? null, {
     page,
@@ -43,18 +56,16 @@ export default function Attendees() {
         </p>
       </div>
 
-      <div className="flex-1 min-w-0 space-y-2">
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-          {eventIdNumber && (
-            <Button
-              onClick={() => setScannerOpen(true)}
-              className="bg-primary text-white hover:bg-primary/60"
-            >
-              <ScanIcon className="h-4 w-4" />
-              Start Scanner
-            </Button>
-          )}
-        </div>
+      <div className="flex-1 min-w-0 space-y-3">
+        {eventIdNumber && (
+          <Button
+            onClick={() => setScannerOpen(true)}
+            className="w-full bg-primary text-white hover:bg-primary/60 sm:w-auto"
+          >
+            <ScanIcon className="h-4 w-4" />
+            Start Scanner
+          </Button>
+        )}
 
         {!eventIdNumber && (
           <div className="flex flex-col bg-card text-center rounded border border-border items-center justify-center py-32">
@@ -64,17 +75,19 @@ export default function Attendees() {
         )}
 
         {eventIdNumber && (
-          <AttendeesTable
-            data={data}
-            isLoading={isLoading}
-            page={page}
-            onPageChange={setPage}
-            search={search}
-            onSearchChange={(val: string) => {
-              setSearch(val);
-              setPage(1);
-            }}
-          />
+          <div className="min-w-0 overflow-x-auto">
+            <AttendeesTable
+              data={data}
+              isLoading={isLoading}
+              page={page}
+              onPageChange={setPage}
+              search={search}
+              onSearchChange={(val: string) => {
+                setSearch(val);
+                setPage(1);
+              }}
+            />
+          </div>
         )}
 
         <ScannerDialog

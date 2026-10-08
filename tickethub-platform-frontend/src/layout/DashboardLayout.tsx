@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link, Outlet, useLocation } from "react-router";
-import { Home } from "lucide-react";
+import { ChevronRight, Home } from "lucide-react";
 
 import { AppSidebar } from "@/components/sections/Dashboard/app-sidebar";
 import { RoleSwitcher } from "@/components/shared/RoleSwitcher";
@@ -26,6 +26,13 @@ import { AnalyticsOverviewFiltersProvider } from "@/components/sections/Dashboar
 import TicketTypeFilter from "@/components/sections/Dashboard/Organizer/Analytics/TicketTypeFilter";
 import { useAnalyticsOverviewFilters } from "@/components/sections/Dashboard/Organizer/Analytics/useAnalyticsOverviewFilters";
 import SmsProgress from "@/components/shared/SmsProgress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 function HeaderAnalyticsFilters({ pathname }: { pathname: string }) {
   const { activeRole } = useAuthStorage();
@@ -88,7 +95,40 @@ export default function DashboardLayout() {
                           </Button>
                         </div>
                       ) : (
-                        <SidebarTrigger className="md:-ml-1" />
+                        <>
+                          <SidebarTrigger className="md:-ml-1" />
+                          <div className="flex items-center gap-2">
+                            <div className="inline-flex items-center text-sm font-medium text-muted-foreground gap-1">
+                              Event <ChevronRight className="h-4 w-4" />
+                            </div>
+                            <div className="min-w-[200px]">
+                              <Select
+                                value="Omr sterling Live second event"
+                                onValueChange={(value) => {
+                                  if (!value) return;
+                                  // setEventId(value === "all" ? "" : value);
+                                }}
+                              >
+                                <SelectTrigger
+                                  className="w-full"
+                                  aria-label="Filter dashboard by event"
+                                >
+                                  <SelectValue placeholder="All events" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all">
+                                    All events
+                                  </SelectItem>
+                                  {/* {events.map((event) => (
+          <SelectItem key={event.id} value={String(event.id)}>
+            {event.title}
+          </SelectItem>
+        ))} */}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </>
                       )}
                       <HeaderAnalyticsFilters pathname={pathname} />
                     </div>
@@ -101,7 +141,9 @@ export default function DashboardLayout() {
                       <ThemeToggle />
                     </div>
                   </header>
-                  <div className={`grid gap-4 ${isMobile ? `p-1` : `p-4`}`}>
+                  <div
+                    className={`grid gap-4 ${isMobile ? `p-1 pb-[calc(7rem+env(safe-area-inset-bottom))]` : `p-4`}`}
+                  >
                     <Outlet />
                   </div>
                 </SidebarInset>

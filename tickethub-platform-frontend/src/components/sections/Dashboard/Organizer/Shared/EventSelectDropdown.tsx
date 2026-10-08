@@ -36,7 +36,7 @@ export default function EventSelectDropdown({ value, onChange }: Props) {
   const selectedEvent = events.find((event) => String(event.id) === value);
 
   return (
-    <Select value={value} onValueChange={(val) => val && onChange(val)}>
+    <Select  value={value} onValueChange={(val) => val && onChange(val)}>
       <SelectTrigger className="w-full md:w-75" aria-label="Select an event">
         <SelectValue placeholder="Select an event...">
           {selectedEvent ? selectedEvent.title : "Select an event"}

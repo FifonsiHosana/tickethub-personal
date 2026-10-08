@@ -11,7 +11,6 @@ import { useOrganizerEvents } from "@/hooks/organizers/useOrganizerEvents";
 import { useDashboardEventFilter } from "./useDashboardEventFilter";
 
 const FILTER_PATHS = new Set([
-  "/organizer/dashboard",
   "/organizer/orders",
   "/organizer/sms",
   "/organizer/analytics",
@@ -31,6 +30,8 @@ export function DashboardEventFilter() {
 
   const events = data?.data ?? [];
   const selectedValue = eventId || "all";
+  const selectedEvent = events.find((event) => String(event.id) === eventId);
+  const selectedLabel = selectedEvent?.title ?? "All events";
 
   return (
     <Select
@@ -44,7 +45,7 @@ export function DashboardEventFilter() {
         className="w-36 sm:w-44 lg:w-56"
         aria-label="Filter dashboard by event"
       >
-        <SelectValue placeholder="All events" />
+        <SelectValue placeholder="All events">{selectedLabel}</SelectValue>
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="all">All events</SelectItem>
@@ -57,5 +58,3 @@ export function DashboardEventFilter() {
     </Select>
   );
 }
-
-

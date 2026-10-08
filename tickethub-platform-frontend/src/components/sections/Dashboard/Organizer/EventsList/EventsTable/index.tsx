@@ -24,7 +24,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 // import { EventsTableHeader } from "./EventsTableHeader";
-import { EventDetailsSheet } from "./EventDetails/EventDetailsSheet";
 import { CancelEventDialog } from "./CancelEventDialog";
 import type {
   OrganizerEventResponse,
@@ -56,13 +55,11 @@ export function OrganizerEventsGrid({
   pagination,
 }: Props) {
   const [selected, setSelected] = useState<OrganizerEventResponse | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleView = (e: OrganizerEventResponse) => {
-    setSelected(e);
-    setSheetOpen(true);
+    navigate(`/organizer/events/${e.slug || e.id}`);
   };
   const handleEdit = (e: OrganizerEventResponse) => {
     navigate(`/organizer/events/${e.slug || e.id}/edit`);
@@ -166,7 +163,8 @@ export function OrganizerEventsGrid({
             {events.map((event) => (
               <Card
                 key={event.id}
-                className="flex flex-col py-0 justify-between overflow-hidden hover:shadow-md transition-shadow"
+                onClick={(ev) => { ev.stopPropagation(); handleView(event); }}
+                className="flex flex-col py-0 justify-between overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
               >
                 {/* Event Image Banner (Optional - falls back if unavailable) */}
 
@@ -206,23 +204,23 @@ export function OrganizerEventsGrid({
 
                     {/* Actions Dropdown */}
                     <DropdownMenu>
-                      <DropdownMenuTrigger>
+                      <DropdownMenuTrigger onClick={(ev) => ev.stopPropagation()}>
                         <Button variant="ghost" className="h-8 w-8 p-0">
                           <MoreVerticalIcon className="h-4 w-4" />
                           <span className="sr-only">Open menu</span>
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleView(event)}>
+                      <DropdownMenuContent align="end" onClick={(ev) => ev.stopPropagation()}>
+                        <DropdownMenuItem onClick={(ev) => { ev.stopPropagation(); handleView(event); }}>
                           <EyeIcon className="mr-2 h-4 w-4" />
                           View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEdit(event)}>
+                        <DropdownMenuItem onClick={(ev) => { ev.stopPropagation(); handleEdit(event); }}>
                           <PencilIcon className="mr-2 h-4 w-4" />
                           Edit Event
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleCancel(event)}
+                          onClick={(ev) => { ev.stopPropagation(); handleCancel(event); }}
                           className="text-destructive focus:text-destructive"
                         >
                           <XCircleIcon className="mr-2 h-4 w-4" />
@@ -251,7 +249,7 @@ export function OrganizerEventsGrid({
                   <Button
                     variant="outline"
                     className="flex-1"
-                    onClick={() => handleView(event)}
+                    onClick={(ev) => { ev.stopPropagation(); handleView(event); }}
                   >
                     View Details
                   </Button>
@@ -262,7 +260,7 @@ export function OrganizerEventsGrid({
                         variant="outline"
                         size="icon"
                         aria-label="Edit event"
-                        onClick={() => handleEdit(event)}
+                        onClick={(ev) => { ev.stopPropagation(); handleEdit(event); }}
                       >
                         <Edit />
                       </Button>
@@ -270,7 +268,7 @@ export function OrganizerEventsGrid({
                         variant="outline"
                         size="icon"
                         aria-label="Open public page"
-                        onClick={() => navigate(getEventPath(event))}
+                        onClick={(ev) => { ev.stopPropagation(); navigate(getEventPath(event)); }}
                       >
                         <ExternalLink />
                       </Button>
@@ -278,7 +276,7 @@ export function OrganizerEventsGrid({
                         variant="destructive"
                         size="icon"
                         aria-label="Cancel event"
-                        onClick={() => handleCancel(event)}
+                        onClick={(ev) => { ev.stopPropagation(); handleCancel(event); }}
                       >
                         <XCircleIcon />
                       </Button>
@@ -304,11 +302,6 @@ export function OrganizerEventsGrid({
       )}
 
       {/* Dialogs & Sheets */}
-      <EventDetailsSheet
-        open={sheetOpen}
-        onOpenChange={setSheetOpen}
-        eventId={selected?.id ?? null}
-      />
       <CancelEventDialog
         open={cancelOpen}
         onOpenChange={setCancelOpen}

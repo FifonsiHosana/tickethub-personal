@@ -1,7 +1,6 @@
 import * as React from "react";
 import {
   CalendarIcon,
-  TicketIcon,
   BarChart3Icon,
   HistoryIcon,
   ListChecksIcon,
@@ -43,11 +42,11 @@ const organizerNav: NavItem[] = [
     icon: <CalendarIcon />,
     activePrefixes: ["/organizer/events"],
   },
-  {
-    title: "Ticket Orders",
-    url: "/organizer/orders",
-    icon: <TicketIcon />,
-  },
+  // {
+  //   title: "Ticket Orders",
+  //   url: "/organizer/orders",
+  //   icon: <TicketIcon />,
+  // },
   {
     title: "Scan",
     url: "/organizer/scan",
@@ -60,15 +59,15 @@ const organizerNav: NavItem[] = [
     activePaths: ["/organizer/sms"],
   },
   {
+    title: "Staff",
+    url: "/organizer/staff",
+    icon: <UsersIcon />,
+  },
+  {
     title: "Analytics",
     url: "/organizer/analytics",
     icon: <BarChart3Icon />,
     activePaths: ["/organizer/analytics"],
-  },
-  {
-    title: "Staff",
-    url: "/organizer/staff",
-    icon: <UsersIcon />,
   },
   {
     title: "More",
@@ -76,7 +75,6 @@ const organizerNav: NavItem[] = [
     icon: <MoreHorizontalIcon />,
     activePaths: [
       "/organizer/more",
-      "/organizer/tickets",
       "/organizer/sales",
       "/organizer/sales/analytics",
       "/organizer/analytics/events",
@@ -133,5 +131,3 @@ export const navByRole: Record<Role, NavItem[]> = {
   admin: platformAdminNav,
   attendee: attendeeNav,
 };
-
-

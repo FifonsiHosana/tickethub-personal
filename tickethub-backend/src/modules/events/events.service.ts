@@ -340,10 +340,12 @@ class EventsService {
           // gt(ticketConfigurations.totalRemaining, 0),
           lte(ticketConfigurations.salesStartDate, sql`NOW()`),
           gte(ticketConfigurations.salesEndDate, sql`NOW()`),
+          eq(ticketConfigurations.isVisible, true),
         ),
       );
   }
 }
 
 export default new EventsService();
+
 

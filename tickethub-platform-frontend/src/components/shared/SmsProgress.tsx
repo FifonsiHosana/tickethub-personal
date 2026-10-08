@@ -60,7 +60,7 @@ const SmsProgress = () => {
               left
             </span>
             <span
-              className="cursor-pointer rounded border border-neutral-300 bg-primary/10 px-1 py-1"
+              className="cursor-pointer rounded border border-primary  bg-primary/10 px-1 py-1"
               onClick={() => navigate("/organizer/sms/credits")}
               aria-label="Top up credits"
             >
@@ -69,7 +69,7 @@ const SmsProgress = () => {
           </div>
           <Progress
             value={leftPct}
-            className="mt-1 w-full max-w-sm rounded border border-neutral-300"
+            className="mt-1 w-full max-w-sm rounded  "
           />
         </>
       ) : (

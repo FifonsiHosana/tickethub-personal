@@ -29,11 +29,11 @@ import RevenueAndPayoutsPage from "@/pages/Dashboard/Organizer/RevenueAndPayouts
 import AnalyticsOverviewPage from "@/pages/Dashboard/Organizer/AnalyticsOverview";
 import PayoutSettingsPage from "@/pages/Dashboard/Organizer/PayoutSettings/PayoutSettingsPage";
 import DashboardOverview from "@/pages/Dashboard/Organizer/DashboardOverview/DashboardOverview";
-import TicketTypes from "@/pages/Dashboard/Organizer/Tickets/TicketTypes";
 import Attendees from "@/pages/Dashboard/Organizer/Attendees/Attendees";
 import EventStaff from "@/pages/Dashboard/Organizer/Attendees/EventStaff";
 import OrganizerOrdersPage from "@/pages/Dashboard/Organizer/OrganizerOrders";
 import OrganizerMorePage from "@/pages/Dashboard/Organizer/OrganizerMore";
+import OrganizerEventDetail from "@/pages/Dashboard/Organizer/OrganizerEventDetail";
 import PublicTicket from "@/pages/PublicTicket/PublicTicket";
 import AdminDashboard from "@/pages/Dashboard/Admin/AdminDashboard";
 import AdminOrganizers from "@/pages/Dashboard/Admin/AdminOrganizers";
@@ -82,6 +82,7 @@ export default function RouterLayout() {
 
           <Route element={<ProtectedRoute allowedRoles={["admin", "organizer", "event_staff", "attendee"]}><DashboardLayout /></ProtectedRoute>}>
             <Route path="/ticket-order-history" element={<TicketOrderHistory />} />
+            <Route path="/ticket-order-history/:orderId" element={<TicketOrderHistory />} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={["admin", "organizer", "event_staff"]}><DashboardLayout /></ProtectedRoute>}>
@@ -89,9 +90,10 @@ export default function RouterLayout() {
             <Route path="/organizer/dashboard" element={<DashboardOverview />} />
             <Route path="/organizer/events/new" element={<CreateEventPage />} />
             <Route path="/organizer/events/:id/edit" element={<EditEventPage />} />
+            <Route path="/organizer/events/:id" element={<OrganizerEventDetail />} />
             <Route path="/organizer/events" element={<EventsList />} />
             <Route path="/organizer/orders" element={<OrganizerOrdersPage />} />
-            <Route path="/organizer/tickets" element={<TicketTypes />} />
+            <Route path="/organizer/tickets" element={<Navigate to="/organizer/events" replace />} />
             <Route path="/organizer/sales" element={<TicketSalesPage />} />
             <Route path="/organizer/sales/analytics" element={<SalesAnalyticsPage />} />
             <Route path="/organizer/sms" element={<SmsCampaign />} />
@@ -121,3 +123,4 @@ export default function RouterLayout() {
     </motion.div>
   );
 }
+

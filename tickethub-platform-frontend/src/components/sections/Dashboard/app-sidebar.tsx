@@ -19,6 +19,7 @@ import { useAuthStorage } from "@/hooks/useAuthStorage";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { navByRole, type Role } from "@/misc/dashboardData";
 import { NavMobile } from "./nav-mobile";
+import { PlusCircleIcon, Ticket } from "lucide-react";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { activeRole, roles, user } = useAuthStorage();
@@ -65,10 +66,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton
                 size={"lg"}
                 tooltip="Create Event"
-                className="flex items-center justify-center gap-3 px-16 py-3 bg-primary/80 text-white rounded-full font-medium hover:scale-105 hover:bg-primary/60 hover:cursor-pointer w-full md:w-auto transition-all"
+                className="flex items-center justify-center gap-3 px-6 py-3 bg-primary text-white rounded-full font-medium hover:scale-105 hover:bg-primary/80 hover:cursor-pointer w-full md:w-auto transition-all"
                 render={<Link to="/organizer/events/new" />}
               >
-                {/* <PlusCircleIcon /> */}
+                <PlusCircleIcon />
                 <span>Create Event</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -84,9 +85,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={items} />
       </SidebarContent>
 
-      <SidebarFooter>{user && <NavUser user={user} />}</SidebarFooter>
+      <SidebarFooter className="p-2 gap-2">
+        <SidebarMenuItem className="list-none">
+          <SidebarMenuButton
+            size={"lg"}
+            className="w-full justify-between font-medium hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+          >
+            <a
+              href="/tickets"
+              className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md"
+            >
+              <span>My Tickets</span>
+              <Ticket className="h-4 w-4 -rotate-45 text-muted-foreground group-hover:text-foreground transition-transform" />
+            </a>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+
+        {user && <NavUser user={user} />}
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );
 }
-

@@ -9,15 +9,14 @@ import {
 } from "@/components/ui/card";
 
 const links = [
-  { title: "Ticket Types", url: "/organizer/tickets" },
   { title: "Ticket Sales", url: "/organizer/sales" },
   { title: "Sales Analytics", url: "/organizer/sales/analytics" },
   { title: "Event Performance", url: "/organizer/analytics/events" },
-  { title: "Revenue & Payouts", url: "/organizer/analytics/revenue" },
+  // { title: "Revenue & Payouts", url: "/organizer/analytics/revenue" },
   { title: "Ticket Performance", url: "/organizer/analytics/tickets" },
   { title: "SMS History", url: "/organizer/sms/history" },
   { title: "SMS Credits", url: "/organizer/sms/credits" },
-  { title: "Payout Settings", url: "/organizer/payout-settings" },
+  // { title: "Payout Settings", url: "/organizer/payout-settings" },
   { title: "Ticket Order History", url: "/ticket-order-history" },
 ];
 
@@ -25,16 +24,18 @@ export default function OrganizerMorePage() {
   return (
     <section className="space-y-4">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">More</h1>
-        <p className="text-sm text-muted-foreground">
-          Advanced organizer tools and reports.
-        </p>
+        {/* <h1 className="text-2xl font-semibold text-foreground">
+          Organizer tools
+        </h1> */}
+        {/* <p className="text-sm text-muted-foreground">
+          
+        </p> */}
       </div>
       <Card>
         <CardHeader>
           <CardTitle>Organizer tools</CardTitle>
           <CardDescription>
-            Open the less frequent pages from one simple list.
+            Advanced organizer tools and reports.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">

@@ -242,6 +242,7 @@ export async function getOrganizerEventById(
       salesStartDate: ticketConfigurations.salesStartDate,
       salesEndDate: ticketConfigurations.salesEndDate,
       benefits: ticketConfigurations.benefits,
+      isVisible: ticketConfigurations.isVisible,
     })
     .from(tickets)
     .leftJoin(eventTickets, eq(eventTickets.ticketId, tickets.id))
@@ -378,6 +379,7 @@ export async function createOrganizerEventWithTickets(
       salesStartDate?: string;
       salesEndDate?: string;
       benefits?: string;
+      isVisible?: boolean;
     }[];
   },
 ) {
@@ -549,6 +551,7 @@ export async function createOrganizerEventWithTickets(
           salesStartDate: configSalesStart,
           salesEndDate: configSalesEnd,
           benefits: ticketData.benefits,
+          isVisible: ticketData.isVisible ?? true,
         })
         .$returningId();
 
@@ -592,7 +595,13 @@ export async function updateOrganizerEvent(
 
   await db.transaction(async (tx) => {
     const [existing] = await tx
-      .select({ id: events.id, eventVenueId: events.eventVenueId })
+      .select({
+        id: events.id,
+        eventVenueId: events.eventVenueId,
+        capacity: events.capacity,
+        dateAndTime: events.dateAndTime,
+        dateAndTimeEnd: events.dateAndTimeEnd,
+      })
       .from(events)
       .where(and(eventIdentifierFilter(eventIdentifier), eq(events.organizerId, organizerId)))
       .limit(1);
@@ -720,6 +729,145 @@ export async function updateOrganizerEvent(
         })),
       );
     }
+
+    if (data.tickets) {
+      const deleteIds = [...new Set((data.tickets.deleteIds ?? []) as number[])];
+
+      if (deleteIds.length) {
+        const rows = await tx
+          .select({ ticketId: tickets.id, totalSold: ticketConfigurations.totalSold })
+          .from(tickets)
+          .innerJoin(eventTickets, eq(eventTickets.ticketId, tickets.id))
+          .innerJoin(ticketConfigurations, eq(eventTickets.ticketConfigurationId, ticketConfigurations.id))
+          .where(and(eq(tickets.eventId, eventId), inArray(tickets.id, deleteIds)));
+
+        if (rows.length !== deleteIds.length) {
+          throw new AppError(400, 'One or more tickets do not belong to this event.');
+        }
+
+        if (rows.some((row) => Number(row.totalSold ?? 0) > 0)) {
+          throw new AppError(400, 'Ticket types with sales cannot be deleted. Hide them instead.');
+        }
+
+        const eventTicketRows = await tx
+          .select({ configId: eventTickets.ticketConfigurationId })
+          .from(eventTickets)
+          .where(inArray(eventTickets.ticketId, deleteIds));
+
+        await tx.delete(eventTickets).where(inArray(eventTickets.ticketId, deleteIds));
+        await tx.delete(tickets).where(inArray(tickets.id, deleteIds));
+
+        const configIds = eventTicketRows
+          .map((row) => row.configId)
+          .filter((id): id is number => id !== null);
+        if (configIds.length) {
+          await tx.delete(ticketConfigurations).where(inArray(ticketConfigurations.id, configIds));
+        }
+      }
+
+      const upsertTickets = (data.tickets.upsert ?? []) as {
+        id?: number;
+        ticketTypeName: string;
+        price: number;
+        totalCount?: number;
+        salesStartDate?: string;
+        salesEndDate?: string;
+        benefits?: string;
+        isVisible?: boolean;
+      }[];
+
+      for (const [index, ticketData] of upsertTickets.entries()) {
+        const label = ticketData.ticketTypeName.trim();
+        const totalCount = ticketData.totalCount ?? data.capacity ?? existing.capacity;
+        const salesStartDate = formatEventDateForMySQL(
+          ticketData.salesStartDate ?? data.dateAndTime ?? existing.dateAndTime,
+        );
+        const salesEndDate = formatEventDateForMySQL(
+          ticketData.salesEndDate ?? data.dateAndTimeEnd ?? existing.dateAndTimeEnd ?? data.dateAndTime ?? existing.dateAndTime,
+        );
+
+        if (ticketData.id) {
+          const [current] = await tx
+            .select({
+              ticketId: tickets.id,
+              ticketTypeId: eventTickets.ticketTypeId,
+              configId: eventTickets.ticketConfigurationId,
+              totalSold: ticketConfigurations.totalSold,
+            })
+            .from(tickets)
+            .innerJoin(eventTickets, eq(eventTickets.ticketId, tickets.id))
+            .innerJoin(ticketConfigurations, eq(eventTickets.ticketConfigurationId, ticketConfigurations.id))
+            .where(and(eq(tickets.id, ticketData.id), eq(tickets.eventId, eventId)))
+            .limit(1);
+
+          if (!current?.configId || !current.ticketTypeId) {
+            throw new AppError(400, 'Ticket type not found for this event.');
+          }
+
+          const totalSold = Number(current.totalSold ?? 0);
+          if (totalCount < totalSold) {
+            throw new AppError(400, 'Ticket quantity cannot be lower than tickets already sold.');
+          }
+
+          await tx.update(ticketTypes).set({ name: label }).where(eq(ticketTypes.id, current.ticketTypeId));
+          await tx.update(tickets).set({ name: label }).where(eq(tickets.id, ticketData.id));
+          await tx
+            .update(ticketConfigurations)
+            .set({
+              price: ticketData.price.toString(),
+              totalCount,
+              totalRemaining: totalCount - totalSold,
+              salesStartDate,
+              salesEndDate,
+              benefits: ticketData.benefits?.trim() || null,
+              isVisible: ticketData.isVisible ?? true,
+            })
+            .where(eq(ticketConfigurations.id, current.configId));
+        } else {
+          const [type] = await tx.insert(ticketTypes).values({ name: label }).$returningId();
+          if (!type) throw new AppError(400, 'Ticket type creation failed');
+
+          const [ticket] = await tx
+            .insert(tickets)
+            .values({ name: label || `Ticket type ${index + 1}`, eventId })
+            .$returningId();
+          if (!ticket) throw new AppError(400, 'Ticket creation failed');
+
+          const [configuration] = await tx
+            .insert(ticketConfigurations)
+            .values({
+              price: ticketData.price.toString(),
+              totalCount,
+              totalSold: 0,
+              totalRemaining: totalCount,
+              salesStartDate,
+              salesEndDate,
+              benefits: ticketData.benefits?.trim() || null,
+              isVisible: ticketData.isVisible ?? true,
+            })
+            .$returningId();
+          if (!configuration) throw new AppError(400, 'Ticket configuration creation failed');
+
+          await tx.insert(eventTickets).values({
+            ticketId: ticket.id,
+            ticketTypeId: type.id,
+            ticketConfigurationId: configuration.id,
+          });
+        }
+      }
+
+      const allocationRows = await tx
+        .select({ totalCount: ticketConfigurations.totalCount })
+        .from(tickets)
+        .innerJoin(eventTickets, eq(eventTickets.ticketId, tickets.id))
+        .innerJoin(ticketConfigurations, eq(eventTickets.ticketConfigurationId, ticketConfigurations.id))
+        .where(eq(tickets.eventId, eventId));
+      const totalAllocated = allocationRows.reduce((sum, row) => sum + Number(row.totalCount ?? 0), 0);
+      const capacity = data.capacity ?? existing.capacity;
+      if (totalAllocated > capacity) {
+        throw new AppError(400, `Total ticket quantity (${totalAllocated}) exceeds event capacity (${capacity})`);
+      }
+    }
   });
 
   return {
@@ -778,6 +926,8 @@ export async function deleteOrganizerEvent(
     };
   });
 }
+
+
 
 
 

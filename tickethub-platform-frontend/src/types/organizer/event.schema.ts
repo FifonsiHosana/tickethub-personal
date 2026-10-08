@@ -19,11 +19,15 @@ const imageSchema = z
   );
 
 export const ticketSchema = z.object({
+  id: z.number().positive().optional(),
   ticketTypeId: z.number().positive().optional(),
   ticketTypeName: z.string().trim().min(2, "Ticket type is required"),
   price: z.number().positive("Price must be positive"),
   totalCount: z.number().positive("Quantity must be positive").optional(),
+  totalSold: z.number().optional(),
+  remaining: z.number().optional(),
   benefits: z.string().optional(),
+  isVisible: z.boolean().optional(),
   salesStartDate: z.string().optional(),
   salesEndDate: z.string().optional(),
 });

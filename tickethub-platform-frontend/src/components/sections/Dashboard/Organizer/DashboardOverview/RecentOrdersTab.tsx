@@ -88,7 +88,7 @@ export default function RecentOrdersTab() {
           Unable to load recent orders.
         </p>
       ) : (
-        <RecentOrdersTable orders={orders} />
+        <RecentOrdersTable orders={orders} hideEventName={!!eventIdNumber} />
       )}
 
       {pagination && (
@@ -104,3 +104,4 @@ export default function RecentOrdersTab() {
     </div>
   );
 }
+

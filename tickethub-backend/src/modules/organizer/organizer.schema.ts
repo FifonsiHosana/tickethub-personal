@@ -45,6 +45,25 @@ export const updateOrganizerEventSchema = z.object({
   capacity: z.number().int().positive().optional(),
   categoryIds: z.array(z.number().int().positive()).optional(),
   termsAndConditions: z.string().max(5000).nullable().optional(),
+  tickets: z
+    .object({
+      upsert: z
+        .array(
+          z.object({
+            id: z.number().int().positive().optional(),
+            ticketTypeName: z.string().trim().min(2),
+            price: z.number().positive(),
+            totalCount: z.number().int().positive().optional(),
+            salesStartDate: eventDateTimeSchema.optional(),
+            salesEndDate: eventDateTimeSchema.optional(),
+            benefits: z.string().max(5000).optional(),
+            isVisible: z.boolean().optional(),
+          }),
+        )
+        .optional(),
+      deleteIds: z.array(z.number().int().positive()).optional(),
+    })
+    .optional(),
 });
 
 export const organizerEventsQuerySchema = z.object({
@@ -94,9 +113,10 @@ export const createEventWithTicketsSchema = z
           ticketTypeName: z.string().trim().min(2).optional(),
           price: z.number().positive(),
           totalCount: z.number().int().positive().optional(),
-          salesStartDate: z.iso.datetime().optional(),
-          salesEndDate: z.iso.datetime().optional(),
+          salesStartDate: eventDateTimeSchema.optional(),
+          salesEndDate: eventDateTimeSchema.optional(),
           benefits: z.string().max(5000).optional(),
+          isVisible: z.boolean().optional(),
         }),
       )
       .min(1, 'At least one ticket is required'),
@@ -138,5 +158,6 @@ export const listOrganizerStaffQuerySchema = z.object({
 export type CreateVenueType = z.infer<typeof createVenueSchema>;
 export type AssignStaffType = z.infer<typeof assignStaffSchema>;
 export type ListOrganizerStaffQueryType = z.infer<typeof listOrganizerStaffQuerySchema>;
+
 
 

@@ -16,6 +16,7 @@ export const createTicketSchema = z.object({
   salesStartDate: z.iso.datetime().optional(),
   salesEndDate: z.iso.datetime().optional(),
   benefits: z.string().max(5000).optional(),
+  isVisible: z.boolean().optional(),
 });
 
 export type CreateTicketType = z.infer<typeof createTicketSchema>;
@@ -27,6 +28,8 @@ export const updateTicketSchema = z.object({
   salesStartDate: z.iso.datetime().optional(),
   salesEndDate: z.iso.datetime().optional(),
   benefits: z.string().max(5000).optional(),
+  isVisible: z.boolean().optional(),
 });
 
 export type UpdateTicketType = z.infer<typeof updateTicketSchema>;
+

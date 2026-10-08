@@ -187,15 +187,15 @@ export default function CreateEvent() {
                 {/* Step 1: Event Details */}
                 <div
                   id="step-0"
-                  className="scroll-mt-24 grid grid-cols-1 lg:grid-cols-7 gap-2 items-start"
+                  className="scroll-mt-24 grid grid-rows-1 gap-2 items-start"
                 >
-                  <Card className="col-span-5">
+                  <Card className="">
                     <CardContent className="pt-4">
                       <EventBasicFields />
                     </CardContent>
                   </Card>
 
-                  <div className="col-span-2 ">
+                  <div className=" ">
                     <MediaUploadCard
                       control={form.control}
                       imagePreview={imagePreview}

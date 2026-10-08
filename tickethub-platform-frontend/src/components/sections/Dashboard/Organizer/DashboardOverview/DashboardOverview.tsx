@@ -1,18 +1,12 @@
 import { useState } from "react";
+import { BanknoteIcon, ScanLineIcon, TicketIcon } from "lucide-react";
 import { useOrganizerDashboardData } from "@/hooks/organizers/useDashboardData";
 import { useDashboardDateRange } from "@/components/shared/date/useDashboardDateRange";
 import { useDashboardEventFilter } from "@/components/shared/date/useDashboardEventFilter";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  BanknoteIcon,
-  TicketIcon,
-  ShoppingCartIcon,
-  CalendarDaysIcon,
-  UsersIcon,
-  ScanLineIcon,
-  TrendingUpIcon,
-} from "lucide-react";
 import OverviewTabs from "./OverviewTabs";
+import DashboardActionCard from "./DashboardActionCard";
+import DashboardEventFocusCard from "./DashboardEventFocusCard";
+import DashboardMetricCard from "./DashboardMetricCard";
 
 export default function DashboardOverview() {
   const [upcomingPage, setUpcomingPage] = useState(1);
@@ -32,86 +26,44 @@ export default function DashboardOverview() {
     eventId: eventIdNumber,
   });
 
-  if (isLoading) {
-    return (
-      <div className="flex-1 space-y-3 p-1">
-        <div className="h-8 w-48 bg-muted animate-pulse rounded" />
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-28 bg-muted animate-pulse rounded-xl" />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <DashboardSkeleton />;
 
   const stats = dashboard?.statistics;
-
   const metricCards = [
     {
-      title: "Total Revenue",
-      value: `GH₵ ${(stats?.totalRevenue ?? 0).toLocaleString()}`,
+      title: "Revenue",
+      value: `GH₵ ${(stats?.totalRevenue ?? 0).toLocaleString()} `,
       icon: BanknoteIcon,
     },
     {
-      title: "Tickets Sold",
-      value: (stats?.totalTicketsSold ?? 0).toLocaleString(),
+      title: "Orders",
+      value: ` ${(stats?.totalOrders ?? 0).toLocaleString()}`,
+      icon: BanknoteIcon,
+    },
+    {
+      title: "Sold / Remaining",
+      value: `${(stats?.totalTicketsSold ?? 0).toLocaleString()} / ${(stats?.totalTicketsRemaining ?? 0).toLocaleString()}`,
       icon: TicketIcon,
-    },
-    {
-      title: "Tickets Remaining",
-      value: (stats?.totalTicketsRemaining ?? 0).toLocaleString(),
-      icon: TicketIcon,
-    },
-    {
-      title: "Total Orders",
-      value: (stats?.totalOrders ?? 0).toLocaleString(),
-      icon: ShoppingCartIcon,
-    },
-    {
-      title: "Check-Ins",
-      value: (stats?.totalCheckIns ?? 0).toLocaleString(),
-      icon: ScanLineIcon,
-    },
-    {
-      title: "Conversion Rate",
-      value: `${stats?.conversionRate ?? 0}%`,
-      icon: TrendingUpIcon,
-    },
-    {
-      title: "Total Events",
-      value: (stats?.totalEvents ?? 0).toLocaleString(),
-      icon: CalendarDaysIcon,
-    },
-    {
-      title: "Active Events",
-      value: (stats?.publishedEvents ?? 0).toLocaleString(),
-      icon: UsersIcon,
     },
   ];
 
   return (
-    <div className="flex-1 space-y-3 p-1 min-h-screen">
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {metricCards.map((card, idx) => {
-          const Icon = card.icon;
-          return (
-            <Card key={idx} className="shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-medium">
-                  {card.title}
-                </CardTitle>
-                <Icon className="h-4 w-4" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{card.value}</div>
-              </CardContent>
-            </Card>
-          );
-        })}
+    <div className="min-h-screen max-w-full min-w-0 overflow-x-hidden space-y-4 p-1">
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {/* <DashboardEventFocusCard /> */}
+        <DashboardActionCard
+          title="Scan"
+          count={`${(stats?.totalCheckIns ?? 0).toLocaleString()} check-ins`}
+          href="/organizer/scan?openScanner=1"
+          icon={ScanLineIcon}
+        />
+        {metricCards.map((card) => (
+          <DashboardMetricCard key={card.title} {...card} />
+        ))}
+      </div>
 
-        <div className="col-span-full">
-          <OverviewTabs
+      <div className="pt-3">
+        <OverviewTabs
           upcomingEvents={dashboard?.upcomingEvents ?? []}
           upcomingPagination={dashboard?.upcomingPagination}
           upcomingPage={upcomingPage}
@@ -125,10 +77,20 @@ export default function DashboardOverview() {
           topSellingPageSize={topSellingPageSize}
           setTopSellingPageSize={setTopSellingPageSize}
         />
-        </div>
       </div>
     </div>
   );
 }
 
-
+function DashboardSkeleton() {
+  return (
+    <div className="flex-1 space-y-4 p-1">
+      <div className="h-8 w-48 animate-pulse rounded bg-muted" />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-32 animate-pulse rounded-xl bg-muted" />
+        ))}
+      </div>
+    </div>
+  );
+}

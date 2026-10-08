@@ -2,10 +2,12 @@ import { Router } from 'express';
 import {
   getAttendeeOrderFromReference,
   getAttendeeOrderHistory,
+  getAttendeeOrderHistoryDetail,
 } from './attendee.controller.js';
-import { validateQuery } from '@/middleware/validate.js';
+import { validateParams, validateQuery } from '@/middleware/validate.js';
 import {
   orderFromReferenceQuerySchema,
+  orderHistoryDetailParamsSchema,
   orderHistoryQuerySchema,
 } from './attendee.schema.js';
 import { authenticate } from '@/middleware/auth/auth.middleware.js';
@@ -20,8 +22,14 @@ router.get(
 );
 
 router.get(
+  '/orders/:orderId',
+  authenticate,
+  validateParams(orderHistoryDetailParamsSchema),
+  getAttendeeOrderHistoryDetail,
+);
+
+router.get(
   '/order-from-reference',
-  // authenticate,
   validateQuery(orderFromReferenceQuerySchema),
   getAttendeeOrderFromReference,
 );

@@ -85,6 +85,7 @@ export async function getOrganizerEventTickets(
       salesStartDate: ticketConfigurations.salesStartDate,
       salesEndDate: ticketConfigurations.salesEndDate,
       benefits: ticketConfigurations.benefits,
+      isVisible: ticketConfigurations.isVisible,
     })
     .from(tickets)
     .leftJoin(eventTickets, eq(eventTickets.ticketId, tickets.id))
@@ -185,6 +186,7 @@ export async function createOrganizerTicket(
           formatDateForMySQL(new Date(data.salesEndDate as string)) ??
           event.dateAndTime,
         benefits: data.benefits,
+        isVisible: data.isVisible ?? true,
       })
       .$returningId();
 
@@ -292,6 +294,10 @@ export async function updateOrganizerTicket(
     updateValues.benefits = data.benefits;
   }
 
+  if (data.isVisible !== undefined) {
+    updateValues.isVisible = data.isVisible;
+  }
+
   if (Object.keys(updateValues).length > 0) {
     await db
       .update(ticketConfigurations)
@@ -366,6 +372,7 @@ export async function deleteOrganizerTicket(
     message: 'Ticket deleted successfully',
   };
 }
+
 
 
 

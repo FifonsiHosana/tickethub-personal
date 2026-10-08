@@ -1,151 +1,14 @@
-import { db, type Executor } from '@/db/client.js';
-import { and, eq, desc, count, sql, inArray, isNull } from 'drizzle-orm';
+import { type Executor } from '@/db/client.js';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 import {
   ticketOrders,
   ticketOrderItems,
   ticketOrderUserDetails,
   eventTickets,
-  tickets,
   ticketTypes,
-  events,
   payments,
 } from '@/db/schema/index.js';
-
-export interface OrderHistoryParams {
-  userId: number;
-  page?: number;
-  pageSize?: number;
-}
-
-export interface OrderHistoryEventBreakdown {
-  eventId: number;
-  eventTitle: string;
-  eventDate: string | null;
-  ticketSummary: string;
-  ticketType: string;
-  totalTickets: number;
-  checkedInCount: number;
-}
-
-/**
- * A customer's own order history, driven by TicketOrders with one row per
- * order. Payment fields come from a correlated subquery that picks a single
- * payment (Completed preferred), so the left join stays 1:1 regardless of
- * how many payment attempts an order has. An order can span multiple events,
- * so the per-event ticket breakdown is fetched separately and attached as an
- * `events` array - pagination stays accurate per order.
- */
-export async function getOrderHistory(params: OrderHistoryParams) {
-  const { userId, page = 1, pageSize = 10 } = params;
-  const offset = (page - 1) * pageSize;
-
-  const orderHeaders = await db
-    .select({
-      orderId: ticketOrders.id,
-      status: ticketOrders.status,
-      quantity: ticketOrders.quantity,
-      purchasedAt: ticketOrders.createdAt,
-      customerFirstName: ticketOrderUserDetails.firstName,
-      customerLastName: ticketOrderUserDetails.lastName,
-      customerEmail: ticketOrderUserDetails.email,
-      amount: payments.amount,
-      currency: payments.currency,
-      provider: payments.provider,
-      paymentStatus: payments.status,
-      reference: payments.reference,
-      paidAt: payments.paidAt,
-    })
-    .from(ticketOrders)
-    .leftJoin(
-      payments,
-      eq(
-        payments.id,
-        sql`(SELECT p.id FROM ${payments} p
-             WHERE p.orderId = ${ticketOrders.id}
-             ORDER BY (p.status = 'Completed') DESC, p.id DESC
-             LIMIT 1)`,
-      ),
-    )
-    .innerJoin(
-      ticketOrderUserDetails,
-      eq(ticketOrders.id, ticketOrderUserDetails.orderId),
-    )
-    .where(eq(ticketOrders.userId, userId))
-    .orderBy(desc(ticketOrders.createdAt))
-    .limit(pageSize)
-    .offset(offset);
-
-  const orderIds = orderHeaders.map((order) => order.orderId);
-
-  const eventBreakdown = orderIds.length
-    ? await db
-        .select({
-          orderId: ticketOrders.id,
-          eventId: events.id,
-          eventTitle: events.title,
-          eventDate: events.dateAndTime,
-          ticketSummary: sql<string>`GROUP_CONCAT(DISTINCT ${tickets.name} SEPARATOR ', ')`,
-          ticketType: sql<string>`GROUP_CONCAT(DISTINCT ${ticketTypes.name} SEPARATOR ', ')`,
-          totalTickets: sql<number>`COUNT(${ticketOrderItems.id})`,
-          ticketId:ticketOrderItems.eventTicketId,
-          checkedInCount: sql<number>`COUNT(CASE WHEN ${ticketOrderItems.checkedIn} = 1 THEN 1 END)`,
-        })
-        .from(ticketOrderItems)
-        .innerJoin(ticketOrders, eq(ticketOrderItems.orderId, ticketOrders.id))
-        .innerJoin(
-          eventTickets,
-          eq(ticketOrderItems.eventTicketId, eventTickets.id),
-        )
-        .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
-        .innerJoin(ticketTypes, eq(eventTickets.ticketTypeId, ticketTypes.id))
-        .innerJoin(events, eq(tickets.eventId, events.id))
-        .where(inArray(ticketOrders.id, orderIds))
-        .groupBy(ticketOrders.id, events.id)
-    : [];
-
-  const eventsByOrder = new Map<number, OrderHistoryEventBreakdown[]>();
-
-  for (const row of eventBreakdown) {
-    const existing = eventsByOrder.get(row.orderId);
-
-    if (existing) {
-      existing.push(row);
-    } else {
-      eventsByOrder.set(row.orderId, [row]);
-    }
-  }
-
-  const data = orderHeaders.map((order) => {
-    const orderEvents = eventsByOrder.get(order.orderId) ?? [];
-
-    return {
-      ...order,
-
-      events: orderEvents,
-
-      totalTickets: orderEvents.reduce((sum, e) => sum + e.totalTickets, 0),
-
-      checkedInCount: orderEvents.reduce((sum, e) => sum + e.checkedInCount, 0),
-    };
-  });
-
-  const [totalResult] = await db
-    .select({ total: count() })
-    .from(ticketOrders)
-    .where(eq(ticketOrders.userId, userId));
-
-  const total = Number(totalResult?.total ?? 0);
-
-  return {
-    data,
-    pagination: {
-      page,
-      pageSize,
-      total,
-      totalPages: Math.ceil(total / pageSize),
-    },
-  };
-}
+import { db } from '@/db/client.js';
 
 export async function linkOrdersByEmail(
   tx: Executor,
@@ -161,46 +24,33 @@ export async function linkOrdersByEmail(
     .map((order) => order.orderId)
     .filter((id): id is number => id !== null);
 
-  if (orderIds.length === 0) {
-    return;
-  }
+  if (orderIds.length === 0) return;
 
   await tx
     .update(ticketOrders)
     .set({ userId })
-    .where(
-      and(inArray(ticketOrders.id, orderIds), isNull(ticketOrders.userId)),
-    );
+    .where(and(inArray(ticketOrders.id, orderIds), isNull(ticketOrders.userId)));
 }
 
 export async function getOrderFromReference(reference: string) {
   console.log('REFERENCE RECEIVED:', reference);
   const rows = await db
     .select({
-      // Order
       orderId: ticketOrders.id,
       status: ticketOrders.status,
       quantity: ticketOrders.quantity,
       purchasedAt: ticketOrders.createdAt,
-
-      // Customer
       customerFirstName: ticketOrderUserDetails.firstName,
       customerLastName: ticketOrderUserDetails.lastName,
       customerEmail: ticketOrderUserDetails.email,
       customerPhone: ticketOrderUserDetails.phoneNumber,
-
-      // Payment
       amount: payments.amount,
       currency: payments.currency,
       provider: payments.provider,
-
-      // Individual ticket
       ticketOrderItemId: ticketOrderItems.id,
       ticketIdentifier: ticketOrderItems.ticketIdentifier,
       qrCodeUrl: ticketOrderItems.qrCodeUrl,
       checkedIn: ticketOrderItems.checkedIn,
-
-      // Event ticket information
       eventTicketId: eventTickets.id,
       ticketTypeId: eventTickets.ticketTypeId,
       ticketTypeName: ticketTypes.name,
@@ -208,23 +58,14 @@ export async function getOrderFromReference(reference: string) {
     .from(ticketOrders)
     .innerJoin(
       payments,
-      and(
-        eq(payments.orderId, ticketOrders.id),
-        eq(payments.reference, reference),
-      ),
+      and(eq(payments.orderId, ticketOrders.id), eq(payments.reference, reference)),
     )
-    .innerJoin(
-      ticketOrderUserDetails,
-      eq(ticketOrders.id, ticketOrderUserDetails.orderId),
-    )
+    .innerJoin(ticketOrderUserDetails, eq(ticketOrders.id, ticketOrderUserDetails.orderId))
     .innerJoin(ticketOrderItems, eq(ticketOrders.id, ticketOrderItems.orderId))
     .leftJoin(eventTickets, eq(ticketOrderItems.eventTicketId, eventTickets.id))
     .leftJoin(ticketTypes, eq(eventTickets.ticketTypeId, ticketTypes.id));
 
-  if (!rows.length) {
-    return null;
-  }
-
+  if (!rows.length) return null;
   const first = rows[0];
 
   return {
@@ -232,26 +73,22 @@ export async function getOrderFromReference(reference: string) {
     status: first?.status,
     quantity: first?.quantity,
     purchasedAt: first?.purchasedAt,
-
     customer: {
       firstName: first?.customerFirstName,
       lastName: first?.customerLastName,
       email: first?.customerEmail,
       phoneNumber: first?.customerPhone,
     },
-
     payment: {
       amount: first?.amount,
       currency: first?.currency,
       provider: first?.provider,
     },
-
     tickets: rows.map((row) => ({
       id: row.ticketOrderItemId,
       identifier: row.ticketIdentifier,
       qrCodeUrl: row.qrCodeUrl,
       checkedIn: row.checkedIn,
-
       eventTicketId: row.eventTicketId,
       ticketTypeId: row.ticketTypeId,
       ticketTypeName: row.ticketTypeName,

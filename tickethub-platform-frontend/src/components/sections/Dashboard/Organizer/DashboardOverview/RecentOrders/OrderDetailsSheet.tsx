@@ -4,6 +4,8 @@ import {
   CalendarDaysIcon,
   CreditCardIcon,
   PackageIcon,
+  SendIcon,
+  ShieldHalf,
   UserIcon,
 } from "lucide-react";
 import {
@@ -18,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { OrganizerOrder } from "@/utils/services/organizers/orders.service";
 import { useChangeOrganizerStatus } from "@/hooks/organizers/useOrganizerStatus";
+import { useResendTicketEmail } from "@/hooks/organizers/useOrganizerEventTickets";
 import { CompleteOrderConfirmDialog } from "./CompleteOrderConfirmDialog";
 
 interface OrderDetailsSheetProps {
@@ -52,6 +55,8 @@ export const OrderDetailsSheet = ({
 }: OrderDetailsSheetProps) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const { mutateAsync, isPending } = useChangeOrganizerStatus();
+  const { mutate: resendTickets, isPending: isResending } =
+    useResendTicketEmail();
 
   async function completeOrder() {
     if (!order) return;
@@ -79,6 +84,42 @@ export const OrderDetailsSheet = ({
 
         {order && (
           <div className="flex flex-col gap-6 p-4 pt-0">
+            {order.status === "Pending" && (
+              <section className="flex-col flex gap-2">
+                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <ShieldHalf className="h-4 w-4 text-muted-foreground" />
+                  Action
+                </h4>
+                <div className="rounded-xl border border-border bg-card p-3 flex flex-col gap-1">
+                  <Button
+                    className="shrink-0 text-white"
+                    disabled={isPending}
+                    onClick={() => setConfirmOpen(true)}
+                  >
+                    {isPending ? "Completing Order... " : "Complete Order"}
+                  </Button>
+                </div>
+              </section>
+            )}
+            {order.status === "Completed" && (
+              <section className="flex-col flex gap-2">
+                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <ShieldHalf className="h-4 w-4 text-muted-foreground" />
+                  Action
+                </h4>
+                <div className="rounded-xl border border-border bg-card p-3 flex flex-col gap-1">
+                  <Button
+                    className="shrink-0 text-white"
+                    disabled={isResending}
+                    onClick={() => resendTickets(String(order.orderId))}
+                  >
+                    <SendIcon className="h-4 w-4" />
+                    {isResending ? "Resending Tickets..." : "Resend Tickets"}
+                  </Button>
+                </div>
+              </section>
+            )}
+            Event & Tickets
             <section className="flex flex-col gap-1.5">
               <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <UserIcon className="h-4 w-4 text-muted-foreground" />
@@ -103,7 +144,6 @@ export const OrderDetailsSheet = ({
                 </p>
               </div>
             </section>
-
             <section className="flex flex-col gap-1.5">
               <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <PackageIcon className="h-4 w-4 text-muted-foreground" />
@@ -137,7 +177,6 @@ export const OrderDetailsSheet = ({
                 </span>
               </div>
             </section>
-
             <section className="flex flex-col gap-1.5">
               <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <CreditCardIcon className="h-4 w-4 text-muted-foreground" />
@@ -188,7 +227,6 @@ export const OrderDetailsSheet = ({
                 </p>
               )}
             </section>
-
             <section className="flex flex-col gap-2">
               <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <CalendarDaysIcon className="h-4 w-4 text-muted-foreground" />
@@ -218,24 +256,6 @@ export const OrderDetailsSheet = ({
                 </p>
               )}
             </section>
-
-            {order.status === "Pending" && (
-              <section>
-                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <CalendarDaysIcon className="h-4 w-4 text-muted-foreground" />
-                  Actions
-                </h4>
-                <div className="rounded-xl border border-border bg-card p-3 flex flex-col gap-1">
-                  <Button
-                    className="shrink-0"
-                    disabled={isPending}
-                    onClick={() => setConfirmOpen(true)}
-                  >
-                    {isPending ? "Changing status" : "Change Status"}
-                  </Button>
-                </div>
-              </section>
-            )}
           </div>
         )}
       </SheetContent>
@@ -249,3 +269,4 @@ export const OrderDetailsSheet = ({
     </Sheet>
   );
 };
+
