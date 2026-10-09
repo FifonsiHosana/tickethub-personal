@@ -5,7 +5,9 @@ import { SalesFilterBar } from "./SalesFilterBar";
 import { SalesTable } from "./SalesTable";
 import { PaginationSect } from "@/components/shared/Pagination";
 
-export default function TicketSales() {
+type TicketSalesProps = { embedded?: boolean };
+
+export default function TicketSales({ embedded = false }: TicketSalesProps) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<"Completed" | "Failed" | "All">("All");
@@ -25,15 +27,15 @@ export default function TicketSales() {
   });
 
   return (
-    <div className="flex-1 min-w-0 space-y-6 p-1 min-h-screen">
-      <div className="flex flex-col gap-2 mb-8">
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">
-          Ticket Sales
-        </h2>
-        <p className="text-muted-foreground font-sans">
-          Monitor your transactions and view customer purchase history.
-        </p>
-      </div>
+    <div className={`min-w-0 flex-1 space-y-6 ${embedded ? "" : "min-h-screen p-1"}`}>
+      {!embedded && (
+        <div className="mb-8 flex flex-col gap-2">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground">Ticket Sales</h2>
+          <p className="font-sans text-muted-foreground">
+            Monitor your transactions and view customer purchase history.
+          </p>
+        </div>
+      )}
 
       <div className="flex-1 min-w-0">
         <SalesFilterBar
@@ -63,3 +65,5 @@ export default function TicketSales() {
     </div>
   );
 }
+
+

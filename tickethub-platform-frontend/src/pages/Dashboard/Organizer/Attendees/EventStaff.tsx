@@ -50,7 +50,7 @@ export default function EventStaff() {
             onChange={(val) => setEventId(val)}
           />
           {eventId && (
-            <>
+            <div className="md:flex-row flex gap-4">
               <Button
                 onClick={handleGenerateInvite}
                 disabled={isGenerating}
@@ -67,7 +67,7 @@ export default function EventStaff() {
                 <UserPlusIcon className="h-4 w-4 mr-1" />
                 <span className="hidden lg:block">Assign Staff</span>{" "}
               </Button>
-            </>
+            </div>
           )}
         </div>
 

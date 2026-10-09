@@ -8,6 +8,7 @@ import {
   updateOrganizerEvent,
   deleteOrganizerEvent,
   cancelOrganizerEvent,
+  publishOrganizerEvent,
   getEventVenues,
   createEventVenue,
   createCategory,
@@ -116,17 +117,29 @@ export function useUpdateOrganizerEvent() {
   });
 }
 
+function invalidateEventQueries(queryClient: ReturnType<typeof useQueryClient>) {
+  queryClient.invalidateQueries({ queryKey: ["organizer-events"] });
+  queryClient.invalidateQueries({ queryKey: ["organizer-event"] });
+  queryClient.invalidateQueries({ queryKey: ["events"] });
+}
+
 export function useCancelOrganizerEvent() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (eventId: number) => cancelOrganizerEvent(eventId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["organizer-events"] });
-    },
+    onSuccess: () => invalidateEventQueries(queryClient),
   });
 }
 
+export function usePublishOrganizerEvent() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (eventId: number) => publishOrganizerEvent(eventId),
+    onSuccess: () => invalidateEventQueries(queryClient),
+  });
+}
 export function useDeleteOrganizerEvent() {
   const queryClient = useQueryClient();
 
@@ -139,4 +152,7 @@ export function useDeleteOrganizerEvent() {
     },
   });
 }
+
+
+
 

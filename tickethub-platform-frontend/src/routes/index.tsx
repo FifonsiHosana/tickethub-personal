@@ -21,8 +21,6 @@ import EditEventPage from "@/pages/Dashboard/Organizer/EditEvent";
 import EventsList from "@/pages/Dashboard/Organizer/EventsList";
 import EventsListPage from "@/pages/Events/Events";
 import OrganizerAd from "@/pages/SellTickets/OrganizerAd";
-import TicketSalesPage from "@/pages/Dashboard/Organizer/TicketSales";
-import SalesAnalyticsPage from "@/pages/Dashboard/Organizer/SalesAnalytics";
 import TicketPerformancePage from "@/pages/Dashboard/Organizer/TicketPerformance";
 import EventPerformancePage from "@/pages/Dashboard/Organizer/EventPerformance";
 import RevenueAndPayoutsPage from "@/pages/Dashboard/Organizer/RevenueAndPayouts";
@@ -32,7 +30,6 @@ import DashboardOverview from "@/pages/Dashboard/Organizer/DashboardOverview/Das
 import Attendees from "@/pages/Dashboard/Organizer/Attendees/Attendees";
 import EventStaff from "@/pages/Dashboard/Organizer/Attendees/EventStaff";
 import OrganizerOrdersPage from "@/pages/Dashboard/Organizer/OrganizerOrders";
-import OrganizerMorePage from "@/pages/Dashboard/Organizer/OrganizerMore";
 import OrganizerEventDetail from "@/pages/Dashboard/Organizer/OrganizerEventDetail";
 import PublicTicket from "@/pages/PublicTicket/PublicTicket";
 import AdminDashboard from "@/pages/Dashboard/Admin/AdminDashboard";
@@ -44,9 +41,7 @@ import TicketOrderHistory from "@/pages/Attendee/TicketOrderHistory";
 import AccountSetupPasswordPage from "@/pages/Attendee/AccountSetupPassword";
 import SuccessPage from "@/pages/Checkout/Success";
 import CancelPage from "@/pages/Checkout/Cancel";
-import SmsCampaign from "@/pages/Dashboard/Organizer/SMS/SmsCampaign";
-import SmsHistory from "@/pages/Dashboard/Organizer/SMS/SmsHistory";
-import SmsCredits from "@/pages/Dashboard/Organizer/SMS/SmsCredits";
+import SmsPage from "@/pages/Dashboard/Organizer/SMS/SmsPage";
 
 export default function RouterLayout() {
   return (
@@ -94,11 +89,11 @@ export default function RouterLayout() {
             <Route path="/organizer/events" element={<EventsList />} />
             <Route path="/organizer/orders" element={<OrganizerOrdersPage />} />
             <Route path="/organizer/tickets" element={<Navigate to="/organizer/events" replace />} />
-            <Route path="/organizer/sales" element={<TicketSalesPage />} />
-            <Route path="/organizer/sales/analytics" element={<SalesAnalyticsPage />} />
-            <Route path="/organizer/sms" element={<SmsCampaign />} />
-            <Route path="/organizer/sms/history" element={<SmsHistory />} />
-            <Route path="/organizer/sms/credits" element={<SmsCredits />} />
+            <Route path="/organizer/sales" element={<Navigate to="/organizer/analytics?tab=ticket-sales" replace />} />
+            <Route path="/organizer/sales/analytics" element={<Navigate to="/organizer/analytics?tab=sales-analytics" replace />} />
+            <Route path="/organizer/sms" element={<SmsPage />} />
+            <Route path="/organizer/sms/history" element={<Navigate to="/organizer/sms?tab=history" replace />} />
+            <Route path="/organizer/sms/credits" element={<Navigate to="/organizer/sms?tab=credits" replace />} />
             <Route path="/organizer/scan" element={<Attendees />} />
             <Route path="/organizer/attendees" element={<Navigate to="/organizer/scan" replace />} />
             <Route path="/organizer/staff" element={<EventStaff />} />
@@ -110,7 +105,7 @@ export default function RouterLayout() {
             <Route path="/organizer/analytics/events" element={<EventPerformancePage />} />
             <Route path="/organizer/analytics/revenue" element={<RevenueAndPayoutsPage />} />
             <Route path="/organizer/analytics/tickets" element={<TicketPerformancePage />} />
-            <Route path="/organizer/more" element={<OrganizerMorePage />} />
+            <Route path="/organizer/more" element={<Navigate to="/organizer/analytics" replace />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/organizers/:id" element={<AdminOrganizerDetail />} />
             <Route path="/admin/organizers" element={<AdminOrganizers />} />
@@ -123,4 +118,5 @@ export default function RouterLayout() {
     </motion.div>
   );
 }
+
 

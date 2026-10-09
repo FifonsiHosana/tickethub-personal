@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import {
-  useForm,
-  useWatch,
   FormProvider,
   useFieldArray,
+  useForm,
+  useWatch,
   type Control,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,9 +13,9 @@ import { Loader2 } from "lucide-react";
 
 import {
   editEventSchema,
+  type CreateEventFormValues,
   type EditEventFormValues,
   type TicketFormValues,
-  type CreateEventFormValues,
 } from "@/types/organizer/event.schema";
 import {
   useOrganizerEvent,
@@ -23,26 +23,30 @@ import {
 } from "@/hooks/organizers/useOrganizerEvents";
 import { useOrganizerMedia } from "@/hooks/organizers/useOrganizerMedia";
 import type {
-  UpdateEventPayload,
   OrganizerEventDetail,
+  UpdateEventPayload,
 } from "@/utils/services/organizers/events.service";
 import { toEventApiDate, toEventFormDate } from "@/utils/eventDate";
 import { richTextOrNull } from "@/utils/richText";
 import { DEFAULT_EVENT_TERMS } from "@/utils/eventTerms";
 import { normalizeGoogleMapLink } from "@/utils/googleMapLink";
+import { useScrollSpy } from "@/components/shared/scroll-spy";
 
-import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
+import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 import { EventBasicFields } from "./EventBasicFields";
-import { TermsCard } from "./TermsCard";
-import { MediaUploadCard } from "./MediaUpload";
 import { EditTicketsSection } from "./EditTicketsSection";
-import VenueForm from "./VenueForm";
+import EventSteps from "./EventSteps";
 import { firstErrorMessage } from "./CreateEvent";
+import { MediaUploadCard } from "./MediaUpload";
+import { TermsCard } from "./TermsCard";
+import VenueForm from "./VenueForm";
 
 type SharedControl = Control<CreateEventFormValues>;
 type EventEnvelope = OrganizerEventDetail & { data?: OrganizerEventDetail };
+
+const EDIT_STEP_IDS = ["edit-step-0", "edit-step-1", "edit-step-2", "edit-step-3"];
+const EDIT_STEPS = ["Event Details", "Venue", "Tickets", "Save"];
 
 async function urlToFile(url: string): Promise<File | undefined> {
   try {
@@ -109,47 +113,25 @@ export default function EditEvent({ eventId }: Props) {
   const { data: detail, isLoading, isError } = useOrganizerEvent(eventId);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <div className="flex items-center justify-center py-24"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
 
   if (isError || !detail) {
     return (
       <div className="p-8 text-center">
         <p className="text-muted-foreground">Event not found.</p>
-        <Button
-          variant="outline"
-          className="mt-4"
-          onClick={() => navigate("/organizer/events")}
-        >
-          Back to events
-        </Button>
+        <Button variant="outline" className="mt-4" onClick={() => navigate("/organizer/events")}>Back to events</Button>
       </div>
     );
   }
 
   const src = unwrapEvent(detail);
-
-  return (
-    <EditEventForm
-      key={`${src.id}-${src.updatedAt ?? "initial"}`}
-      eventId={eventId}
-      event={src}
-    />
-  );
+  return <EditEventForm key={`${src.id}-${src.updatedAt ?? "initial"}`} eventId={eventId} event={src} />;
 }
 
-function EditEventForm({
-  eventId,
-  event,
-}: {
-  eventId: string | number;
-  event: OrganizerEventDetail;
-}) {
+function EditEventForm({ eventId, event }: { eventId: string | number; event: OrganizerEventDetail }) {
   const navigate = useNavigate();
+  const activeStep = useScrollSpy(EDIT_STEP_IDS);
   const { mutateAsync: uploadMedia, isPending: isUploading } = useOrganizerMedia();
   const { mutateAsync: updateEvent, isPending: isSaving } = useUpdateOrganizerEvent();
   const bannerUrl = getBannerUrl(event);
@@ -162,12 +144,7 @@ function EditEventForm({
     defaultValues: toFormValues(event),
   });
 
-  const ticketFieldArray = useFieldArray({
-    control: form.control,
-    name: "tickets",
-    keyName: "fieldId",
-  });
-
+  const ticketFieldArray = useFieldArray({ control: form.control, name: "tickets", keyName: "fieldId" });
   const { isDirty } = form.formState;
   const currentBanner = useWatch({ control: form.control, name: "bannerImage" });
   const bannerChanged = !!currentBanner && currentBanner !== originalBanner;
@@ -182,7 +159,6 @@ function EditEventForm({
 
     let cancelled = false;
     setImagePreview(bannerUrl);
-
     urlToFile(bannerUrl).then((file) => {
       if (!cancelled && file) {
         setOriginalBanner(file);
@@ -191,9 +167,7 @@ function EditEventForm({
       }
     });
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [bannerUrl, form]);
 
   function onInvalid(errors: unknown) {
@@ -210,9 +184,7 @@ function EditEventForm({
         capacity: values.capacity,
         dateAndTime: toEventApiDate(values.dateAndTime) ?? "",
         dateAndTimeEnd: toEventApiDate(values.dateAndTimeEnd) ?? null,
-        termsAndConditions: values.termsAndConditions?.trim()
-          ? values.termsAndConditions
-          : DEFAULT_EVENT_TERMS,
+        termsAndConditions: values.termsAndConditions?.trim() ? values.termsAndConditions : DEFAULT_EVENT_TERMS,
         categoryIds: values.categoryIds,
         tickets: {
           upsert: (values.tickets ?? []).map((ticket) => ({
@@ -256,62 +228,38 @@ function EditEventForm({
 
   return (
     <FormProvider {...form}>
-      <div className="flex min-h-screen flex-col pb-30">
+      <div className="flex min-h-screen flex-col pb-32">
+        <EventSteps
+          currentStep={activeStep}
+          steps={EDIT_STEPS}
+          onStepClick={(index) => document.getElementById(EDIT_STEP_IDS[index])?.scrollIntoView({ behavior: "smooth" })}
+        />
         <form onSubmit={submitForm} className="flex-1 overflow-y-auto">
-          <div className="grid grid-cols-1 gap-4  p-2">
-            <div className="space-y-4 col">
-              <Card>
-                <CardContent className="pt-4">
-                  <EventBasicFields />
-                </CardContent>
-              </Card>
-              <Card>
+          <div className="grid grid-cols-1 gap-4 p-2">
+            <div className="space-y-4">
+              <div id="edit-step-0" className="scroll-mt-24 space-y-4">
+                <Card><CardContent className="pt-4"><EventBasicFields /></CardContent></Card>
+                <MediaUploadCard control={form.control as unknown as SharedControl} imagePreview={imagePreview} setImagePreview={setImagePreview} />
+              </div>
+              <Card id="edit-step-1" className="scroll-mt-24">
                 <CardTitle className="px-4">Event Location information</CardTitle>
-                <CardDescription className="px-4">
-                  Enter information on where the event will be hosted
-                </CardDescription>
-                <CardContent className="pt-4">
-                  <VenueForm />
-                </CardContent>
+                <CardDescription className="px-4">Enter information on where the event will be hosted</CardDescription>
+                <CardContent className="pt-4"><VenueForm /></CardContent>
               </Card>
-              <div className="space-y-4 md:col-span-1">
-              <MediaUploadCard
-                control={form.control as unknown as SharedControl}
-                imagePreview={imagePreview}
-                setImagePreview={setImagePreview}
-              />
-              <EditTicketsSection
-                fieldArray={ticketFieldArray}
-                onDeleteExisting={(ticketId) =>
-                  setDeletedTicketIds((ids) => [...new Set([...ids, ticketId])])
-                }
-              />
-              <TermsCard control={form.control as unknown as SharedControl} />
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => navigate("/organizer/events")}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  onClick={submitForm}
-                  disabled={isUploading || isSaving || !canSave}
-                  className="flex-1"
-                >
-                  {(isUploading || isSaving) && (
-                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                  )}
-                  {isUploading || isSaving ? "Saving..." : "Save Changes"}
-                </Button>
+              <div id="edit-step-2" className="scroll-mt-24">
+                <EditTicketsSection fieldArray={ticketFieldArray} onDeleteExisting={(ticketId) => setDeletedTicketIds((ids) => [...new Set([...ids, ticketId])])} />
+              </div>
+              <div id="edit-step-3" className="scroll-mt-24 space-y-4">
+                <TermsCard control={form.control as unknown as SharedControl} />
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" className="flex-1" onClick={() => navigate("/organizer/events")}>Cancel</Button>
+                  <Button type="button" onClick={submitForm} disabled={isUploading || isSaving || !canSave} className="flex-1">
+                    {(isUploading || isSaving) && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+                    {isUploading || isSaving ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
               </div>
             </div>
-            </div>
-
-            
           </div>
         </form>
       </div>

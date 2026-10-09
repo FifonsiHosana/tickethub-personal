@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { BanknoteIcon, ScanLineIcon, TicketIcon } from "lucide-react";
+import { BanknoteIcon, CreditCardIcon, ScanLineIcon, TicketIcon } from "lucide-react";
 import { useOrganizerDashboardData } from "@/hooks/organizers/useDashboardData";
 import { useDashboardDateRange } from "@/components/shared/date/useDashboardDateRange";
 import { useDashboardEventFilter } from "@/components/shared/date/useDashboardEventFilter";
 import OverviewTabs from "./OverviewTabs";
 import DashboardActionCard from "./DashboardActionCard";
-import DashboardEventFocusCard from "./DashboardEventFocusCard";
 import DashboardMetricCard from "./DashboardMetricCard";
 
 export default function DashboardOverview() {
@@ -32,13 +31,13 @@ export default function DashboardOverview() {
   const metricCards = [
     {
       title: "Revenue",
-      value: `GH₵ ${(stats?.totalRevenue ?? 0).toLocaleString()} `,
+      value: `GH₵ ${(stats?.totalRevenue ?? 0).toLocaleString()}`,
       icon: BanknoteIcon,
     },
     {
       title: "Orders",
-      value: ` ${(stats?.totalOrders ?? 0).toLocaleString()}`,
-      icon: BanknoteIcon,
+      value: (stats?.totalOrders ?? 0).toLocaleString(),
+      icon: CreditCardIcon,
     },
     {
       title: "Sold / Remaining",
@@ -48,9 +47,8 @@ export default function DashboardOverview() {
   ];
 
   return (
-    <div className="min-h-screen max-w-full min-w-0 overflow-x-hidden space-y-4 p-1">
-      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {/* <DashboardEventFocusCard /> */}
+    <div className="min-h-screen max-w-full min-w-0 space-y-4 overflow-x-hidden p-1">
+      <div className="grid min-w-0 grid-cols-2 gap-1 sm:grid-cols-2 lg:grid-cols-4">
         <DashboardActionCard
           title="Scan"
           count={`${(stats?.totalCheckIns ?? 0).toLocaleString()} check-ins`}
@@ -86,9 +84,9 @@ function DashboardSkeleton() {
   return (
     <div className="flex-1 space-y-4 p-1">
       <div className="h-8 w-48 animate-pulse rounded bg-muted" />
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-32 animate-pulse rounded-xl bg-muted" />
+          <div key={i} className="h-16 animate-pulse rounded-lg bg-muted" />
         ))}
       </div>
     </div>

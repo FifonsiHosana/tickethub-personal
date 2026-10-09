@@ -18,18 +18,37 @@ import { assets } from "@/assets/assets";
 import { useAuthStorage } from "@/hooks/useAuthStorage";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { navByRole, type Role } from "@/misc/dashboardData";
-import { NavMobile } from "./nav-mobile";
-import { PlusCircleIcon, Ticket } from "lucide-react";
+import { NavMobile, type MoreNavItem } from "./nav-mobile";
+import { PlusCircleIcon, TicketIcon, LogOutIcon } from "lucide-react";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { activeRole, roles, user } = useAuthStorage();
+  const { activeRole, roles, user, logout } = useAuthStorage();
   const userRoles = roles as Role[];
   const activeDashboardRole =
     activeRole && userRoles.includes(activeRole) ? activeRole : userRoles[0];
   const items = navByRole[activeDashboardRole as Role] ?? [];
   const { isMobile } = useIsMobile();
 
-  if (isMobile) return <NavMobile items={items} />;
+  const moreItems: MoreNavItem[] = [
+    {
+      title: "Create New Event",
+      url: "/organizer/events/new",
+      icon: <PlusCircleIcon />,
+    },
+    {
+      title: "My Tickets",
+      url: "/ticket-order-history",
+      icon: <TicketIcon />,
+    },
+    {
+      title: "Logout",
+      url: "#",
+      icon: <LogOutIcon />,
+      onClick: logout,
+    },
+  ];
+
+  if (isMobile) return <NavMobile items={items} maxVisible={5} moreItems={moreItems} />;
 
   return (
     <Sidebar collapsible="icon" variant="inset" {...props}>
@@ -62,48 +81,49 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuButton>
           </SidebarMenuItem>
           {activeDashboardRole === "organizer" && (
-            <SidebarMenuItem className="flex flex-col md:flex-row gap-4 items-center md:justify-center w-full mt-5">
+            <>
+              
+
+              <SidebarMenuItem className="flex flex-col md:flex-row gap-4 items-center md:justify-center w-full mt-5">
               <SidebarMenuButton
-                size={"lg"}
-                tooltip="Create Event"
-                className="flex items-center justify-center gap-3 px-6 py-3 bg-primary text-white rounded-full font-medium hover:scale-105 hover:bg-primary/80 hover:cursor-pointer w-full md:w-auto transition-all"
+                size="md"
+                tooltip="My Tickets"
+                className="h-11 rounded-xl border border-sidebar-border/70 bg-sidebar-accent/60 font-medium text-sidebar-accent-foreground shadow-sm transition-colors hover:bg-sidebar-accent"
                 render={<Link to="/organizer/events/new" />}
               >
-                <PlusCircleIcon />
+                <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <PlusCircleIcon />
+                </div>
                 <span>Create Event</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+              </SidebarMenuButton></SidebarMenuItem>
+            </>
           )}
         </SidebarMenu>
       </SidebarHeader>
-      <div className="flex flex-col md:flex-row gap-4 items-center md:justify-center w-full">
-        <button
-        // onClick={() => navigate("/events")}
-        ></button>
-      </div>
       <SidebarContent>
         <NavMain items={items} />
       </SidebarContent>
 
-      <SidebarFooter className="p-2 gap-2">
-        <SidebarMenuItem className="list-none">
-          <SidebarMenuButton
-            size={"lg"}
-            className="w-full justify-between font-medium hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-          >
-            <a
-              href="/tickets"
-              className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md"
+      <SidebarFooter className="gap-2 p-2">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="md"
+              tooltip="My Tickets"
+              className="h-11 rounded-xl border border-sidebar-border/70 bg-sidebar-accent/60 font-medium text-sidebar-accent-foreground shadow-sm transition-colors hover:bg-sidebar-accent"
+              render={<Link to="/ticket-order-history" />}
             >
-              <span>My Tickets</span>
-              <Ticket className="h-4 w-4 -rotate-45 text-muted-foreground group-hover:text-foreground transition-transform" />
-            </a>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-
+              <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <TicketIcon className="h-4 w-4 -rotate-12" />
+              </div>
+              <span className="truncate">My Tickets</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
         {user && <NavUser user={user} />}
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );
 }
+

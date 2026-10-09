@@ -895,6 +895,44 @@ export async function cancelOrganizerEvent(
   };
 }
 
+export async function publishOrganizerEvent(
+  organizerId: number,
+  eventId: number,
+) {
+  const [event] = await db
+    .select({
+      id: events.id,
+      status: events.status,
+      approvalStatus: events.approvalStatus,
+    })
+    .from(events)
+    .where(and(eq(events.id, eventId), eq(events.organizerId, organizerId)))
+    .limit(1);
+
+  if (!event) {
+    throw new AppError(404, 'Event not found or unauthorized');
+  }
+
+  if (event.status !== 'Cancelled') {
+    throw new AppError(400, 'Only cancelled events can be published');
+  }
+
+  if (event.approvalStatus !== 'Approved') {
+    throw new AppError(400, 'Only approved events can be published');
+  }
+
+  await db
+    .update(events)
+    .set({
+      status: 'Published',
+      updatedAt: now(),
+    })
+    .where(and(eq(events.id, eventId), eq(events.organizerId, organizerId)));
+
+  return {
+    message: 'Event published successfully',
+  };
+}
 /*Delete Organizer Event*/
 export async function deleteOrganizerEvent(
   organizerId: number,
@@ -926,6 +964,8 @@ export async function deleteOrganizerEvent(
     };
   });
 }
+
+
 
 
 

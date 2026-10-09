@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link, Outlet, useLocation } from "react-router";
-import { ChevronRight, Home } from "lucide-react";
+import { Home } from "lucide-react";
 
 import { AppSidebar } from "@/components/sections/Dashboard/app-sidebar";
 import { RoleSwitcher } from "@/components/shared/RoleSwitcher";
@@ -26,13 +26,6 @@ import { AnalyticsOverviewFiltersProvider } from "@/components/sections/Dashboar
 import TicketTypeFilter from "@/components/sections/Dashboard/Organizer/Analytics/TicketTypeFilter";
 import { useAnalyticsOverviewFilters } from "@/components/sections/Dashboard/Organizer/Analytics/useAnalyticsOverviewFilters";
 import SmsProgress from "@/components/shared/SmsProgress";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 function HeaderAnalyticsFilters({ pathname }: { pathname: string }) {
   const { activeRole } = useAuthStorage();
@@ -69,9 +62,7 @@ export default function DashboardLayout() {
     const role = dashboardRoleFromPath(pathname);
     if (role) {
       const userRoles = roles as Role[];
-      if (userRoles.includes(role) && activeRole !== role) {
-        setActiveRole(role);
-      }
+      if (userRoles.includes(role) && activeRole !== role) setActiveRole(role);
     }
   }, [pathname, activeRole, roles, setActiveRole]);
 
@@ -84,66 +75,25 @@ export default function DashboardLayout() {
               <AppSidebar />
               <AnalyticsOverviewFiltersProvider>
                 <SidebarInset>
-                  <header className="flex h-12 shrink-0 items-center justify-between md:gap-4 border-b border-border md:px-4">
-                    <div className="flex items-center gap-1">
+                  <header className="flex h-12 shrink-0 items-center justify-between gap-2 border-b border-border px-2 md:gap-4 md:px-4">
+                    <div className="flex min-w-0 items-center gap-2">
                       {isMobile ? (
-                        <div className="p-2">
-                          <Button variant="outline">
-                            <Link to="/home">
-                              <Home className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                        </div>
+                        <Button variant="outline" size="icon-sm" render={<Link to="/home"><Home className="h-4 w-4" /></Link>} />
                       ) : (
-                        <>
-                          <SidebarTrigger className="md:-ml-1" />
-                          <div className="flex items-center gap-2">
-                            <div className="inline-flex items-center text-sm font-medium text-muted-foreground gap-1">
-                              Event <ChevronRight className="h-4 w-4" />
-                            </div>
-                            <div className="min-w-[200px]">
-                              <Select
-                                value="Omr sterling Live second event"
-                                onValueChange={(value) => {
-                                  if (!value) return;
-                                  // setEventId(value === "all" ? "" : value);
-                                }}
-                              >
-                                <SelectTrigger
-                                  className="w-full"
-                                  aria-label="Filter dashboard by event"
-                                >
-                                  <SelectValue placeholder="All events" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="all">
-                                    All events
-                                  </SelectItem>
-                                  {/* {events.map((event) => (
-          <SelectItem key={event.id} value={String(event.id)}>
-            {event.title}
-          </SelectItem>
-        ))} */}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                        </>
+                        <SidebarTrigger className="md:-ml-1" />
                       )}
+                      {activeRole === "organizer" && <DashboardEventFilter />}
                       <HeaderAnalyticsFilters pathname={pathname} />
                     </div>
-                    <div className="flex items-center gap-2 mx-2">
+                    <div className="flex min-w-0 items-center gap-2">
                       <SmsProgress />
                       <RoleSwitcher className="bg-muted border-border" />
                       {activeRole !== "attendee" && <DateRangeFilter />}
-                      {activeRole === "organizer" && <DashboardEventFilter />}
                       <CreateEventButton />
                       <ThemeToggle />
                     </div>
                   </header>
-                  <div
-                    className={`grid gap-4 ${isMobile ? `p-1 pb-[calc(7rem+env(safe-area-inset-bottom))]` : `p-4`}`}
-                  >
+                  <div className={`grid gap-4 ${isMobile ? `p-1 pb-[calc(7rem+env(safe-area-inset-bottom))]` : `p-4`}`}>
                     <Outlet />
                   </div>
                 </SidebarInset>

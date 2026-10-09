@@ -248,6 +248,18 @@ export const OrderDetailsSheet = ({
                     {event.totalTickets === 1 ? "" : "s"} ·{" "}
                     {event.checkedInCount}/{event.totalTickets} checked in
                   </span>
+                  {event.ticketIdentifiers?.length ? (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {event.ticketIdentifiers.map((identifier) => (
+                        <span
+                          key={identifier}
+                          className="rounded-md border border-border bg-muted px-2 py-0.5 font-mono text-[11px] text-foreground"
+                        >
+                          {identifier}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               ))}
               {order.events.length === 0 && (
@@ -269,4 +281,5 @@ export const OrderDetailsSheet = ({
     </Sheet>
   );
 };
+
 

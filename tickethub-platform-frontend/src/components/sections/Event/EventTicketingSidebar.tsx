@@ -84,7 +84,7 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
             <div key={ticket.eventTicketId}>
               <div
                 className={`p-4 transition-colors duration-300 ${
-                  isSelected ? "bg-foreground/5" : "bg-white"
+                  isSelected ? "bg-foreground/5 " : "bg-white"
                 } ${isSoldOut ? "opacity-50" : ""}`}
               >
                 <div
@@ -92,8 +92,9 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
                 >
                   <div className="flex flex-row items-center justify-between">
                     <div className="flex flex-col gap-1">
-                      <h4 className="font-sans font-semibold text-foreground text-lg">
-                        {ticket.ticketType || `Ticket type ${tickets.indexOf(ticket) + 1}`}
+                      <h4 className="font-sans font-semibold text-foreground text-lg uppercase">
+                        {ticket.ticketType ||
+                          `Ticket type ${tickets.indexOf(ticket) + 1}`}
                       </h4>
                       {(ticket.benefits || ticket.description) && (
                         <p className="text-xs text-neutral-600 mt-1">
@@ -151,8 +152,12 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
                           if (qty === 0) {
                             addTicket({
                               eventTicketId: ticket.eventTicketId,
-                              ticketName: ticket.ticketType || `Ticket type ${tickets.indexOf(ticket) + 1}`,
-                              ticketType: ticket.ticketType || `Ticket type ${tickets.indexOf(ticket) + 1}`,
+                              ticketName:
+                                ticket.ticketType ||
+                                `Ticket type ${tickets.indexOf(ticket) + 1}`,
+                              ticketType:
+                                ticket.ticketType ||
+                                `Ticket type ${tickets.indexOf(ticket) + 1}`,
                               price: Number(ticket.price),
                               eventName: eventName,
                               banner: banner,
@@ -233,5 +238,3 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
     </Card>
   );
 };
-
-

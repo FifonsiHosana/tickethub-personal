@@ -9,6 +9,7 @@ import {
   updateOrganizerEvent,
   deleteOrganizerEvent,
   cancelOrganizerEvent,
+  publishOrganizerEvent,
   getAllEventVenues,
   createEventVenue,
 } from './services/events.service.js';
@@ -282,6 +283,29 @@ export async function cancelEvent(
 }
 
 /**
+ * PATCH /organizer/events/:id/publish
+ */
+export async function publishEvent(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const organizerId = req.user.id;
+
+    const eventId = Number(req.params.id);
+
+    const result = await publishOrganizerEvent(organizerId, eventId);
+
+    res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+/**
  * GET /organizer/event-venues/
  */
 
@@ -427,6 +451,9 @@ export async function updatePayoutDetails(
     next(err);
   }
 }
+
+
+
 
 
 

@@ -19,7 +19,9 @@ import {
   calculateCreditUsage,
 } from "@/lib/sms";
 
-export default function SmsCampaign() {
+type SmsCampaignProps = { embedded?: boolean };
+
+export default function SmsCampaign({ embedded = false }: SmsCampaignProps) {
   const [message, setMessage] = useState("");
   const [scheduled, setScheduled] = useState(false);
   const [audience, setAudience] = useState<AudienceSelection>({
@@ -150,7 +152,7 @@ export default function SmsCampaign() {
   };
 
   return (
-    <div className="flex w-full flex-col gap-6 bg-background p-6 md:p-8 lg:p-10">
+    <div className={`flex w-full flex-col gap-6 bg-background ${embedded ? "p-0" : "p-6 md:p-8 lg:p-10"}`}>
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <AudienceFilter
           selection={audience}
@@ -181,5 +183,7 @@ export default function SmsCampaign() {
     </div>
   );
 }
+
+
 
 

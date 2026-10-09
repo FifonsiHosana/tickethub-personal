@@ -43,6 +43,8 @@ export interface OrganizerOrderEventBreakdown {
   totalTickets: number;
 
   checkedInCount: number;
+
+  ticketIdentifiers: string[];
 }
 
 function buildFilters({
@@ -85,10 +87,19 @@ function buildFilters({
           sql<string>`CONCAT(${ticketOrderUserDetails.firstName}, ' ', ${ticketOrderUserDetails.lastName})`,
           pattern,
         ),
+        sql`EXISTS (
+          SELECT 1 FROM ${ticketOrderItems} searchToi
+          INNER JOIN ${eventTickets} searchEt ON searchEt.id = searchToi.eventTicketId
+          INNER JOIN ${tickets} searchTicket ON searchTicket.id = searchEt.ticketId
+          INNER JOIN ${events} searchEvent ON searchEvent.id = searchTicket.eventId
+          WHERE searchToi.orderId = ${ticketOrders.id}
+            AND searchEvent.organizerId = ${organizerId}
+            ${eventId ? sql`AND searchEvent.id = ${eventId}` : sql``}
+            AND searchToi.ticketIdentifier LIKE ${pattern}
+        )`,
       )!,
     );
   }
-
   return filters;
 }
 
@@ -181,6 +192,8 @@ export async function getOrganizerOrders(options: GetOrganizerOrdersOptions) {
           totalTickets: sql<number>`COUNT(${ticketOrderItems.id})`,
 
           checkedInCount: sql<number>`COUNT(CASE WHEN ${ticketOrderItems.checkedIn} = 1 THEN 1 END)`,
+
+          ticketIdentifiersCsv: sql<string>`GROUP_CONCAT(${ticketOrderItems.ticketIdentifier} ORDER BY ${ticketOrderItems.id} SEPARATOR ',')`,
         })
         .from(ticketOrderItems)
         .innerJoin(ticketOrders, eq(ticketOrderItems.orderId, ticketOrders.id))
@@ -198,12 +211,23 @@ export async function getOrganizerOrders(options: GetOrganizerOrdersOptions) {
   const eventsByOrder = new Map<number, OrganizerOrderEventBreakdown[]>();
 
   for (const row of eventBreakdown) {
+    const eventRow = {
+      eventId: row.eventId,
+      eventTitle: row.eventTitle,
+      ticketType: row.ticketType,
+      totalTickets: Number(row.totalTickets ?? 0),
+      checkedInCount: Number(row.checkedInCount ?? 0),
+      ticketIdentifiers: row.ticketIdentifiersCsv
+        ? row.ticketIdentifiersCsv.split(',').filter(Boolean)
+        : [],
+    };
+
     const existing = eventsByOrder.get(row.orderId);
 
     if (existing) {
-      existing.push(row);
+      existing.push(eventRow);
     } else {
-      eventsByOrder.set(row.orderId, [row]);
+      eventsByOrder.set(row.orderId, [eventRow]);
     }
   }
 
@@ -244,5 +268,9 @@ export async function getOrganizerOrders(options: GetOrganizerOrdersOptions) {
     },
   };
 }
+
+
+
+
 
 

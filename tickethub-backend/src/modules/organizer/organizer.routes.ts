@@ -10,6 +10,7 @@ import {
   updateEvent,
   deleteEvent,
   cancelEvent,
+  publishEvent,
   getAllVenues,
   createVenue,
   eventAttendees,
@@ -121,6 +122,12 @@ router.patch(
   cancelEvent,
 );
 
+router.patch(
+  '/events/:id/publish',
+  authenticate,
+  authorize('organizer'),
+  publishEvent,
+);
 router.post(
   '/categories',
   authenticate,
@@ -181,3 +188,5 @@ router.put(
 router.delete('/events/:id', authenticate, authorize('organizer'), deleteEvent);
 
 export default router;
+
+

@@ -59,7 +59,7 @@ export default function RecentOrdersTab() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              placeholder="Search by name, email, or phone"
+              placeholder="Search by name, email, phone, or ticket ID"
               className="pl-9"
             />
           </div>
@@ -104,4 +104,5 @@ export default function RecentOrdersTab() {
     </div>
   );
 }
+
 

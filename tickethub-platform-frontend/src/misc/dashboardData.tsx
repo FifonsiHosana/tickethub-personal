@@ -10,7 +10,6 @@ import {
   Mailbox,
   ScanLineIcon,
   UsersIcon,
-  MoreHorizontalIcon,
 } from "lucide-react";
 
 export type Role = "organizer" | "event_staff" | "admin" | "attendee";
@@ -42,11 +41,6 @@ const organizerNav: NavItem[] = [
     icon: <CalendarIcon />,
     activePrefixes: ["/organizer/events"],
   },
-  // {
-  //   title: "Ticket Orders",
-  //   url: "/organizer/orders",
-  //   icon: <TicketIcon />,
-  // },
   {
     title: "Scan",
     url: "/organizer/scan",
@@ -56,7 +50,7 @@ const organizerNav: NavItem[] = [
     title: "SMS",
     url: "/organizer/sms",
     icon: <Mailbox />,
-    activePaths: ["/organizer/sms"],
+    activePrefixes: ["/organizer/sms"],
   },
   {
     title: "Staff",
@@ -67,24 +61,7 @@ const organizerNav: NavItem[] = [
     title: "Analytics",
     url: "/organizer/analytics",
     icon: <BarChart3Icon />,
-    activePaths: ["/organizer/analytics"],
-  },
-  {
-    title: "More",
-    url: "/organizer/more",
-    icon: <MoreHorizontalIcon />,
-    activePaths: [
-      "/organizer/more",
-      "/organizer/sales",
-      "/organizer/sales/analytics",
-      "/organizer/analytics/events",
-      "/organizer/analytics/revenue",
-      "/organizer/analytics/tickets",
-      "/organizer/sms/history",
-      "/organizer/sms/credits",
-      "/organizer/payout-settings",
-      "/ticket-order-history",
-    ],
+    activePrefixes: ["/organizer/analytics", "/organizer/sales"],
   },
 ];
 

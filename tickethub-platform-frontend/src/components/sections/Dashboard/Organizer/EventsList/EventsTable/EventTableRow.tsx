@@ -1,5 +1,11 @@
 import { format } from "date-fns";
-import { MoreHorizontalIcon, EyeIcon, EditIcon, BanIcon } from "lucide-react";
+import {
+  BanIcon,
+  CheckCircleIcon,
+  EditIcon,
+  EyeIcon,
+  MoreHorizontalIcon,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -26,33 +32,33 @@ export function EventTableRow({
   onEdit,
   onCancel,
 }: Props) {
+  const isCancelled = event.status === "Cancelled";
+
   return (
     <TableRow
       className="cursor-pointer border-border transition-colors"
       onClick={onViewDetails}
     >
-      <TableCell className="pl-6 font-medium border-border">
+      <TableCell className="border-border pl-6 font-medium">
         <div className="flex flex-col">
           <span>{event.title}</span>
           {event.description && (
-            <span className="text-xs text-muted-foreground truncate max-w-62.5">
+            <span className="max-w-62.5 truncate text-xs text-muted-foreground">
               {event.description}
             </span>
           )}
         </div>
       </TableCell>
-      <TableCell className="whitespace-nowrap text-sm border-border">
+      <TableCell className="whitespace-nowrap border-border text-sm">
         {format(new Date(event.dateAndTime), "MMM d, yyyy • h:mm a")}
       </TableCell>
-      <TableCell className="text-sm border-border">
+      <TableCell className="border-border text-sm">
         {event.capacity.toLocaleString()}
       </TableCell>
       <TableCell className="border-border">
         <Badge
           variant="secondary"
-          className={`border ${
-            statusColor[event.status] ?? "bg-gray-500/15 text-gray-700 dark:bg-gray-500/10 dark:text-gray-400"
-          }`}
+          className={`border ${statusColor[event.status] ?? "bg-gray-500/15 text-gray-700 dark:bg-gray-500/10 dark:text-gray-400"}`}
         >
           {event.status}
         </Badge>
@@ -60,25 +66,19 @@ export function EventTableRow({
       <TableCell className="border-border">
         <Badge
           variant="secondary"
-          className={`border-0 ${
-            approvalColor[event.approvalStatus] ??
-            "bg-gray-500/15 text-gray-700 dark:bg-gray-500/10 dark:text-gray-400"
-          }`}
+          className={`border-0 ${approvalColor[event.approvalStatus] ?? "bg-gray-500/15 text-gray-700 dark:bg-gray-500/10 dark:text-gray-400"}`}
         >
           {event.approvalStatus}
         </Badge>
       </TableCell>
       <TableCell
-        className="text-right pr-6 border-border"
+        className="border-border pr-6 text-right"
         onClick={(e) => e.stopPropagation()}
       >
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button
-                variant="ghost"
-                className="h-8 w-8 p-0 hover:bg-muted"
-              >
+              <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-muted">
                 <span className="sr-only">Open menu</span>
                 <MoreHorizontalIcon className="h-4 w-4 text-muted-foreground" />
               </Button>
@@ -94,9 +94,18 @@ export function EventTableRow({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={onCancel}
-              className="text-red-600 focus:bg-red-500/10 focus:text-red-400 dark:focus:bg-red-500/10 dark:focus:text-red-400"
+              className={
+                isCancelled
+                  ? "text-green-600 focus:bg-green-500/10 focus:text-green-400 dark:focus:bg-green-500/10 dark:focus:text-green-400"
+                  : "text-red-600 focus:bg-red-500/10 focus:text-red-400 dark:focus:bg-red-500/10 dark:focus:text-red-400"
+              }
             >
-              <BanIcon className="h-4 w-4" /> Cancel Event
+              {isCancelled ? (
+                <CheckCircleIcon className="h-4 w-4" />
+              ) : (
+                <BanIcon className="h-4 w-4" />
+              )}
+              {isCancelled ? "Publish Event" : "Cancel Event"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

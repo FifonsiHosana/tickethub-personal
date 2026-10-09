@@ -184,6 +184,12 @@ export async function cancelOrganizerEvent(eventId: number) {
   return response.data;
 }
 
+export async function publishOrganizerEvent(eventId: number) {
+  const response = await axiosInstance.patch(
+    `/organizer/events/${eventId}/publish`,
+  );
+  return response.data;
+}
 export async function getEventVenues() {
   const response = await axiosInstance.get("/organizer/event-venues");
 
@@ -214,3 +220,6 @@ export async function createCategory(payload: CreateCategoryPayload) {
   }>("/organizer/categories", payload);
   return response.data.data;
 }
+
+
+

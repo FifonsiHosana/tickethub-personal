@@ -61,7 +61,7 @@ const SmsProgress = () => {
             </span>
             <span
               className="cursor-pointer rounded border border-primary  bg-primary/10 px-1 py-1"
-              onClick={() => navigate("/organizer/sms/credits")}
+              onClick={() => navigate("/organizer/sms?tab=credits")}
               aria-label="Top up credits"
             >
               <ArrowUpCircle size={20} className="text-primary" />
@@ -80,3 +80,4 @@ const SmsProgress = () => {
 };
 
 export default SmsProgress;
+

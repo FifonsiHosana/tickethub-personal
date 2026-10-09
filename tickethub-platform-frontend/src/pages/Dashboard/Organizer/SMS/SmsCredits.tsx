@@ -1,4 +1,4 @@
-﻿import { ArrowLeft, Minus, Plus, Settings } from "lucide-react";
+import { ArrowLeft, Minus, Plus, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -20,7 +20,9 @@ const MIN_CUSTOM_CREDITS = 100;
 const MAX_CUSTOM_CREDITS = 50000;
 const PRICE_PER_CREDIT = 0.5;
 
-export default function SmsCredits() {
+type SmsCreditsProps = { embedded?: boolean };
+
+export default function SmsCredits({ embedded = false }: SmsCreditsProps) {
   const [customCredits, setCustomCredits] = useState(1000);
   const navigate = useNavigate();
 
@@ -103,10 +105,12 @@ export default function SmsCredits() {
   };
 
   return (
-    <div className="m-auto my-5 flex w-full max-w-6xl flex-col gap-8 px-4">
-      <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
-        <ArrowLeft size={20} />
-      </Button>
+    <div className={`flex w-full flex-col gap-8 ${embedded ? "" : "m-auto my-5 max-w-6xl px-4"}`}>
+      {!embedded && (
+        <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
+          <ArrowLeft size={20} />
+        </Button>
+      )}
       {/* <div className="text-center">
         <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
           <Coins className="size-6" />
@@ -220,3 +224,5 @@ export default function SmsCredits() {
     </div>
   );
 }
+
+

@@ -12,7 +12,6 @@ import {
 import {
   Field,
   FieldContent,
-  FieldDescription,
   FieldLabel,
   FieldError,
 } from "@/components/ui/field";
@@ -49,30 +48,42 @@ export const MediaUploadCard = ({
                 <FieldLabel htmlFor={name}>
                   Flyer Image <span className="text-destructive">*</span>
                 </FieldLabel>
-                <FieldContent>
-                  <div className="flex flex-col items-center justify-center gap-4">
+                <FieldContent className="mt-1.5 flex justify-center items-center">
+                  <div className="w-full max-w-md ">
                     <label
                       htmlFor={name}
-                      className="group relative block w-full cursor-pointer"
+                      className="group relative block w-full cursor-pointer overflow-hidden rounded-xl transition-all h-60"
                     >
                       {imagePreview ? (
-                        <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-border">
+                        <div className="relative h-full w-full overflow-hidden rounded-xl border border-border bg-muted/30 shadow-xs">
                           <img
                             src={imagePreview}
-                            alt="Preview"
-                            className="w-full h-full object-cover"
+                            alt="Flyer Preview"
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                           />
-                          {/* Hover overlay so users know it's clickable */}
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-sm text-white opacity-0 transition-opacity group-hover:opacity-100">
-                            Click to change image
+                          {/* Hover overlay button */}
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                            <span className="rounded-md bg-background/90 px-3 py-1.5 text-xs font-medium text-foreground shadow-xs backdrop-blur-xs">
+                              Change Image
+                            </span>
                           </div>
                         </div>
                       ) : (
-                        <div className="flex flex-col items-center justify-center w-full aspect-video rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/50 group-hover:bg-muted transition-colors peer-focus-visible:border-primary">
-                          <ImageIcon className="h-8 w-8 text-muted-foreground mb-2" />
-                          <span className="text-sm text-muted-foreground">
-                            Select an image
-                          </span>
+                        <div className="flex h-36 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted/20 p-4 transition-all hover:border-primary/50 hover:bg-muted/40">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-background border border-border/60 shadow-xs group-hover:border-primary/30">
+                            <ImageIcon className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs font-medium text-foreground">
+                              <span className="text-primary underline-offset-4 group-hover:underline">
+                                Click to upload
+                              </span>{" "}
+                              or drag and drop
+                            </p>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">
+                              PNG, JPG or WEBP (max 5MB)
+                            </p>
+                          </div>
                         </div>
                       )}
                     </label>
@@ -101,9 +112,6 @@ export const MediaUploadCard = ({
                       }}
                     />
                   </div>
-                  <FieldDescription>
-                    Max size: 5MB. Formats: JPG, PNG, WEBP.
-                  </FieldDescription>
                 </FieldContent>
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -116,3 +124,4 @@ export const MediaUploadCard = ({
     </Card>
   );
 };
+
