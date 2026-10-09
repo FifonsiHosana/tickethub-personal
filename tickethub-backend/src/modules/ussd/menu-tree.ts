@@ -16,6 +16,10 @@ import TicketsService from '../tickets/tickets.service.js';
 import { initiatePayment } from '../ussd-payment/ussd-payment.service.js';
 import { getCategories, getCategoryEvents } from './ussd.services.js';
 import type { sessionContext } from './ussd.types.js';
+import {
+  // normalizeGhanaMobileNumber,
+  toPaystackProvider,
+} from '../ussd-payment/ussd-payment.utils.js';
 
 type AvailableTicket = NonNullable<EventDetails['ticketTypes'][number]> & {
   remaining: number;
@@ -124,7 +128,10 @@ export const tree: Record<string, MenuNode> = {
   root: {
     id: 'event-root',
     prompt: async (context) =>
-      `Confirm Event Details\nEvent: ${eventName(context)}\nTime: ${dateTimeFormat((context.eventDetails as EventDetails).time)}\nLocation: ${(context.eventDetails as EventDetails).location}\n1. Confirm\n2. Leave to main menu`,
+      ` ${eventName(context)}\n
+    ${(context.eventDetails as EventDetails).location}
+     ${dateTimeFormat((context.eventDetails as EventDetails).time)}\n
+      \n1. Buy Ticket\n2. Leave to main menu`,
     options: { '1': 'selectTicketType', '2': 'home' },
     onSelect: {
       '2': async (context) => {
@@ -153,7 +160,7 @@ export const tree: Record<string, MenuNode> = {
           ? '\n#. More'
           : '';
       const less = page > 0 ? '\n##. Less' : '';
-      return `${eventName(context)}\nSelect Ticket Type\n${lines}${more}${less}`;
+      return `${eventName(context)} Tickets\n${lines}${more}${less}`;
     },
     data: 'ticketType',
     next: 'NumberOfTickets',
@@ -165,10 +172,12 @@ export const tree: Record<string, MenuNode> = {
       const selected = ticketTypePageSlice(context)[Number(input) - 1];
       // First segment must be the EventTickets row id (what purchaseTickets
       // expects as eventTicketId), NOT the ticket-type id.
+
       const eventTicketId = selected?.eventTicketId;
+
       return selected
         ? String(
-            `${eventTicketId}*${selected.name}*${selected.price}*${selected.remaining}`,
+            `${eventTicketId}*${selected.name}*${Number(selected.price)}*${selected.remaining}`,
           )
         : undefined;
     },
@@ -205,7 +214,9 @@ export const tree: Record<string, MenuNode> = {
   Confirmation: {
     id: 'confirmation',
     prompt: async (context) =>
-      `Confirmation Page\n\nEvent: ${eventName(context)}\nTicket: ${ticketType(context)}\nTotal:${numberOfTickets(context) > 1 ? ` ${singleTicketPrice(context)} x ${numberOfTickets(context)} =` : ''} GHC ${totalPrice(context)}\nFor: ${context.data?.receiveNumber ?? context.phoneNumber}\n1. Confirm`,
+      `Confirmation \n\nEvent: ${eventName(context)}\nTicket: ${ticketType(context)}\n
+    Total:${numberOfTickets(context) > 1 ? ` ${singleTicketPrice(context)} x ${numberOfTickets(context)} =` : ''} 
+    GHC ${totalPrice(context)}\nFor: ${context.data?.receiveNumber ?? context.phoneNumber}\n1. Confirm`,
     options: {
       '1': 'paymentInitiation',
       '2': 'Cancel',
@@ -255,17 +266,22 @@ export const tree: Record<string, MenuNode> = {
 
         // Build payment fields with orderId in metadata
         const fields: PaystackPaymentFields = {
-          amount: totalPrice(context),
-          email: attendee.email,
+          amount: totalPrice(context) * 100,
+          email: 'info@tickethubgh.com',
           currency: 'GHS',
+          reference: purchaseResult.reference,
+          // channels: ['mobile_money'],
           mobile_money: {
             phone: context.phoneNumber,
-            provider: context.telcoProvider,
+            provider: toPaystackProvider(context.telcoProvider),
           },
           metadata: {
             phoneNumber: context.phoneNumber,
             receiveNumber: context.data?.receiveNumber,
             orderId: orderId as number,
+            ussd: true,
+            totalQuantity: ticketQuantity,
+            source: 'ussd_direct_charge',
           },
         };
 

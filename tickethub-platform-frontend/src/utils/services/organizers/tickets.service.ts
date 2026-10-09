@@ -1,10 +1,9 @@
 import { axiosInstance } from "@/utils/api/axiosInstance";
 
 export type CreateTicketPayload = {
-  name: string;
+  name?: string;
   ticketTypeId?: number;
   ticketTypeName?: string;
-  ticketTypeDescription?: string;
   price: number;
   totalCount?: number;
   salesStartDate?: string;
@@ -13,7 +12,7 @@ export type CreateTicketPayload = {
 };
 
 export type UpdateTicketPayload = {
-  name?: string;
+  ticketTypeName?: string;
   price?: number;
   totalCount?: number;
   salesStartDate?: string;
@@ -51,6 +50,30 @@ type ApiResponse<T> = {
   success: boolean;
   data: T;
   message?: string;
+};
+
+export type GeneratedTicket = {
+  orderId: number;
+  eventTicketId: number;
+  ticketIdentifier: string;
+  qrCodeUrl: string;
+};
+
+export type ChangeTicketStatusPayload = {
+  orderId: string;
+};
+
+export type ChangeTicketStatusResponse = {
+  orderId: number;
+};
+
+export type CheckInTicketResponse = {
+  status: "valid" | "already_used";
+  message: string;
+  ticketIdentifier: string;
+  attendeeName: string;
+  ticketType: string;
+  checkedInAt?: string | null;
 };
 
 export async function getEventTickets(
@@ -106,17 +129,21 @@ export async function createTicketType(
 
 export async function checkInTicket(
   ticketIdentifier: string,
-): Promise<{ message: string; ticketIdentifier: string }> {
-  const response = await axiosInstance.post<
-    ApiResponse<{ message: string; ticketIdentifier: string }>
-  >("/tickets/check-in", { ticketIdentifier });
+): Promise<CheckInTicketResponse> {
+  const response = await axiosInstance.post<ApiResponse<CheckInTicketResponse>>(
+    "/tickets/check-in",
+    { ticketIdentifier },
+  );
   return response.data.data;
 }
 
-export async function resendTicketEmail(orderId: string) {
-  const response = await axiosInstance.post("/tickets/resend-mail", {
-    orderId,
-  });
+export async function resendTicketEmail(
+  orderId: string,
+): Promise<{ message: string }> {
+  const response = await axiosInstance.post<ApiResponse<{ message: string }>>(
+    "/tickets/resend-mail",
+    { orderId },
+  );
   return response.data.data;
 }
 
@@ -131,6 +158,14 @@ export async function getTicketHoldersPhoneNumbers(
         groupIds.length > 0 ? { groupIds: groupIds.join(",") } : undefined,
     },
   );
+  return response.data.data;
+}
 
+export async function changeTicketStatus(
+  payload: ChangeTicketStatusPayload,
+): Promise<ChangeTicketStatusResponse> {
+  const response = await axiosInstance.post<
+    ApiResponse<ChangeTicketStatusResponse>
+  >("/tickets/status", payload);
   return response.data.data;
 }

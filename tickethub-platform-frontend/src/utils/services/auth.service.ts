@@ -3,7 +3,7 @@ import type { User } from "@/types";
 
 export type AuthRegisterPayload = {
   firstName: string;
-  lastName: string;
+  lastName?: string;
   email: string;
   password: string;
   phoneNumber?: string;
@@ -22,6 +22,15 @@ export type AuthLoginPayload = {
   password: string;
 };
 
+export type RequestPhoneLoginOtpPayload = {
+  identifier: string;
+};
+
+export type VerifyPhoneLoginOtpPayload = {
+  identifier: string;
+  otp: string;
+};
+
 export type OtpPayload = {
   email: string;
   otp: string;
@@ -32,11 +41,13 @@ export type ResendOtpPayload = {
 };
 
 export type SendOtpPayload = {
-  email: string;
+  email?: string;
+  identifier?: string;
 };
 
 export type CompleteRegisterPayload = {
-  email: string;
+  email?: string;
+  identifier?: string;
   otp: string;
   password: string;
   firstName?: string;
@@ -57,16 +68,33 @@ export type BecomeOrganizerResponse = {
 };
 
 export type ForgotPasswordPayload = {
-  email: string;
+  email?: string;
+  identifier?: string;
 };
 
 export type ResetPasswordPayload = {
-  token: string;
+  token?: string;
+  identifier?: string;
+  otp?: string;
   password: string;
 };
 
 export const signInWithEmailAndPassword = async (payload: AuthLoginPayload) => {
   const response = await axiosInstance.post("/auth/login", payload);
+  return response;
+};
+
+export const requestPhoneLoginOtp = async (
+  payload: RequestPhoneLoginOtpPayload,
+) => {
+  const response = await axiosInstance.post("/auth/login/request-otp", payload);
+  return response;
+};
+
+export const verifyPhoneLoginOtp = async (
+  payload: VerifyPhoneLoginOtpPayload,
+) => {
+  const response = await axiosInstance.post("/auth/login/verify-otp", payload);
   return response;
 };
 
@@ -124,3 +152,4 @@ export const resetPassword = async (payload: ResetPasswordPayload) => {
   const response = await axiosInstance.post("/auth/reset-password", payload);
   return response;
 };
+

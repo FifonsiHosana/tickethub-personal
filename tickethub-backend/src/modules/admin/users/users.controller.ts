@@ -1,11 +1,8 @@
 import type { Request, Response, NextFunction } from 'express';
 import usersService from './users.service.js';
+import organizerDetailService from './organizer-detail.service.js';
 
-export async function listUsers(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export async function listUsers(req: Request, res: Response, next: NextFunction) {
   try {
     const result = await usersService.list(req.query as any);
     res.status(200).json({ success: true, ...result });
@@ -14,11 +11,7 @@ export async function listUsers(
   }
 }
 
-export async function getUserById(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export async function getUserById(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = Number(req.params.id);
     const data = await usersService.getById(userId);
@@ -28,11 +21,7 @@ export async function getUserById(
   }
 }
 
-export async function suspendUser(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export async function suspendUser(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = Number(req.params.id);
     const { isActive } = req.body;
@@ -43,11 +32,7 @@ export async function suspendUser(
   }
 }
 
-export async function verifyOrganizer(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export async function verifyOrganizer(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = Number(req.params.id);
     const result = await usersService.verifyOrganizer(userId);
@@ -57,11 +42,7 @@ export async function verifyOrganizer(
   }
 }
 
-export async function resetUserPassword(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export async function resetUserPassword(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = Number(req.params.id);
     const { newPassword } = req.body;
@@ -72,11 +53,7 @@ export async function resetUserPassword(
   }
 }
 
-export async function listOrganizers(
-  _req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export async function listOrganizers(_req: Request, res: Response, next: NextFunction) {
   try {
     const result = await usersService.listOrganizers();
     res.status(200).json({ success: true, ...result });
@@ -85,13 +62,45 @@ export async function listOrganizers(
   }
 }
 
-export async function verificationQueue(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export async function verificationQueue(req: Request, res: Response, next: NextFunction) {
   try {
     const result = await usersService.verificationQueue(req.query as any);
+    res.status(200).json({ success: true, ...result });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function organizerProfile(req: Request, res: Response, next: NextFunction) {
+  try {
+    const data = await organizerDetailService.profile(Number(req.params.id));
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function organizerStats(req: Request, res: Response, next: NextFunction) {
+  try {
+    const data = await organizerDetailService.stats(Number(req.params.id), req.query as any);
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function organizerEvents(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await organizerDetailService.events(Number(req.params.id), req.query as any);
+    res.status(200).json({ success: true, ...result });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function organizerOrders(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await organizerDetailService.orders(Number(req.params.id), req.query as any);
     res.status(200).json({ success: true, ...result });
   } catch (error) {
     next(error);

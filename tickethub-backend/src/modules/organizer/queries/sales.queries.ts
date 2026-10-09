@@ -23,8 +23,10 @@ export interface ConversionRateResult {
 export async function getConversionRate(
   organizerId: number,
   range?: DateRange,
+  options?: { eventId?: number | undefined },
 ): Promise<ConversionRateResult> {
   const filters: any[] = [eq(events.organizerId, organizerId)];
+  if (options?.eventId) filters.push(eq(events.id, options.eventId));
   applyDateRange(filters, ticketOrders.createdAt, range);
 
   const [result] = await db
@@ -141,8 +143,10 @@ export async function getRecentSales(
   organizerId: number,
   limit = 5,
   range?: DateRange,
+  options?: { eventId?: number | undefined },
 ) {
   const filters: any[] = [eq(events.organizerId, organizerId)];
+  if (options?.eventId) filters.push(eq(events.id, options.eventId));
   applyDateRange(filters, ticketOrders.createdAt, range);
 
   return db
@@ -168,3 +172,4 @@ export async function getRecentSales(
     .orderBy(desc(ticketOrders.createdAt))
     .limit(limit);
 }
+

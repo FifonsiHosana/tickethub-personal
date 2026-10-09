@@ -26,8 +26,8 @@ export interface Event {
   city: string;
   country: string;
   googleMapLink?: string;
-  organizerFirstName: string;
-  organizerLastName: string;
+  organizerFirstName?: string | null;
+  organizerLastName?: string | null;
   termsAndConditions?: string;
   banner: string;
   images: EventImage[];

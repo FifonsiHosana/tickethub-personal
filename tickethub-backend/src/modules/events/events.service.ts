@@ -185,6 +185,7 @@ class EventsService {
     const [event] = await db
       .select({
         id: events.id,
+        slug: events.slug,
         title: events.title,
         description: events.description,
         dateAndTime: events.dateAndTime,
@@ -336,12 +337,15 @@ class EventsService {
       .where(
         and(
           eq(tickets.eventId, event?.id as number),
-          gt(ticketConfigurations.totalRemaining, 0),
+          // gt(ticketConfigurations.totalRemaining, 0),
           lte(ticketConfigurations.salesStartDate, sql`NOW()`),
           gte(ticketConfigurations.salesEndDate, sql`NOW()`),
+          eq(ticketConfigurations.isVisible, true),
         ),
       );
   }
 }
 
 export default new EventsService();
+
+

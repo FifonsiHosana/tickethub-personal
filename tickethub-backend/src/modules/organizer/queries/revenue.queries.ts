@@ -19,8 +19,14 @@ export type { DateRange };
 export async function getTotalRevenue(
   organizerId: number,
   range?: DateRange,
+  filters?: { eventId?: number | undefined },
 ) {
-  const filters: any[] = [
+  const scopes = [eq(events.organizerId, organizerId)];
+  if (filters?.eventId) {
+    scopes.push(eq(events.id, filters.eventId));
+  }
+
+  const paymentFilters: any[] = [
     eq(payments.status, 'Completed'),
     inArray(
       ticketOrders.id,
@@ -37,10 +43,10 @@ export async function getTotalRevenue(
         )
         .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
         .innerJoin(events, eq(tickets.eventId, events.id))
-        .where(eq(events.organizerId, organizerId)),
+        .where(and(...scopes)),
     ),
   ];
-  applyDateRange(filters, payments.paidAt, range);
+  applyDateRange(paymentFilters, payments.paidAt, range);
 
   const [result] = await db
     .select({
@@ -48,7 +54,7 @@ export async function getTotalRevenue(
     })
     .from(payments)
     .innerJoin(ticketOrders, eq(payments.orderId, ticketOrders.id))
-    .where(and(...filters));
+    .where(and(...paymentFilters));
 
   return Number(result?.totalRevenue ?? 0);
 }
@@ -116,3 +122,4 @@ export async function getRevenueTrend(
     .groupBy(sql`DATE(${payments.paidAt})`)
     .orderBy(sql`DATE(${payments.paidAt})`);
 }
+

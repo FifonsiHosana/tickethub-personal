@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from "react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import {
   Popover,
   PopoverContent,
@@ -13,6 +13,7 @@ export interface SubNavItem {
   title: string;
   url: string;
   icon?: React.ReactNode;
+  onClick?: () => void;
 }
 
 export interface NavItem {
@@ -23,22 +24,31 @@ export interface NavItem {
   items?: SubNavItem[];
 }
 
+export interface MoreNavItem extends SubNavItem {
+  onClick?: () => void;
+}
+
 interface PinterestNavProps {
   items: NavItem[];
   className?: string;
-  longPressDelay?: number; // ms, default 450
-  maxVisible?: number; // primary icons shown before collapsing into "More"
+  longPressDelay?: number;
+  maxVisible?: number;
+  moreItems?: MoreNavItem[];
 }
 
 // Shared sizing: big touch targets, big icons
 const ICON_BUTTON =
   "h-12 w-12 rounded-full [&_svg]:!size-5 select-none transition-all duration-150 active:scale-90 active:font-bold";
 
+const MORE_TAB_INDEX = 2;
+const MAX_TABS = 5;
+
 export function NavMobile({
   items,
   className,
   longPressDelay = 450,
-  maxVisible = 5,
+  maxVisible = MAX_TABS,
+  moreItems = [],
 }: PinterestNavProps) {
   const navigate = useNavigate();
   const [openPopoverId, setOpenPopoverId] = useState<string | null>(null);
@@ -46,9 +56,21 @@ export function NavMobile({
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPressRef = useRef(false);
 
-  const showOverflow = items.length > maxVisible;
-  const visibleItems = showOverflow ? items.slice(0, maxVisible - 1) : items;
+  const showOverflow = items.length > maxVisible - 1;
+  const primaryItems = showOverflow ? items.slice(0, maxVisible - 1) : items;
   const overflowItems = showOverflow ? items.slice(maxVisible - 1) : [];
+
+  const itemsWithMore = [...primaryItems];
+  if (moreItems.length > 0) {
+    itemsWithMore.splice(MORE_TAB_INDEX, 0, {
+      title: "More",
+      url: "#",
+      icon: <MoreHorizontal />,
+      items: moreItems,
+    });
+  }
+
+  const visibleItems = itemsWithMore.slice(0, maxVisible);
 
   const startPress = useCallback(
     (item: NavItem) => {
@@ -81,9 +103,18 @@ export function NavMobile({
     if (openPopoverId === item.title) {
       setOpenPopoverId(null);
       e.preventDefault();
-    } else {
+    } else if (item.url !== "#") {
       navigate(item.url);
     }
+  };
+
+  const handleSubItemClick = (subItem: SubNavItem) => {
+    if (subItem.onClick) {
+      subItem.onClick();
+    } else if (subItem.url !== "#") {
+      navigate(subItem.url);
+    }
+    setOpenPopoverId(null);
   };
 
   const renderPrimaryIcon = (item: NavItem) => {
@@ -135,11 +166,10 @@ export function NavMobile({
         >
           <div className="flex flex-col gap-1">
             {item.items?.map((subItem) => (
-              <Link
+              <button
                 key={subItem.title}
-                to={subItem.url}
-                onClick={() => setOpenPopoverId(null)}
-                className="flex items-center gap-3 px-4 py-3.5 text-lg font-medium rounded-2xl text-foreground transition-colors hover:bg-muted active:bg-muted"
+                onClick={() => handleSubItemClick(subItem)}
+                className="flex items-center gap-3 px-4 py-3.5 text-lg font-medium rounded-2xl text-foreground transition-colors hover:bg-muted active:bg-muted w-full text-left"
               >
                 {subItem.icon && (
                   <span className="h-6 w-6 shrink-0 [&_svg]:!size-6">
@@ -147,7 +177,7 @@ export function NavMobile({
                   </span>
                 )}
                 <span className="truncate">{subItem.title}</span>
-              </Link>
+              </button>
             ))}
           </div>
         </PopoverContent>
@@ -218,7 +248,7 @@ export function NavMobile({
                       )}
                     >
                       {item.icon && (
-                        <span className="h-6 w-6 shrink-0 text-foreground [&_svg]:!size-6">
+                        <span className="h-6 w-6 shrink-0 text-foreground [&_svg]:size-6!">
                           {item.icon}
                         </span>
                       )}
@@ -237,14 +267,13 @@ export function NavMobile({
                     {hasSubItems && isExpanded && (
                       <div className="mb-1 ml-6 flex flex-col gap-1 border-l-2 border-border pl-3">
                         {item.items?.map((subItem) => (
-                          <Link
+                          <button
                             key={subItem.title}
-                            to={subItem.url}
                             onClick={() => {
-                              setOpenPopoverId(null);
+                              handleSubItemClick(subItem);
                               setExpandedOverflow(null);
                             }}
-                            className="flex items-center gap-3 rounded-xl px-3 py-3 text-base font-medium text-foreground transition-colors hover:bg-muted active:bg-muted"
+                            className="flex items-center gap-3 rounded-xl px-3 py-3 text-base font-medium text-foreground transition-colors hover:bg-muted active:bg-muted w-full text-left"
                           >
                             {subItem.icon && (
                               <span className="h-5 w-5 shrink-0 [&_svg]:size-5!">
@@ -252,7 +281,7 @@ export function NavMobile({
                               </span>
                             )}
                             <span className="truncate">{subItem.title}</span>
-                          </Link>
+                          </button>
                         ))}
                       </div>
                     )}

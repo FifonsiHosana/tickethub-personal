@@ -23,19 +23,29 @@ export interface PaymentCollection {
   callback: string;
 }
 
+export type PaystackPaymentSource = 'ussd_direct_charge' | 'ussd_retry_link';
+
+export interface PaystackPaymentMetadata {
+  phoneNumber: string;
+  receiveNumber: string | undefined;
+  ussd: boolean;
+  orderId: number;
+  totalQuantity: number;
+  source?: PaystackPaymentSource;
+}
+
 export interface PaystackPaymentFields {
   amount: number;
   email: string;
   currency: string;
+  reference?: string;
+  callback_url?: string;
+  // channels: string[];
   mobile_money: {
     phone: string;
     provider: 'mtn' | 'vod' | 'atl';
   };
-  metadata: {
-    phoneNumber: string;
-    receiveNumber: string | undefined;
-    orderId: number;
-  };
+  metadata: PaystackPaymentMetadata;
 }
 
 // {

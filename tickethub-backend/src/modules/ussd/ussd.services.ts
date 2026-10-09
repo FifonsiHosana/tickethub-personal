@@ -87,8 +87,8 @@ export const getEvent = async (
     // const response = await db.select().from(tickets);
 
     const row = response[0];
-    console.log('row', row);
-    console.log('response', response);
+    // console.log('row', row);
+    // console.log('response', response);
 
     if (!row) return undefined;
 
@@ -199,8 +199,8 @@ export const handleUssd = async (
 
   if (isFirstRequest) {
     const cleaned = stripShortcode(text, shortcode);
-    console.log('RAW TEXT (first request):', JSON.stringify(text));
-    console.log('CLEANED:', JSON.stringify(cleaned));
+    // console.log('RAW TEXT (first request):', JSON.stringify(text));
+    // console.log('CLEANED:', JSON.stringify(cleaned));
 
     // First segment (if any) is a deep-linked event id; only segments
     // after it count as menu input (e.g. *920*658*28# -> event 28, no input).
@@ -281,7 +281,7 @@ export const handleUssd = async (
           : rawInput;
 
         if (value === undefined) {
-          errorMessage = 'Invalid choice.\n';
+          errorMessage = activeNode.invalidMessage ?? 'Invalid choice.\n';
         } else {
           session.data[activeNode.data] = value;
 
@@ -294,12 +294,14 @@ export const handleUssd = async (
             }
           }
 
-          if (!activeNode.next) {
-            throw new Error(
-              `Node "${activeNodeId}" has data but no next node defined`,
-            );
+          if (!errorMessage) {
+            if (!activeNode.next) {
+              throw new Error(
+                `Node "${activeNodeId}" has data but no next node defined`,
+              );
+            }
+            session.stack.push(activeNode.next);
           }
-          session.stack.push(activeNode.next);
         }
       }
     } else if (lastInput === '00') {
@@ -309,15 +311,25 @@ export const handleUssd = async (
       if (session.stack.length > 1) session.stack.pop();
     } else if (activeNode.options?.[lastInput]) {
       const action = activeNode.onSelect?.[lastInput];
-      if (action) {
-        await action(context);
-      }
+      // An onSelect handler may return a node id to override the default target
+      const override = action ? await action(context) : undefined;
 
       if (activeNode.options[lastInput] === 'home') {
         session.eventDetails = undefined;
       }
 
-      session.stack.push(activeNode.options[lastInput] as string);
+      const target =
+        typeof override === 'string'
+          ? override
+          : (activeNode.options[lastInput] as string);
+
+      if (typeof override === 'string') {
+        // A charge has been initiated: reset the stack so "0. Back" can't
+        // return to Confirmation and trigger a second order/charge.
+        session.stack = [target];
+      } else {
+        session.stack.push(target);
+      }
     } else {
       errorMessage = 'Invalid choice.\n';
     }

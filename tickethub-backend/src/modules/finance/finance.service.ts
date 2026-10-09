@@ -1,6 +1,7 @@
 import config from '@/config/config.js';
 import { db } from '@/db/client.js';
 import { eq } from 'drizzle-orm';
+import { AppError } from '@/middleware/errorHandler.js';
 import {
   payments,
   ticketOrders,
@@ -11,6 +12,7 @@ import {
   events,
   eventsVenues,
   ticketTypes,
+  ticketOrderUserDetails,
 } from '@/db/schema/index.js';
 import { sendMail } from '@/modules/emails/emails.service.js';
 import { ensureAccountForOrder } from '@/modules/attendee/guest-account.service.js';
@@ -19,6 +21,10 @@ import type { purchaseTicketPaymentInput } from './finance.schema.js';
 import { now } from '@/utils/timeDatehelpers.js';
 import { buildPurchaseConfirmationEmail } from '../emails/templates/ticketPurchase.template.js';
 import { computeOrderBreakdown } from './finance.pricing.js';
+import { sendTicket } from '../ussd-payment/ussd-payment.utils.js';
+import { smsService } from '../sms/sms.service.js';
+import { paymentComplete } from '../ussd-payment/ussd-payment.service.js';
+import { randomBytes } from 'crypto';
 
 // eventually have a settings table, that would have the current provider
 // on the admin dashboard
@@ -64,6 +70,7 @@ export class FinanceService {
   private async handlePayStackPayment(data: purchaseTicketPaymentInput) {
     const { subtotal, feeAmount, totalAmount } = await computeOrderBreakdown(
       data.orderId,
+      data.totalQuantity,
     );
 
     const response = await axios.post(
@@ -71,10 +78,11 @@ export class FinanceService {
       JSON.stringify({
         email: data.email,
         amount: Math.round(totalAmount * 100),
-
+        reference: data.reference,
         metadata: {
           orderId: data.orderId,
           phoneNumber: data.phoneNumber,
+          totalQuantity: data.totalQuantity,
         },
       }),
       {
@@ -120,9 +128,22 @@ export class FinanceService {
     currency: string,
     provider: string,
     customerEmail: string,
+    totalQuantity?: number,
   ) {
+    const { subtotal, feeAmount, ticketQuantity } = await computeOrderBreakdown(
+      orderId,
+      totalQuantity,
+    );
+
+    if (![amount, subtotal, feeAmount].every(Number.isFinite)) {
+      throw new AppError(400, 'Invalid payment amount calculated.');
+    }
+
     const amountToString = amount.toString();
-    const { subtotal, feeAmount } = await computeOrderBreakdown(orderId);
+
+    console.log(
+      `Processing purchase for order ${orderId} fee :${feeAmount} with reference ${paymentReference}, amount ${amountToString} ${currency}, provider ${provider}, email ${customerEmail}, totalQuantity ${ticketQuantity}`,
+    );
     await db.transaction(async (tx) => {
       /**
        * ensure order exists
@@ -130,7 +151,12 @@ export class FinanceService {
       const [order] = await tx
         .select()
         .from(ticketOrders)
+        .innerJoin(
+          ticketOrderUserDetails,
+          eq(ticketOrders.id, ticketOrderUserDetails.orderId),
+        )
         .where(eq(ticketOrders.id, orderId))
+
         .limit(1);
 
       if (!order) {
@@ -220,6 +246,7 @@ export class FinanceService {
         .select({
           ticketIdentifier: ticketOrderItems.ticketIdentifier,
           ticketType: ticketTypes.name,
+          ticketName: ticketTypes.name,
           price: ticketConfigurations.price,
           eventName: events.title,
           eventDate: events.dateAndTime,
@@ -252,6 +279,35 @@ export class FinanceService {
           accountCreated,
           email: customerEmail,
         });
+      const ticketLines = orderItems
+        .map(
+          (t, i) =>
+            `${i + 1}. ${t.ticketName}\n` +
+            `ID: ${t.ticketIdentifier}\n` +
+            `View: ${t.qrCodeUrl}`,
+        )
+        .join('\n\n');
+
+      await sendTicket(
+        order.TicketOrderUserDetails.phoneNumber,
+        `${orderItems[0]?.eventName}\n\n` +
+          `Quantity: ${orderItems.length}\n\n` +
+          ticketLines,
+      );
+
+      // await sendTicket(
+      //   order.TicketOrderUserDetails.phoneNumber,
+      //   `${orderItems[0]?.eventName}\n\n
+      //    Ticket ID: ${orderItems[0]?.ticketIdentifier}\n
+      //    Ticket Type: ${orderItems[0]?.ticketName}\n
+      //    Quantity: ${orderItems.length}\n\n${orderItems.map(()=>{<p></>}
+      //    View Tickets: ${orderItems[0]?.qrCodeUrl}} `,
+      // );
+      // await smsService.sendSms({
+      //   userId: order.TicketOrderUserDetails.id,
+      //   message: `Your TicketHub Tickets\nTicket code: ${orderItems[0]?.ticketIdentifier}\nAmount Paid: ${amountToString} ${currency}`,
+      //   recipients: [order.TicketOrderUserDetails.phoneNumber],
+      // });
       await sendMail(
         customerEmail,
         'Your TicketHub Tickets',
@@ -270,15 +326,36 @@ export class FinanceService {
     //   `This is the payload from the paystack hoook ${JSON.stringify(payload)}`,
     // );
 
-    const orderId = Number(payload.data.metadata.orderId);
-    // const phoneNumber = payload.data.metadata.phoneNumber; // later on would send SMS to this number
+    const metadata = payload.data.metadata ?? {};
+    const orderId = Number(metadata.orderId);
+    const rawTotalQuantity = metadata.totalQuantity;
+    const parsedTotalQuantity = Number(rawTotalQuantity);
+    const totalQuantity =
+      Number.isFinite(parsedTotalQuantity) && parsedTotalQuantity > 0
+        ? parsedTotalQuantity
+        : undefined;
+    // const phoneNumber = metadata.phoneNumber; // later on would send SMS to this number
     const paymentRef = payload.data.reference;
     const currency = payload.data.currency;
     const email = payload.data.customer.email;
     const amount = payload.data.amount / 100;
 
+    console.log('Transaction payload', payload);
+
+    if (metadata?.ussd === true) {
+      await paymentComplete(payload);
+      return;
+    }
+
     if (!orderId) {
       throw new Error('Missing orderId in Paystack Webhook Metadata');
+    }
+
+    if (!totalQuantity) {
+      console.warn('Invalid Paystack totalQuantity metadata; deriving from order items', {
+        orderId,
+        rawTotalQuantity,
+      });
     }
     const alreadyProcessed = await this.isTransactionProcessed(paymentRef);
     if (alreadyProcessed) return;
@@ -290,6 +367,8 @@ export class FinanceService {
       currency,
       PROVIDER,
       email,
+      totalQuantity,
     );
   }
 }
+

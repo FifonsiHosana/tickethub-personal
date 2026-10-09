@@ -8,6 +8,8 @@ import {
   resendOtpSchema,
   sendOtpSchema,
   completeRegisterSchema,
+  requestPhoneLoginOtpSchema,
+  verifyPhoneLoginOtpSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
 } from './auth.schema.js';
@@ -20,6 +22,8 @@ const authController = new AuthController();
 router.get('/roles', authController.getUserRoles);
 router.post('/register', validate(registerSchema), authController.register);
 router.post('/login', validate(loginSchema), authController.login);
+router.post('/login/request-otp', validate(requestPhoneLoginOtpSchema), authController.requestPhoneLoginOtp);
+router.post('/login/verify-otp', validate(verifyPhoneLoginOtpSchema), authController.verifyPhoneLoginOtp);
 router.post('/verify-otp', validate(verifyOtpSchema), authController.verifyOtp);
 router.post('/resend-otp', validate(resendOtpSchema), authController.resendOtp);
 router.post('/send-otp', validate(sendOtpSchema), authController.sendOtp);
@@ -41,3 +45,4 @@ router.post(
 );
 
 export default router;
+

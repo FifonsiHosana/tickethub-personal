@@ -17,6 +17,10 @@ export function EventBasicFields() {
     formState: { errors },
   } = useFormContext<CreateEventFormValues>();
 
+  const { watch } = useFormContext<CreateEventFormValues>();
+  console.log("title now:", watch("title"));
+  
+
   const { isMobile } = useIsMobile();
 
   return (
@@ -164,8 +168,8 @@ export function EventBasicFields() {
           setValue("eventVenueId", venue.id, { shouldValidate: true })
           }
           /> */}
-        </div>
-        <Field data-invalid={!!errors.capacity}>
+          <div className="flex justify-end items-end w-full">
+          <Field data-invalid={!!errors.capacity}>
           <FieldLabel htmlFor="capacity">
             Total Capacity<span className="text-destructive">*</span>
           </FieldLabel>
@@ -180,7 +184,9 @@ export function EventBasicFields() {
             />
           </div>
           {errors.capacity && <FieldError errors={[errors.capacity]} />}
-        </Field>
+        </Field></div>
+        </div>
+        
       </div>
     </>
   );

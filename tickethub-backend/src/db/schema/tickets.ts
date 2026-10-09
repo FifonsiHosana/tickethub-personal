@@ -44,6 +44,7 @@ export const ticketConfigurations = mysqlTable('TicketConfigurations', {
   salesStartDate: datetime({ mode: 'string', fsp: 3 }).notNull(),
   salesEndDate: datetime({ mode: 'string', fsp: 3 }).notNull(),
   benefits: varchar({ length: 5000 }),
+  isVisible: boolean().default(true).notNull(),
 });
 
 export const eventTickets = mysqlTable('EventTickets', {
@@ -70,6 +71,7 @@ export const ticketOrders = mysqlTable('TicketOrders', {
   }),
   status: mysqlEnum('order_status', ['Pending', 'Completed']).notNull(),
   quantity: int().notNull(),
+  reference: varchar({ length: 255 }),
   createdAt: datetime({ mode: 'string', fsp: 3 })
     .default(sql`(now())`)
     .notNull(),
@@ -109,3 +111,4 @@ export const ticketOrderUserDetails = mysqlTable('TicketOrderUserDetails', {
   email: varchar({ length: 255 }).notNull(),
   phoneNumber: varchar({ length: 20 }).notNull(),
 });
+

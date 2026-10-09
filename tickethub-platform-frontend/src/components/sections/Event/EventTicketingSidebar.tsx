@@ -31,12 +31,9 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
     addTicket,
     increaseQuantity,
     decreaseQuantity,
-    totalAmount,
-    totalQuantity,
-    totalTicketQuantity,
     totalTicketAmount,
+    totalTicketQuantity,
   } = useTicketCartStore();
-
   const navigate = useNavigate();
 
   const handleCheckout = () => {
@@ -51,7 +48,7 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
     );
   }
 
-  if (isError || !tickets || tickets.length === 0) {
+  if (isError || !tickets) {
     return (
       <div className="sticky top-32 p-8 rounded-3xl border border-neutral-100 shadow-xl bg-white text-center">
         <p className="text-red-500 animate-pulse font-sans text-sm">
@@ -62,6 +59,9 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
   }
 
   const lastTicket = tickets[tickets.length - 1];
+  const allTicketsSoldOut = tickets.every(
+    (ticket) => ticket.totalRemaining === 0,
+  );
 
   return (
     <Card className=" sticky top-32 rounded-2xl flex flex-col  p-4">
@@ -84,44 +84,56 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
             <div key={ticket.eventTicketId}>
               <div
                 className={`p-4 transition-colors duration-300 ${
-                  isSelected ? "bg-foreground/5" : "bg-white"
+                  isSelected ? "bg-foreground/5 " : "bg-white"
                 } ${isSoldOut ? "opacity-50" : ""}`}
               >
-                <div className="flex flex-col w-full">
+                <div
+                  className={`flex flex-col w-full ${isSoldOut ? "flex-row justify-between" : ""}`}
+                >
                   <div className="flex flex-row items-center justify-between">
-                    <h4 className="font-sans font-semibold text-foreground text-lg">
-                      {ticket.ticketName}
-                    </h4>
-                    <p className="text-sm text-neutral-800">
-                      {Number(ticket.price) === 0
-                        ? "Free"
-                        : `GH₵ ${Number(ticket.price).toFixed(2)}`}
-                    </p>
+                    <div className="flex flex-col gap-1">
+                      <h4 className="font-sans font-semibold text-foreground text-lg uppercase">
+                        {ticket.ticketType ||
+                          `Ticket type ${tickets.indexOf(ticket) + 1}`}
+                      </h4>
+                      {(ticket.benefits || ticket.description) && (
+                        <p className="text-xs text-neutral-600 mt-1">
+                          {ticket.benefits || ticket.description}
+                        </p>
+                      )}
+                    </div>
+                    {!isSoldOut && (
+                      <p className="text-sm text-neutral-800">
+                        {Number(ticket.price) === 0
+                          ? "Free"
+                          : `GH₵ ${Number(ticket.price).toFixed(2)}`}
+                      </p>
+                    )}
                   </div>
 
-                  {ticket.description && (
+                  {/* {(ticket.benefits || ticket.description) && (
                     <p className="text-xs text-neutral-600 mt-1">
-                      {ticket.description}
+                      {ticket.benefits || ticket.description}
                     </p>
-                  )}
+                  )} */}
+                  <span className="text-lg text-red-500 font-bold">
+                    {
+                      isSoldOut && "Sold Out"
+
+                      ///////Tickets remaining could live here
+                    }
+                  </span>
                 </div>
 
                 {/* Quantity Controls */}
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs font-medium text-neutral-600">
-                    {isSoldOut
-                      ? "Sold Out"
-                      : `${ticket.totalRemaining - qty} available`}
-                  </span>
-
+                <div className="flex items-center justify-end mt-2">
                   {!isSoldOut && status === "Published" && (
                     <div className="flex items-center gap-3">
                       {/* Minus Button */}
                       <button
                         onClick={() => {
                           decreaseQuantity(ticket.eventTicketId);
-                          totalAmount();
-                          totalQuantity();
+                          // totalTicketAmount;
                         }}
                         disabled={qty === 0}
                         className="w-8 h-8 rounded-full border border-neutral-300 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 disabled:opacity-30 transition-colors"
@@ -131,6 +143,7 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
 
                       <span className="w-6 text-center font-semibold text-foreground">
                         {qty}
+                        {/* {isSoldOut ? "Sold Out" : `${qty}`} */}
                       </span>
 
                       {/* Plus Button */}
@@ -139,8 +152,12 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
                           if (qty === 0) {
                             addTicket({
                               eventTicketId: ticket.eventTicketId,
-                              ticketName: ticket.ticketName,
-                              ticketType: ticket.ticketType || "Standard",
+                              ticketName:
+                                ticket.ticketType ||
+                                `Ticket type ${tickets.indexOf(ticket) + 1}`,
+                              ticketType:
+                                ticket.ticketType ||
+                                `Ticket type ${tickets.indexOf(ticket) + 1}`,
                               price: Number(ticket.price),
                               eventName: eventName,
                               banner: banner,
@@ -148,10 +165,10 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
                           } else {
                             increaseQuantity(ticket.eventTicketId);
                           }
-                          totalAmount();
-                          totalQuantity();
+                          // totalAmount();
+                          // totalQuantity();
                         }}
-                        disabled={qty >= ticket.totalRemaining}
+                        disabled={qty >= ticket.totalRemaining || isSoldOut}
                         className="w-8 h-8 bg-primary text-white cursor-pointer rounded-full border border-neutral-300 flex items-center justify-center disabled:opacity-30"
                       >
                         <Plus className="w-4 h-4" />
@@ -207,9 +224,11 @@ export const EventTicketingSidebar: React.FC<EventTicketingSidebarProps> = ({
                   disabled
                   className="w-full py-4 px-6 rounded-full bg-neutral-100 text-neutral-400 font-medium cursor-not-allowed"
                 >
-                  {status === "Published"
-                    ? "Select tickets to continue"
-                    : "Event Unavailable"}
+                  {allTicketsSoldOut
+                    ? "Sold Out"
+                    : status === "Published"
+                      ? "Select tickets to continue"
+                      : "Event Unavailable"}
                 </button>
               </motion.div>
             )}

@@ -19,6 +19,7 @@ export type OrganizerOrderEventBreakdown = {
   ticketType: string;
   totalTickets: number;
   checkedInCount: number;
+  ticketIdentifiers: string[];
 };
 
 export type OrganizerOrder = {
@@ -65,3 +66,4 @@ export async function getOrganizerOrders(
   >("/organizer/orders", { params });
   return response.data.data;
 }
+

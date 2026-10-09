@@ -5,6 +5,7 @@ import logger from '@/utils/logger/index.js';
 import { morganStream } from '@/utils/logger/stream.js';
 import cors from 'cors';
 import { errorHandler, notFoundHandler } from '@/middleware/errorHandler.js';
+import { globalApiRateLimit } from '@/middleware/rateLimit.js';
 
 import authRoutes from '@/modules/auth/auth.routes.js';
 import eventsRoutes from '@/modules/events/events.routes.js';
@@ -18,8 +19,12 @@ import settingsRoutes from '@/modules/settings/settings.routes.js';
 import smsRoutes from '@/modules/sms/sms.routes.js';
 import creditRoutes from '@/modules/credit/credit.routes.js';
 import ussdRoutes from '@/modules/ussd/ussd.routes.js';
+import ussdPaymentRoutes from '@/modules/ussd-payment/ussd-payment.routes.js';
 
 const app = express();
+
+const trustProxy = process.env.TRUST_PROXY ?? 'loopback';
+app.set('trust proxy', trustProxy);
 
 app.use(express.json());
 // favicon and public stuff latter
@@ -31,6 +36,7 @@ app.use(morgan(morganFormat, { stream: morganStream }));
 
 // CORS configuration would set it up better later
 app.use(cors());
+app.use('/api', globalApiRateLimit);
 
 app.get('/', (_, res: Response) => {
   logger.info('Handling GET /');
@@ -50,6 +56,7 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/organizer/sms', smsRoutes);
 app.use('/api/organizer/credit', creditRoutes);
 app.use('/api/ussd', ussdRoutes);
+app.use('/api/payweb', ussdPaymentRoutes);
 
 // error handling)
 
@@ -57,3 +64,4 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 export default app;
+

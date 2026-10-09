@@ -39,10 +39,7 @@ const signupSchema = z
       .string()
       .trim()
       .min(2, "First name must be at least 2 characters"),
-    lastName: z
-      .string()
-      .trim()
-      .min(2, "Last name must be at least 2 characters"),
+    lastName: z.string().trim().optional(),
     email: z.email("Invalid email"),
     phoneNumber: z
       .string()
@@ -107,6 +104,7 @@ export function SignUpForm() {
 
       const response = await signUp({
         ...data,
+        lastName: data.lastName?.trim() || undefined,
         roleId,
         inviteToken: inviteToken || undefined,
       });
@@ -166,12 +164,12 @@ export function SignUpForm() {
                   )}
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="lastName">Last Name</FieldLabel>
+                  <FieldLabel htmlFor="lastName">Company Name</FieldLabel>
                   <Controller
                     name="lastName"
                     control={control}
                     render={({ field }) => (
-                      <Input id="lastName" placeholder="Doe" {...field} />
+                      <Input id="lastName" placeholder="TicketHub Events" {...field} />
                     )}
                   />
                   {errors.lastName && (

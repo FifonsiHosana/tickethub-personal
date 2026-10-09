@@ -9,6 +9,7 @@ import {
   updateOrganizerEvent,
   deleteOrganizerEvent,
   cancelOrganizerEvent,
+  publishOrganizerEvent,
   getAllEventVenues,
   createEventVenue,
 } from './services/events.service.js';
@@ -47,6 +48,7 @@ export async function dashboard(
       topSellingPageSize?: number;
       from?: string;
       to?: string;
+      eventId?: number;
     } = {};
 
     if (req.query.upcomingPage) {
@@ -62,12 +64,21 @@ export async function dashboard(
       dashboardParams.topSellingPageSize = Number(req.query.topSellingPageSize);
     }
 
-    const { from, to } = req.query as { from?: string; to?: string };
+    const { from, to, eventId } = req.query as {
+      from?: string;
+      to?: string;
+      eventId?: string;
+    };
     if (from && /^\d{4}-\d{2}-\d{2}$/.test(from)) {
       dashboardParams.from = from;
     }
     if (to && /^\d{4}-\d{2}-\d{2}$/.test(to)) {
       dashboardParams.to = to;
+    }
+
+    const parsedEventId = Number(eventId);
+    if (Number.isInteger(parsedEventId) && parsedEventId > 0) {
+      dashboardParams.eventId = parsedEventId;
     }
 
     const result = await getOrganizerDashboard(organizerId, dashboardParams);
@@ -127,9 +138,9 @@ export async function organizerEventById(
   try {
     const organizerId = req.user.id;
 
-    const eventId = Number(req.params.id);
+    const eventIdentifier = String(req.params.id ?? "");
 
-    const result = await getOrganizerEventById(organizerId, eventId);
+    const result = await getOrganizerEventById(organizerId, eventIdentifier);
 
     res.status(200).json({
       success: true,
@@ -178,10 +189,10 @@ export async function updateEvent(
   try {
     const organizerId = req.user.id;
 
-    const eventId = Number(req.params.id);
+    const eventIdentifier = String(req.params.id ?? "");
 
     const result = await updateOrganizerEvent(
-      eventId,
+      eventIdentifier,
 
       organizerId,
 
@@ -271,6 +282,29 @@ export async function cancelEvent(
   }
 }
 
+/**
+ * PATCH /organizer/events/:id/publish
+ */
+export async function publishEvent(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const organizerId = req.user.id;
+
+    const eventId = Number(req.params.id);
+
+    const result = await publishOrganizerEvent(organizerId, eventId);
+
+    res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
 /**
  * GET /organizer/event-venues/
  */
@@ -417,3 +451,12 @@ export async function updatePayoutDetails(
     next(err);
   }
 }
+
+
+
+
+
+
+
+
+

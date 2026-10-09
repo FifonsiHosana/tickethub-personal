@@ -1,181 +1,85 @@
 import { TextAlign } from "@tiptap/extension-text-align";
-import {
-  // Heading1,
-  // Heading2,
-  // Heading3,
-  // Pilcrow,
-  Bold,
-  Italic,
-  Strikethrough,
-  Highlighter,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  AlignJustify,
-} from "lucide-react";
-import {
-  Editor,
-  EditorContent,
-  useEditor,
-  useEditorState,
-} from "@tiptap/react";
+import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
+import type { Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Highlight } from "@tiptap/extension-highlight";
+import { cn } from "@/lib/utils";
+import { toolbarGroups, type EditorState } from "./editor-toolbar-actions";
 
-export const MenuBar = ({ editor }: { editor: Editor }) => {
+const buttonBase =
+  "flex h-8 w-9 items-center justify-center rounded-md border border-transparent text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60";
+const buttonActive =
+  "border-primary bg-primary text-primary-foreground shadow-sm ring-1 ring-primary/30 hover:bg-primary/90 hover:text-primary-foreground";
+
+const inactiveEditorState: EditorState = {
+  isBold: false,
+  isItalic: false,
+  isStrike: false,
+  isHighlight: false,
+  isBulletList: false,
+  isOrderedList: false,
+  isAlignLeft: false,
+  isAlignCenter: false,
+  isAlignRight: false,
+  isAlignJustify: false,
+};
+
+export const MenuBar = ({ editor }: { editor: Editor | null }) => {
   const editorState = useEditorState({
     editor,
-    selector: (ctx) => {
+    selector: ({ editor }): EditorState => {
+      if (!editor) return inactiveEditorState;
+
       return {
-        // Text formatting
-        isBold: ctx.editor.isActive("bold") ?? false,
-        isItalic: ctx.editor.isActive("italic") ?? false,
-        isStrike: ctx.editor.isActive("strike") ?? false,
-        isHighlight: ctx.editor.isActive("highlight") ?? false,
-
-        // Text alignment
-        isAlignLeft: ctx.editor.isActive({ textAlign: "left" }) ?? false,
-        isAlignCenter: ctx.editor.isActive({ textAlign: "center" }) ?? false,
-        isAlignRight: ctx.editor.isActive({ textAlign: "right" }) ?? false,
-        isAlignJustify: ctx.editor.isActive({ textAlign: "justify" }) ?? false,
-
-        // Block types
-        isParagraph: ctx.editor.isActive("paragraph") ?? false,
-        isHeading1: ctx.editor.isActive("heading", { level: 1 }) ?? false,
-        isHeading2: ctx.editor.isActive("heading", { level: 2 }) ?? false,
-        isHeading3: ctx.editor.isActive("heading", { level: 3 }) ?? false,
+        isBold: editor.isActive("bold"),
+        isItalic: editor.isActive("italic"),
+        isStrike: editor.isActive("strike"),
+        isHighlight: editor.isActive("highlight"),
+        isBulletList: editor.isActive("bulletList"),
+        isOrderedList: editor.isActive("orderedList"),
+        isAlignLeft: editor.isActive({ textAlign: "left" }),
+        isAlignCenter: editor.isActive({ textAlign: "center" }),
+        isAlignRight: editor.isActive({ textAlign: "right" }),
+        isAlignJustify: editor.isActive({ textAlign: "justify" }),
       };
     },
   });
 
-  if (!editor) {
-    return null;
-  }
+  if (!editor) return null;
 
   return (
-    <div className="control-group">
-      <div className="inline-flex items-center mb-3 border border-slate-200 bg-white  shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        {/* Inline Styles Group */}
-        <div
-          title="Bold"
-          aria-label="Bold"
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          className={` h-6 w-10 flex justify-center items-center ${
-            editorState.isBold
-              ? "bg-slate-100 text-slate-900 font-semibold dark:bg-slate-800 dark:text-slate-100"
-              : ""
-          }`}
-        >
-          <Bold className="h-4 w-4" />
+    <div className="mb-3 flex flex-wrap items-center gap-1 rounded-md border border-slate-200 bg-white p-1 shadow-sm">
+      {toolbarGroups.map((group, groupIndex) => (
+        <div key={groupIndex} className="flex items-center gap-1">
+          {groupIndex > 0 && <div className="mx-1 h-5 w-px bg-slate-200" />}
+          {group.map((action) => {
+            const Icon = action.icon;
+            const active = editorState?.[action.isActive] ?? false;
+            return (
+              <button
+                key={action.title}
+                type="button"
+                title={action.title}
+                aria-label={action.title}
+                aria-pressed={active}
+                onClick={() => action.run(editor)}
+                className={cn(buttonBase, active && buttonActive)}
+              >
+                <Icon className="h-4 w-4" />
+              </button>
+            );
+          })}
         </div>
-
-        <div
-          title="Italic"
-          aria-label="Italic"
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={` h-6 w-10 flex justify-center items-center ${
-            editorState.isItalic
-              ? "bg-slate-100 text-slate-900 font-semibold dark:bg-slate-800 dark:text-slate-100"
-              : ""
-          }`}
-        >
-          <Italic className="h-4 w-4" />
-        </div>
-
-        <div
-          title="Strikethrough"
-          aria-label="Strikethrough"
-          onClick={() => editor.chain().focus().toggleStrike().run()}
-          className={` h-6 w-10 flex justify-center items-center ${
-            editorState.isStrike
-              ? "bg-slate-100 text-slate-900 font-semibold dark:bg-slate-800 dark:text-slate-100"
-              : ""
-          }`}
-        >
-          <Strikethrough className="h-4 w-4" />
-        </div>
-
-        <div
-          title="Highlight"
-          aria-label="Highlight"
-          onClick={() => editor.chain().focus().toggleHighlight().run()}
-          className={` h-6 w-10 flex justify-center items-center ${
-            editorState.isHighlight
-              ? "bg-slate-100 text-slate-900 font-semibold dark:bg-slate-800 dark:text-slate-100"
-              : ""
-          }`}
-        >
-          <Highlighter className="h-4 w-4" />
-        </div>
-
-        <div className="mx-1 h-5 w-[1px] bg-slate-200 dark:bg-slate-800" />
-
-        {/* Text Alignment Group */}
-        <div
-          title="Align Left"
-          aria-label="Align Left"
-          onClick={() => editor.chain().focus().setTextAlign("left").run()}
-          className={` h-6 w-10 flex justify-center items-center ${
-            editorState.isAlignLeft
-              ? "bg-slate-100 text-slate-900 font-semibold dark:bg-slate-800 dark:text-slate-100"
-              : ""
-          }`}
-        >
-          <AlignLeft className="h-4 w-4" />
-        </div>
-
-        <div
-          title="Align Center"
-          aria-label="Align Center"
-          onClick={() => editor.chain().focus().setTextAlign("center").run()}
-          className={` h-6 w-10 flex justify-center items-center ${
-            editorState.isAlignCenter
-              ? "bg-slate-100 text-slate-900 font-semibold dark:bg-slate-800 dark:text-slate-100"
-              : ""
-          }`}
-        >
-          <AlignCenter className="h-4 w-4" />
-        </div>
-
-        <div
-          title="Align Right"
-          aria-label="Align Right"
-          onClick={() => editor.chain().focus().setTextAlign("right").run()}
-          className={` h-6 w-10 flex justify-center items-center ${
-            //   className={`p-2 rounded-md text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 ${
-            editorState.isAlignRight
-              ? "bg-slate-100 text-slate-900 font-semibold dark:bg-slate-800 dark:text-slate-100"
-              : ""
-          }`}
-        >
-          <AlignRight className="h-4 w-4" />
-        </div>
-
-        <div
-          title="Justify"
-          aria-label="Justify"
-          onClick={() => editor.chain().focus().setTextAlign("justify").run()}
-          className={` h-6 w-10 flex justify-center items-center ${
-            //   className={`p-2 rounded-md text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 ${
-            editorState.isAlignJustify
-              ? "bg-slate-100 text-slate-900 font-semibold dark:bg-slate-800 dark:text-slate-100"
-              : ""
-          }`}
-        >
-          <AlignJustify className="h-4 w-4" />
-        </div>
-      </div>
+      ))}
     </div>
   );
 };
 
-export default () => {
+export default function RichTextEditorPreview() {
   const editor = useEditor({
     extensions: [
       StarterKit,
-      TextAlign.configure({
-        types: ["heading", "paragraph"],
-      }),
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
       Highlight,
     ],
   });
@@ -186,4 +90,5 @@ export default () => {
       <EditorContent editor={editor} />
     </>
   );
-};
+}
+

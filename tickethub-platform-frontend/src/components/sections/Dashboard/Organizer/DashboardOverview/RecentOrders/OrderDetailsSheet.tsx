@@ -1,8 +1,11 @@
+import { useState } from "react";
 import { format } from "date-fns";
 import {
   CalendarDaysIcon,
   CreditCardIcon,
   PackageIcon,
+  SendIcon,
+  ShieldHalf,
   UserIcon,
 } from "lucide-react";
 import {
@@ -13,13 +16,18 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { type OrganizerOrder } from "@/utils/services/organizers/orders.service";
+import type { OrganizerOrder } from "@/utils/services/organizers/orders.service";
+import { useChangeOrganizerStatus } from "@/hooks/organizers/useOrganizerStatus";
+import { useResendTicketEmail } from "@/hooks/organizers/useOrganizerEventTickets";
+import { CompleteOrderConfirmDialog } from "./CompleteOrderConfirmDialog";
 
 interface OrderDetailsSheetProps {
   order: OrganizerOrder | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onStatusChanged: (orderId: number, status: OrganizerOrder["status"]) => void;
 }
 
 const orderStatusStyles: Record<string, string> = {
@@ -43,10 +51,32 @@ export const OrderDetailsSheet = ({
   order,
   open,
   onOpenChange,
+  onStatusChanged,
 }: OrderDetailsSheetProps) => {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const { mutateAsync, isPending } = useChangeOrganizerStatus();
+  const { mutate: resendTickets, isPending: isResending } =
+    useResendTicketEmail();
+
+  async function completeOrder() {
+    if (!order) return;
+
+    setConfirmOpen(false);
+    onStatusChanged(order.orderId, "Completed");
+
+    try {
+      await mutateAsync({ orderId: String(order.orderId) });
+    } catch {
+      onStatusChanged(order.orderId, "Pending");
+    }
+  }
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-md gap-6 overflow-y-auto">
+      <SheetContent
+        side="right"
+        className="w-full sm:max-w-md gap-6 overflow-y-auto"
+      >
         <SheetHeader className="border-b border-border">
           <SheetTitle>Order Details</SheetTitle>
           <SheetDescription>Order #{order?.orderId ?? "—"}</SheetDescription>
@@ -54,6 +84,42 @@ export const OrderDetailsSheet = ({
 
         {order && (
           <div className="flex flex-col gap-6 p-4 pt-0">
+            {order.status === "Pending" && (
+              <section className="flex-col flex gap-2">
+                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <ShieldHalf className="h-4 w-4 text-muted-foreground" />
+                  Action
+                </h4>
+                <div className="rounded-xl border border-border bg-card p-3 flex flex-col gap-1">
+                  <Button
+                    className="shrink-0 text-white"
+                    disabled={isPending}
+                    onClick={() => setConfirmOpen(true)}
+                  >
+                    {isPending ? "Completing Order... " : "Complete Order"}
+                  </Button>
+                </div>
+              </section>
+            )}
+            {order.status === "Completed" && (
+              <section className="flex-col flex gap-2">
+                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <ShieldHalf className="h-4 w-4 text-muted-foreground" />
+                  Action
+                </h4>
+                <div className="rounded-xl border border-border bg-card p-3 flex flex-col gap-1">
+                  <Button
+                    className="shrink-0 text-white"
+                    disabled={isResending}
+                    onClick={() => resendTickets(String(order.orderId))}
+                  >
+                    <SendIcon className="h-4 w-4" />
+                    {isResending ? "Resending Tickets..." : "Resend Tickets"}
+                  </Button>
+                </div>
+              </section>
+            )}
+            Event & Tickets
             <section className="flex flex-col gap-1.5">
               <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <UserIcon className="h-4 w-4 text-muted-foreground" />
@@ -78,7 +144,6 @@ export const OrderDetailsSheet = ({
                 </p>
               </div>
             </section>
-
             <section className="flex flex-col gap-1.5">
               <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <PackageIcon className="h-4 w-4 text-muted-foreground" />
@@ -112,7 +177,6 @@ export const OrderDetailsSheet = ({
                 </span>
               </div>
             </section>
-
             <section className="flex flex-col gap-1.5">
               <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <CreditCardIcon className="h-4 w-4 text-muted-foreground" />
@@ -163,7 +227,6 @@ export const OrderDetailsSheet = ({
                 </p>
               )}
             </section>
-
             <section className="flex flex-col gap-2">
               <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <CalendarDaysIcon className="h-4 w-4 text-muted-foreground" />
@@ -185,6 +248,18 @@ export const OrderDetailsSheet = ({
                     {event.totalTickets === 1 ? "" : "s"} ·{" "}
                     {event.checkedInCount}/{event.totalTickets} checked in
                   </span>
+                  {event.ticketIdentifiers?.length ? (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {event.ticketIdentifiers.map((identifier) => (
+                        <span
+                          key={identifier}
+                          className="rounded-md border border-border bg-muted px-2 py-0.5 font-mono text-[11px] text-foreground"
+                        >
+                          {identifier}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               ))}
               {order.events.length === 0 && (
@@ -196,6 +271,15 @@ export const OrderDetailsSheet = ({
           </div>
         )}
       </SheetContent>
+      <CompleteOrderConfirmDialog
+        order={order}
+        open={confirmOpen}
+        isPending={isPending}
+        onOpenChange={setConfirmOpen}
+        onConfirm={completeOrder}
+      />
     </Sheet>
   );
 };
+
+

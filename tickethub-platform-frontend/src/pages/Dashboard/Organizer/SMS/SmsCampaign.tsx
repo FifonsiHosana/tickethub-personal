@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CampaignComposer } from "@/components/sections/Dashboard/Organizer/SMS/CampaignComposer";
 import {
@@ -12,13 +12,16 @@ import {
   // useEventTickets,
   useTicketHoldersPhoneNumbers,
 } from "@/hooks/organizers/useOrganizerSms";
+import { useDashboardEventFilter } from "@/components/shared/date/useDashboardEventFilter";
 import {
   audienceLabel,
   normalizeRecipients,
   calculateCreditUsage,
 } from "@/lib/sms";
 
-export default function SmsCampaign() {
+type SmsCampaignProps = { embedded?: boolean };
+
+export default function SmsCampaign({ embedded = false }: SmsCampaignProps) {
   const [message, setMessage] = useState("");
   const [scheduled, setScheduled] = useState(false);
   const [audience, setAudience] = useState<AudienceSelection>({
@@ -29,6 +32,24 @@ export default function SmsCampaign() {
   });
   const [previewOpen, setPreviewOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const { eventIdNumber } = useDashboardEventFilter();
+
+  useEffect(() => {
+    setAudience((prev) => {
+      if (prev.mode !== "event") return prev;
+      if (!eventIdNumber) {
+        if (!prev.eventId) return prev;
+        return { ...prev, eventId: undefined, groupIds: [], allGroups: false };
+      }
+      if (prev.eventId === eventIdNumber) return prev;
+      return {
+        ...prev,
+        eventId: eventIdNumber,
+        groupIds: [],
+        allGroups: false,
+      };
+    });
+  }, [eventIdNumber]);
 
   const { data: wallet } = useCreditWallet();
   // const { data: eventTickets = [] } = useEventTickets(audience.mode === 'event' ? audience.eventId ?? null : null);
@@ -131,7 +152,7 @@ export default function SmsCampaign() {
   };
 
   return (
-    <div className="flex w-full flex-col gap-6 bg-background p-6 md:p-8 lg:p-10">
+    <div className={`flex w-full flex-col gap-6 bg-background ${embedded ? "p-0" : "p-6 md:p-8 lg:p-10"}`}>
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <AudienceFilter
           selection={audience}
@@ -162,3 +183,7 @@ export default function SmsCampaign() {
     </div>
   );
 }
+
+
+
+

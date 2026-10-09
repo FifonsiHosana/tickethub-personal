@@ -22,7 +22,13 @@ export const checkInTicketSchema = z.object({
 });
 
 export const resendMailSchema = z.object({
-  orderId: z.string().min(1).max(500),
+  orderId: z.coerce.number().int().positive(),
+});
+
+export const generateTicketsSchema = z.object({
+  orderId: z.coerce.number().int().positive(),
 });
 
 export type PurchaseTicketType = z.infer<typeof purchaseTicketSchema>;
+export type GenerateTicketsType = z.infer<typeof generateTicketsSchema>;
+

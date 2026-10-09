@@ -13,15 +13,16 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { useSendOtp } from "@/hooks/useAuth";
+import { contactChannel } from "@/utils/authIdentity";
 
-const emailSchema = z.object({
-  email: z.email("Enter a valid email"),
+const identitySchema = z.object({
+  identifier: z.string().trim().min(1, "Enter your email or phone number"),
 });
 
-type EmailFormValues = z.infer<typeof emailSchema>;
+type IdentityFormValues = z.infer<typeof identitySchema>;
 
 type Props = {
-  onNext: (email: string) => void;
+  onNext: (identifier: string) => void;
 };
 
 export function SignUpEmailStep({ onNext }: Props) {
@@ -32,23 +33,28 @@ export function SignUpEmailStep({ onNext }: Props) {
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<EmailFormValues>({
-    resolver: zodResolver(emailSchema),
-    defaultValues: { email: "" },
+  } = useForm<IdentityFormValues>({
+    resolver: zodResolver(identitySchema),
+    defaultValues: { identifier: "" },
     mode: "onChange",
   });
 
-  const onSubmit = async (data: EmailFormValues) => {
+  const onSubmit = async (data: IdentityFormValues) => {
+    const identifier = data.identifier.trim();
+    const channel = contactChannel(identifier);
+
     try {
-      const response = await sendOtp({ email: data.email });
+      const response = await sendOtp({ identifier });
 
       if (response.data?.active) {
         setAccountExists(true);
         return;
       }
 
-      toast.success("Verification code sent to your email.");
-      onNext(data.email);
+      toast.success(
+        `Verification code sent to your ${channel === "email" ? "email" : "phone"}.`,
+      );
+      onNext(identifier);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to send code.";
@@ -61,7 +67,7 @@ export function SignUpEmailStep({ onNext }: Props) {
       <div className="mx-auto flex w-full max-w-sm flex-col items-center gap-4 mt-2 text-center">
         <h1 className="text-3xl font-bold">You already have an account</h1>
         <p className="text-balance text-muted-foreground text-sm">
-          An account with this email already exists. Log in and you can create
+          An account with this email or phone already exists. Log in and you can create
           an event or keep browsing tickets.
         </p>
         <Link to="/login" className="w-full">
@@ -82,21 +88,21 @@ export function SignUpEmailStep({ onNext }: Props) {
           </div>
 
           <Field>
-            <FieldLabel htmlFor="email">Email</FieldLabel>
+            <FieldLabel htmlFor="identifier">Email/Phone</FieldLabel>
             <Controller
-              name="email"
+              name="identifier"
               control={control}
               render={({ field }) => (
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  autoComplete="email"
+                  id="identifier"
+                  type="text"
+                  placeholder="m@example.com or 055XXXXXXX"
+                  autoComplete="username"
                   {...field}
                 />
               )}
             />
-            {errors.email && <FieldError>{errors.email.message}</FieldError>}
+            {errors.identifier && <FieldError>{errors.identifier.message}</FieldError>}
           </Field>
 
           <Field>

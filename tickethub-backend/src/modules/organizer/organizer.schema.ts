@@ -1,4 +1,12 @@
 import { z } from 'zod';
+import { isGoogleMapLink } from '@/utils/googleMapLink.js';
+
+const eventDateTimeSchema = z.union([
+  z.iso.datetime(),
+  z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?$/),
+]);
 
 const eventMediaSchema = z.object({
   imageUrl: z.url(),
@@ -12,8 +20,8 @@ export const createOrganizerEventSchema = z.object({
   eventVenueId: z.number().int().positive().optional(),
 
   media: z.array(eventMediaSchema).optional(),
-  dateAndTime: z.iso.datetime(),
-  dateAndTimeEnd: z.iso.datetime().optional(),
+  dateAndTime: eventDateTimeSchema,
+  dateAndTimeEnd: eventDateTimeSchema.optional(),
   capacity: z.number().int().positive(),
   termsAndConditions: z.string().max(5000).optional(),
 });
@@ -25,18 +33,37 @@ export const updateOrganizerEventSchema = z.object({
   venue: z
     .object({
       venue_name: z.string().trim().min(1, 'Venue name is required'),
-      address: z.string().optional(),
+      address: z.string().nullable().optional(),
       city_or_town: z.string().trim().min(1, 'City/Town is required'),
       country: z.string().trim().min(1, 'Country is required'),
-      googleMapLink: z.string().optional(),
+      googleMapLink: z.string().refine(isGoogleMapLink, 'Enter a valid Google Maps link').nullable().optional(),
     })
     .optional(),
   media: z.array(eventMediaSchema).optional(),
-  dateAndTime: z.iso.datetime().optional(),
-  dateAndTimeEnd: z.iso.datetime().optional(),
+  dateAndTime: eventDateTimeSchema.optional(),
+  dateAndTimeEnd: eventDateTimeSchema.nullable().optional(),
   capacity: z.number().int().positive().optional(),
   categoryIds: z.array(z.number().int().positive()).optional(),
-  termsAndConditions: z.string().max(5000).optional(),
+  termsAndConditions: z.string().max(5000).nullable().optional(),
+  tickets: z
+    .object({
+      upsert: z
+        .array(
+          z.object({
+            id: z.number().int().positive().optional(),
+            ticketTypeName: z.string().trim().min(2),
+            price: z.number().positive(),
+            totalCount: z.number().int().positive().optional(),
+            salesStartDate: eventDateTimeSchema.optional(),
+            salesEndDate: eventDateTimeSchema.optional(),
+            benefits: z.string().max(5000).optional(),
+            isVisible: z.boolean().optional(),
+          }),
+        )
+        .optional(),
+      deleteIds: z.array(z.number().int().positive()).optional(),
+    })
+    .optional(),
 });
 
 export const organizerEventsQuerySchema = z.object({
@@ -63,7 +90,7 @@ export const createEventWithTicketsSchema = z
         address: z.string().optional(),
         city_or_town: z.string().trim().min(1, 'City/Town is required'),
         country: z.string().trim().min(1, 'Country is required'),
-        googleMapLink: z.string().optional(),
+        googleMapLink: z.string().refine(isGoogleMapLink, 'Enter a valid Google Maps link').optional(),
       })
       .optional(),
     media: z
@@ -74,26 +101,22 @@ export const createEventWithTicketsSchema = z
         }),
       )
       .optional(),
-    dateAndTime: z.iso.datetime(),
-    dateAndTimeEnd: z.iso.datetime().optional(),
+    dateAndTime: eventDateTimeSchema,
+    dateAndTimeEnd: eventDateTimeSchema.optional(),
     capacity: z.number().int().positive(),
     termsAndConditions: z.string().max(5000).optional(),
     categoryIds: z.array(z.number().int().positive()).optional(),
     tickets: z
       .array(
         z.object({
-          name: z
-            .string()
-            .trim()
-            .min(3, 'Ticket name must be at least 3 characters'),
           ticketTypeId: z.number().int().positive().optional(),
           ticketTypeName: z.string().trim().min(2).optional(),
-          ticketTypeDescription: z.string().max(255).optional(),
           price: z.number().positive(),
           totalCount: z.number().int().positive().optional(),
-          salesStartDate: z.iso.datetime().optional(),
-          salesEndDate: z.iso.datetime().optional(),
+          salesStartDate: eventDateTimeSchema.optional(),
+          salesEndDate: eventDateTimeSchema.optional(),
           benefits: z.string().max(5000).optional(),
+          isVisible: z.boolean().optional(),
         }),
       )
       .min(1, 'At least one ticket is required'),
@@ -121,7 +144,7 @@ export const createVenueSchema = z.object({
   address: z.string().optional(),
   city_or_town: z.string().min(1, 'City/Town is required'),
   country: z.string().min(1, 'Country is required'),
-  googleMapLink: z.string().optional(),
+  googleMapLink: z.string().refine(isGoogleMapLink, 'Enter a valid Google Maps link').optional(),
 });
 
 export const assignStaffSchema = z.object({
@@ -135,3 +158,6 @@ export const listOrganizerStaffQuerySchema = z.object({
 export type CreateVenueType = z.infer<typeof createVenueSchema>;
 export type AssignStaffType = z.infer<typeof assignStaffSchema>;
 export type ListOrganizerStaffQueryType = z.infer<typeof listOrganizerStaffQuerySchema>;
+
+
+

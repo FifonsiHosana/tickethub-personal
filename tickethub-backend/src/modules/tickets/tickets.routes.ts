@@ -5,6 +5,7 @@ import {
   purchaseTicketSchema,
   checkInTicketSchema,
   resendMailSchema,
+  generateTicketsSchema,
 } from './tickets.schema.js';
 import {
   authenticate,
@@ -13,6 +14,13 @@ import {
 import { authorize } from '@/middleware/auth/role.middleware.js';
 
 const router = Router();
+
+router.get(
+  '/events/:eventId/phone-numbers',
+  authenticate,
+  authorize('organizer', 'event_staff'),
+  controller.getAtttendeesPhoneNumber,
+);
 
 /**
  * Public ticket detail (no auth)
@@ -27,6 +35,17 @@ router.post(
   optionalAuthenticate,
   validate(purchaseTicketSchema),
   controller.purchaseTickets,
+);
+
+/**
+ * Staff/organizer generates tickets
+ */
+router.post(
+  '/status',
+  authenticate,
+  authorize('organizer', 'event_staff'),
+  validate(generateTicketsSchema),
+  controller.generateTickets,
 );
 
 /**
@@ -53,10 +72,5 @@ router.post(
   controller.resendEmail,
 );
 
-router.get(
-  '/events/:eventId/phone-numbers',
-  authenticate,
-  authorize('organizer', 'event_staff'),
-  controller.getAtttendeesPhoneNumber,
-);
 export default router;
+

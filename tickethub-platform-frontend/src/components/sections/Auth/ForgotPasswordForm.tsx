@@ -1,142 +1,47 @@
 import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
-import { z } from "zod";
-import { Link } from "react-router";
-import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { assets } from "@/assets/assets";
-import { useRequestPasswordReset } from "@/hooks/useAuth";
+import { ForgotPasswordPhoneResetStep } from "./ForgotPasswordPhoneResetStep";
+import { ForgotPasswordRequestStep } from "./ForgotPasswordRequestStep";
+import { ForgotPasswordResult } from "./ForgotPasswordResult";
+import { ForgotPasswordShell } from "./ForgotPasswordShell";
 
-const forgotPasswordSchema = z.object({
-  email: z.email().nonempty({ message: "Enter a valid email." }),
-});
-
-type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
+type Step = "request" | "email-sent" | "phone-code" | "done";
 
 export function ForgotPasswordForm() {
-  const [submitted, setSubmitted] = useState(false);
-  const { mutateAsync: requestReset, isPending: isRequesting } =
-    useRequestPasswordReset();
-
-  const {
-    handleSubmit,
-    control,
-    formState: { errors },
-  } = useForm<ForgotPasswordFormValues>({
-    resolver: zodResolver(forgotPasswordSchema),
-    defaultValues: { email: "" },
-    mode: "onChange",
-  });
-
-  const onSubmit = async (data: ForgotPasswordFormValues) => {
-    try {
-      await requestReset(data);
-      setSubmitted(true);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to send reset link.";
-      toast.error(message);
-    }
-  };
+  const [step, setStep] = useState<Step>("request");
+  const [phoneIdentifier, setPhoneIdentifier] = useState("");
 
   return (
-    <div className="min-h-screen w-full lg:grid lg:grid-cols-2">
-      <div className="relative hidden bg-muted lg:block">
-        <img
-          src={assets.Hero4}
-          alt="Concert Crowd"
-          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+    <ForgotPasswordShell>
+      {step === "request" && (
+        <ForgotPasswordRequestStep
+          onEmailSent={() => setStep("email-sent")}
+          onPhoneSent={(identifier) => {
+            setPhoneIdentifier(identifier);
+            setStep("phone-code");
+          }}
         />
-      </div>
+      )}
 
-      <div className="flex flex-col items-center justify-center p-8 sm:p-12 h-screen lg:h-full">
-        <Link className="hover:cursor-pointer" to="/">
-          <img
-            src={assets.TicketHubLogo}
-            width={72}
-            height={72}
-            alt="TicketHub Logo"
-          />
-        </Link>
-        <div className="mx-auto flex w-full max-w-sm flex-col gap-6 mt-2">
-          {submitted ? (
-            <div className="flex flex-col items-center gap-3 text-center">
-              <h1 className="text-2xl font-bold">Check your email</h1>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                If an account exists for that email, a password reset link has
-                been sent. The link expires in 60 minutes.
-              </p>
-              <Link
-                to="/login"
-                className="mt-2 text-sm font-medium text-primary/80 underline underline-offset-4 hover:text-primary/70"
-              >
-                Back to login
-              </Link>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <FieldGroup>
-                <div className="flex flex-col items-center gap-2 text-center">
-                  <h1 className="text-3xl font-bold">Forgot your password?</h1>
-                  <p className="text-sm text-muted-foreground">
-                    Enter your email and we will send you a link to reset your
-                    password.
-                  </p>
-                </div>
+      {step === "email-sent" && (
+        <ForgotPasswordResult
+          title="Check your email"
+          message="If an account exists for that email, a password reset link has been sent. The link expires in 60 minutes."
+        />
+      )}
 
-                <Field>
-                  <FieldLabel htmlFor="email">Email</FieldLabel>
-                  <Controller
-                    name="email"
-                    control={control}
-                    render={({ field }) => (
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="m@example.com"
-                        autoComplete="email"
-                        {...field}
-                      />
-                    )}
-                  />
-                  {errors.email && (
-                    <FieldError>{errors.email.message}</FieldError>
-                  )}
-                </Field>
+      {step === "phone-code" && (
+        <ForgotPasswordPhoneResetStep
+          identifier={phoneIdentifier}
+          onComplete={() => setStep("done")}
+        />
+      )}
 
-                <Field>
-                  <Button
-                    type="submit"
-                    className="w-full mt-2 rounded-full"
-                    disabled={isRequesting}
-                  >
-                    {isRequesting ? "Sending..." : "Send reset link"}
-                  </Button>
-                </Field>
-
-                <FieldDescription className="mt-4 text-center text-sm">
-                  Remembered it?{" "}
-                  <Link
-                    to="/login"
-                    className="underline underline-offset-4 text-primary/80 hover:text-primary/70 font-medium"
-                  >
-                    Back to login
-                  </Link>
-                </FieldDescription>
-              </FieldGroup>
-            </form>
-          )}
-        </div>
-      </div>
-    </div>
+      {step === "done" && (
+        <ForgotPasswordResult
+          title="Password updated"
+          message="Your password has been updated successfully. Please sign in with your new password."
+        />
+      )}
+    </ForgotPasswordShell>
   );
 }

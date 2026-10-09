@@ -4,11 +4,15 @@ import {
   type AuthRegisterPayload,
   type CompleteRegisterPayload,
   type ForgotPasswordPayload,
+  type RequestPhoneLoginOtpPayload,
+  type VerifyPhoneLoginOtpPayload,
   type OtpPayload,
   type ResendOtpPayload,
   type ResetPasswordPayload,
   type SendOtpPayload,
   signInWithEmailAndPassword,
+  requestPhoneLoginOtp,
+  verifyPhoneLoginOtp,
   signUpWithEmailAndPassword,
   verifyOtp,
   resendOtp,
@@ -34,6 +38,20 @@ export const useSignInWithEmailAndPassword = () => {
   });
 };
 
+
+export const useRequestPhoneLoginOtp = () => {
+  return useMutation({
+    mutationFn: (payload: RequestPhoneLoginOtpPayload) =>
+      requestPhoneLoginOtp(payload),
+  });
+};
+
+export const useVerifyPhoneLoginOtp = () => {
+  return useMutation({
+    mutationFn: (payload: VerifyPhoneLoginOtpPayload) =>
+      verifyPhoneLoginOtp(payload),
+  });
+};
 export const useSignUpWithEmailAndPassword = () => {
   return useMutation({
     mutationFn: (payload: AuthRegisterPayload) =>
@@ -98,3 +116,4 @@ export const useResetPassword = () => {
     mutationFn: (payload: ResetPasswordPayload) => resetPassword(payload),
   });
 };
+

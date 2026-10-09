@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import type { Event } from "@/types/event.types";
 import EventBanner from "./EventBanner";
-import { directionsUrl, formatEventDates } from "./eventUtils";
+import { directionsUrl, formatEventDates, organizerDisplayName } from "./eventUtils";
 import { downloadIcs } from "@/utils/calendar";
 
 interface EventHeroProps {
@@ -94,6 +94,10 @@ export const EventHero: React.FC<EventHeroProps> = ({
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-[1.1] tracking-tight mb-3 text-pretty">
                   {event.title.toUpperCase()}
                 </h1>
+
+                <p className="text-sm font-medium text-stone-600">
+                  By {organizerDisplayName(event)}
+                </p>
 
                 {/* Event details */}
                 <div className="flex flex-wrap gap-x-6 gap-y-3 text-stone-700 justify-center sm:justify-start">

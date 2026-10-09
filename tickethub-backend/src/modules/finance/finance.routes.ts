@@ -2,6 +2,7 @@ import express, { Router } from 'express';
 import { FinanceController } from './finance.controller.js';
 import { validate } from '@/middleware/validate.js';
 import { purchaseTicketPaymentSchema } from './finance.schema.js';
+import { checkoutAttemptLimit } from '@/middleware/rateLimit.js';
 
 const router = Router();
 
@@ -14,9 +15,11 @@ router.get(
 router.get('/banks', financeController.getBanks);
 router.post(
   '/',
+  checkoutAttemptLimit,
   validate(purchaseTicketPaymentSchema),
   financeController.handlePayment,
 );
 router.post('/webhook/paystack', financeController.paystackWebhookHandler);
 
 export default router;
+

@@ -20,6 +20,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+// import { Button } from "@/components/ui/button";
+// import { useChangeOrganizerStatus } from "@/hooks/organizers/useOrganizerStatus";
 
 interface OrderDetailsSheetProps {
   order: OrderHistoryOrder | null;
@@ -62,6 +64,40 @@ export const OrderDetailsSheet = ({
 
         {order && (
           <div className="flex flex-col gap-6 p-4 pt-0">
+            <section className="flex flex-col gap-2">
+              <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <CalendarDaysIcon className="h-4 w-4 text-muted-foreground" />
+                Event & Tickets
+              </h4>
+              {order.events.map((event) => (
+                <div
+                  key={event.eventId}
+                  className="rounded-xl border border-border bg-card p-3 flex flex-col gap-1"
+                >
+                  <span className="font-medium text-foreground">
+                    {event.eventTitle}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {formatDate(event.eventDate)}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {event.ticketSummary || "—"}
+                  </span>
+                  <span className="text-xs text-muted-foreground mt-1">
+                    {event.totalTickets} ticket
+                    {event.totalTickets === 1 ? "" : "s"} ·{" "}
+                    {event.checkedInCount}/{event.totalTickets} checked in
+                  </span>
+                  {/* {event.ticket} */}
+                  <span>View tickets</span>
+                </div>
+              ))}
+              {order.events.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  No event details available.
+                </p>
+              )}
+            </section>
             <section className="flex flex-col gap-1.5">
               <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <UserIcon className="h-4 w-4 text-muted-foreground" />
@@ -175,39 +211,6 @@ export const OrderDetailsSheet = ({
               ) : (
                 <p className="text-sm text-muted-foreground">
                   No payment record yet for this order.
-                </p>
-              )}
-            </section>
-
-            <section className="flex flex-col gap-2">
-              <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <CalendarDaysIcon className="h-4 w-4 text-muted-foreground" />
-                Event & Tickets
-              </h4>
-              {order.events.map((event) => (
-                <div
-                  key={event.eventId}
-                  className="rounded-xl border border-border bg-card p-3 flex flex-col gap-1"
-                >
-                  <span className="font-medium text-foreground">
-                    {event.eventTitle}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {formatDate(event.eventDate)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {event.ticketSummary || "—"}
-                  </span>
-                  <span className="text-xs text-muted-foreground mt-1">
-                    {event.totalTickets} ticket
-                    {event.totalTickets === 1 ? "" : "s"} ·{" "}
-                    {event.checkedInCount}/{event.totalTickets} checked in
-                  </span>
-                </div>
-              ))}
-              {order.events.length === 0 && (
-                <p className="text-sm text-muted-foreground">
-                  No event details available.
                 </p>
               )}
             </section>

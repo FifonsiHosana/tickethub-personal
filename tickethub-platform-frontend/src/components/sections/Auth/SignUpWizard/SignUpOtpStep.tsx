@@ -7,12 +7,12 @@ import { useSendOtp } from "@/hooks/useAuth";
 const DIGIT_COUNT = 6;
 
 type Props = {
-  email: string;
+  identifier: string;
   onNext: (otp: string) => void;
   onBack: () => void;
 };
 
-export function SignUpOtpStep({ email, onNext, onBack }: Props) {
+export function SignUpOtpStep({ identifier, onNext, onBack }: Props) {
   const { mutateAsync: sendOtp, isPending: isSending } = useSendOtp();
   const [digits, setDigits] = useState<string[]>(Array(DIGIT_COUNT).fill(""));
   const [error, setError] = useState("");
@@ -47,8 +47,8 @@ export function SignUpOtpStep({ email, onNext, onBack }: Props) {
 
   async function handleResend() {
     try {
-      await sendOtp({ email });
-      toast.success("New code sent to your email.");
+      await sendOtp({ identifier });
+      toast.success("New code sent.");
     } catch {
       toast.error("Failed to resend code.");
     }
@@ -57,11 +57,11 @@ export function SignUpOtpStep({ email, onNext, onBack }: Props) {
   return (
     <div className="mx-auto flex w-full max-w-sm flex-col items-center gap-6 mt-2">
       <div className="text-center">
-        <h1 className="text-3xl font-bold">Verify your email</h1>
+        <h1 className="text-3xl font-bold">Verify your account</h1>
         <p className="text-muted-foreground text-sm mt-2">
           Enter the 6-digit code sent to
           <br />
-          <span className="font-medium text-foreground">{email}</span>
+          <span className="font-medium text-foreground">{identifier}</span>
         </p>
       </div>
 
@@ -98,7 +98,7 @@ export function SignUpOtpStep({ email, onNext, onBack }: Props) {
           className="text-muted-foreground underline underline-offset-4 hover:text-primary font-medium"
           onClick={onBack}
         >
-          Change email
+          Change email/phone
         </button>
         <button
           type="button"

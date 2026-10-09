@@ -61,7 +61,7 @@ class TicketsController {
   async resendEmail(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await ticketsService.resendEmail(
-        req.body.orderId,
+        Number(req.body.orderId),
         // req.user.id,
       );
 
@@ -103,6 +103,22 @@ class TicketsController {
         groupIds,
       );
       return res.json({ success: true, data: phoneNumbers });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async generateTickets(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { orderId } = req.body;
+      const result = await ticketsService.generateTickets({
+        orderId,
+      });
+
+      return res.status(201).json({
+        success: true,
+        data: result,
+      });
     } catch (error) {
       next(error);
     }

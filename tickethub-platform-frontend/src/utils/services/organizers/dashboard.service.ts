@@ -60,6 +60,7 @@ export interface DashboardParams {
   topSellingPageSize?: number;
   from?: string;
   to?: string;
+  eventId?: number;
 }
 
 export async function getOrganizerDashboardData(
@@ -71,4 +72,6 @@ export async function getOrganizerDashboardData(
 
   return response.data.data;
 }
+
+
 

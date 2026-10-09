@@ -12,6 +12,10 @@ import {
 import { useCreateOrganizerEventWithTickets } from "@/hooks/organizers/useOrganizerEvents";
 import { useOrganizerMedia } from "@/hooks/organizers/useOrganizerMedia";
 import type { TicketPayload } from "@/utils/services/organizers/events.service";
+import { toEventApiDate } from "@/utils/eventDate";
+import { richTextOrUndefined } from "@/utils/richText";
+import { DEFAULT_EVENT_TERMS } from "@/utils/eventTerms";
+import { normalizeGoogleMapLink } from "@/utils/googleMapLink";
 
 import {
   Card,
@@ -72,12 +76,22 @@ export default function CreateEvent() {
       capacity: undefined,
       dateAndTime: "",
       dateAndTimeEnd: "",
-      // termsAndConditions: "",
+      termsAndConditions: "",
       categoryIds: [],
       bannerImage: undefined,
       tickets: [],
     },
   });
+  // useEffect(() => {
+  //   const sub = form.watch((value, { name, type }) => {
+  //     console.log("[watch]", {
+  //       name,
+  //       type,
+  //       value: name ? form.getValues(name) : undefined,
+  //     });
+  //   });
+  //   return () => sub.unsubscribe();
+  // }, [form]);
 
   const ticketFieldArray = useFieldArray({
     control: form.control,
@@ -86,8 +100,6 @@ export default function CreateEvent() {
 
   const { fields, remove } = ticketFieldArray;
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const DEFAULT_TERMS =
-    "By purchasing a ticket, you agree to abide by the event organizer's policies. All sales are final unless otherwise stated.";
 
   function onInvalid(errors: unknown) {
     toast.error(
@@ -102,27 +114,22 @@ export default function CreateEvent() {
       const [{ url }] = await uploadMedia([values.bannerImage]);
       if (!url) throw new Error("Upload failed");
 
-      const toIso = (v?: string) =>
-        v?.trim() ? new Date(v).toISOString() : undefined;
-
       const tickets: TicketPayload[] = values.tickets.map((t) => ({
-        name: t.name,
-        ...(t.ticketTypeId ? { ticketTypeId: t.ticketTypeId } : {}),
         ...(t.ticketTypeName ? { ticketTypeName: t.ticketTypeName } : {}),
         price: t.price,
         ...(t.totalCount ? { totalCount: t.totalCount } : {}),
         ...(t.benefits ? { benefits: t.benefits } : {}),
-        ...(toIso(t.salesStartDate)
-          ? { salesStartDate: toIso(t.salesStartDate) }
+        ...(toEventApiDate(t.salesStartDate)
+          ? { salesStartDate: toEventApiDate(t.salesStartDate) }
           : {}),
-        ...(toIso(t.salesEndDate)
-          ? { salesEndDate: toIso(t.salesEndDate) }
+        ...(toEventApiDate(t.salesEndDate)
+          ? { salesEndDate: toEventApiDate(t.salesEndDate) }
           : {}),
       }));
 
       const result = (await createEvent({
         title: values.title,
-        description: values.description || undefined,
+        description: richTextOrUndefined(values.description),
         ...(values.eventVenueId
           ? { eventVenueId: values.eventVenueId }
           : {
@@ -131,15 +138,17 @@ export default function CreateEvent() {
                 address: values.venue.address?.trim() || undefined,
                 city_or_town: values.venue.city_or_town.trim(),
                 country: values.venue.country.trim(),
-                googleMapLink: values.venue.googleMapLink?.trim() || undefined,
+                googleMapLink: normalizeGoogleMapLink(
+                  values.venue.googleMapLink,
+                ),
               },
             }),
         capacity: values.capacity,
-        dateAndTime: new Date(values.dateAndTime).toISOString(),
-        dateAndTimeEnd: new Date(values.dateAndTimeEnd).toISOString(),
+        dateAndTime: toEventApiDate(values.dateAndTime) ?? "",
+        dateAndTimeEnd: toEventApiDate(values.dateAndTimeEnd),
         termsAndConditions: values.termsAndConditions?.trim()
           ? values.termsAndConditions
-          : DEFAULT_TERMS,
+          : DEFAULT_EVENT_TERMS,
         categoryIds: values.categoryIds,
         media: [{ imageUrl: url, type: "Banner" }],
         tickets,
@@ -178,15 +187,15 @@ export default function CreateEvent() {
                 {/* Step 1: Event Details */}
                 <div
                   id="step-0"
-                  className="scroll-mt-24 grid grid-cols-1 lg:grid-cols-7 gap-2 items-start"
+                  className="scroll-mt-24 grid grid-rows-1 gap-2 items-start"
                 >
-                  <Card className="col-span-5">
+                  <Card className="">
                     <CardContent className="pt-4">
                       <EventBasicFields />
                     </CardContent>
                   </Card>
 
-                  <div className="col-span-2 ">
+                  <div className=" ">
                     <MediaUploadCard
                       control={form.control}
                       imagePreview={imagePreview}

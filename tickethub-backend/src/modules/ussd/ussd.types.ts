@@ -1,4 +1,4 @@
-export type TelcoProviders = "mtn" | "vod" | "atl";
+export type TelcoProviders = 'mtn' | 'vod' | 'atl';
 
 export interface EventDetails {
   id: number;
@@ -6,7 +6,14 @@ export interface EventDetails {
   time: string;
   location: string;
   description: string | null;
-  ticketTypes: { id: number; name: string; price: number; remaining: number; totalCount:number; eventTicketId: number }[];
+  ticketTypes: {
+    id: number;
+    name: string;
+    price: number;
+    remaining: number;
+    totalCount: number;
+    eventTicketId: number;
+  }[];
 }
 
 export type Category = { id: number; name: string };
@@ -22,6 +29,7 @@ export type sessionContext = {
 };
 
 export type MenuNode = {
+  invalidMessage?: string;
   id: string;
   prompt(context: sessionContext): Promise<string> | string;
   data?: string;

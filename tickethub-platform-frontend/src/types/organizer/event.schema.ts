@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isGoogleMapLink } from "@/utils/googleMapLink";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
@@ -18,12 +19,15 @@ const imageSchema = z
   );
 
 export const ticketSchema = z.object({
-  name: z.string().min(3, "Ticket name must be at least 3 characters"),
+  id: z.number().positive().optional(),
   ticketTypeId: z.number().positive().optional(),
-  ticketTypeName: z.string().optional(),
+  ticketTypeName: z.string().trim().min(2, "Ticket type is required"),
   price: z.number().positive("Price must be positive"),
   totalCount: z.number().positive("Quantity must be positive").optional(),
+  totalSold: z.number().optional(),
+  remaining: z.number().optional(),
   benefits: z.string().optional(),
+  isVisible: z.boolean().optional(),
   salesStartDate: z.string().optional(),
   salesEndDate: z.string().optional(),
 });
@@ -35,7 +39,7 @@ export const venueSchema = z.object({
   address: z.string().optional(),
   city_or_town: z.string().min(1, "City/Town is required"),
   country: z.string().min(1, "Country is required"),
-  googleMapLink: z.string().optional(),
+  googleMapLink: z.string().optional().refine(isGoogleMapLink, "Enter a valid Google Maps link"),
 });
 
 export type VenueFormValues = z.infer<typeof venueSchema>;
@@ -59,7 +63,7 @@ export const createEventSchema = z
 
     dateAndTimeEnd: z.string().min(1, "Please select an end date and time"),
 
-    termsAndConditions: z.string(),
+    termsAndConditions: z.string().optional(),
 
     categoryIds: z.array(z.number().int().positive()).optional(),
 
@@ -122,7 +126,7 @@ export const editEventSchema = z
 
     dateAndTimeEnd: z.string().optional(),
 
-    termsAndConditions: z.string(),
+    termsAndConditions: z.string().optional(),
 
     categoryIds: z.array(z.number().int().positive()).optional(),
 
@@ -159,3 +163,9 @@ export const editEventSchema = z
   );
 
 export type EditEventFormValues = z.infer<typeof editEventSchema>;
+
+
+
+
+
+

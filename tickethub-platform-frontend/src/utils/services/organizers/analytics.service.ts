@@ -11,6 +11,7 @@ export type AnalyticsOverviewResponse = {
 export type RevenueTrendParams = {
   from?: string;
   to?: string;
+  eventId?: number;
 };
 
 export type RevenueTrendResponse = {
@@ -50,6 +51,7 @@ export type AnalyticsSearchParams = {
   search?: string;
   from?: string;
   to?: string;
+  eventId?: number;
 };
 
 // Standard API Response Wrapper
@@ -62,6 +64,7 @@ export type ApiResponse<T> = {
 export type DateRangeParams = {
   from?: string;
   to?: string;
+  eventId?: number;
 };
 
 export async function getOverviewAnalytics(
@@ -106,3 +109,4 @@ export async function getTicketPerformance(
     pagination: response.data.pagination ?? { page: 1, pageSize: 10, total: 0, totalPages: 0 },
   };
 }
+

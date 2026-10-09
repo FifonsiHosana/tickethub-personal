@@ -31,6 +31,41 @@ export type OrganizerPerf = {
   totalTicketsSold: number;
 };
 
+export type CompletedOrder = {
+  orderId: number;
+  buyerName: string;
+  buyerEmail: string;
+  buyerPhone: string;
+  organizerName: string;
+  organizerEmail: string;
+  eventSummary: string;
+  ticketCount: number;
+  amount: number;
+  feeAmount: number;
+  provider: string;
+  reference: string;
+  currency: string;
+  paidAt: string | null;
+};
+
+export type CompletedOrdersParams = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  from?: string;
+  to?: string;
+};
+
+export type PaginatedCompletedOrders = {
+  data: CompletedOrder[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
 export async function getAdminOverview(
   from?: string,
   to?: string,
@@ -72,4 +107,23 @@ export async function getEventStats(): Promise<{
 export async function getOrganizerPerformance(): Promise<OrganizerPerf[]> {
   const response = await axiosInstance.get("admin/analytics/organizers");
   return response.data.data;
+}
+
+export async function getCompletedOrders(
+  params: CompletedOrdersParams,
+): Promise<PaginatedCompletedOrders> {
+  const response = await axiosInstance.get("admin/analytics/completed-orders", {
+    params,
+  });
+  return response.data.data;
+}
+
+export async function exportCompletedOrders(
+  params: CompletedOrdersParams & { format: "excel" | "pdf" },
+) {
+  const response = await axiosInstance.get(
+    "admin/analytics/completed-orders/export",
+    { params, responseType: "blob" },
+  );
+  return response.data as Blob;
 }

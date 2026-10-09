@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import axios from 'axios';
 import config from '@/config/config.js';
 import logger from '@/utils/logger/index.js';
+import type { TelcoProviders } from '../ussd/ussd.types.js';
 
 export const isTransactionProcessed = async (
   reference: string,
@@ -19,6 +20,48 @@ export const isTransactionProcessed = async (
 
 // const createTicket = async () => {};
 
+const PROVIDER_MAP: Record<string, TelcoProviders> = {
+  mtn: 'mtn',
+  vod: 'vod',
+  vodafone: 'vod',
+  telecel: 'vod',
+  atl: 'atl',
+  airteltigo: 'atl',
+  airtel: 'atl',
+  tigo: 'atl',
+};
+
+export const toPaystackProvider = (value: string): TelcoProviders => {
+  const provider = PROVIDER_MAP[value.trim().toLowerCase()];
+  if (!provider) {
+    throw new Error(`Unsupported mobile money provider: ${value}`);
+  }
+  return provider;
+};
+
+
+export const normalizeGhanaMobileNumber = (value: string): string => {
+  const digits = value.replace(/\D/g, '');
+
+  if (digits.startsWith('233') && digits.length === 12) {
+    return digits;
+  }
+
+  if (digits.startsWith('223') && digits.length === 12) {
+    return `233${digits.slice(3)}`;
+  }
+
+  if (digits.startsWith('0') && digits.length === 10) {
+    return `233${digits.slice(1)}`;
+  }
+
+  if (digits.length === 9) {
+    return `233${digits}`;
+  }
+
+  return digits;
+};
+
 export const sendTicket = async (
   phoneNumber: string,
   ticketMessage: string,
@@ -27,8 +70,8 @@ export const sendTicket = async (
     const response = await axios.post(
       'https://api.mnotify.com/api/sms/quick',
       {
-        recipient: [phoneNumber],
-        sender: 'mNotify', // replace with your registered sender ID
+        recipient: [normalizeGhanaMobileNumber(phoneNumber)],
+        sender: config.sms.sender_id,
         message: ticketMessage,
         is_schedule: false,
         schedule_date: '',
@@ -42,20 +85,20 @@ export const sendTicket = async (
 
     if (response.data?.status !== 'success') {
       logger.error(
-        { phoneNumber, response: response.data },
+        { phoneNumber: normalizeGhanaMobileNumber(phoneNumber), response: response.data },
         'mNotify rejected SMS',
       );
       return false;
     }
 
-    logger.info({ phoneNumber }, 'Ticket SMS sent');
+    logger.info({ phoneNumber: normalizeGhanaMobileNumber(phoneNumber) }, 'Ticket SMS sent');
     return true;
   } catch (err) {
     // log only safe fields, never the full axios error (it contains the API key in the URL)
     if (axios.isAxiosError(err)) {
       logger.error(
         {
-          phoneNumber,
+          phoneNumber: normalizeGhanaMobileNumber(phoneNumber),
           status: err.response?.status,
           data: err.response?.data,
           message: err.message,
@@ -63,7 +106,7 @@ export const sendTicket = async (
         'Failed to send ticket SMS',
       );
     } else {
-      logger.error({ phoneNumber, err }, 'Failed to send ticket SMS');
+      logger.error({ phoneNumber: normalizeGhanaMobileNumber(phoneNumber), err }, 'Failed to send ticket SMS');
     }
     return false;
   }

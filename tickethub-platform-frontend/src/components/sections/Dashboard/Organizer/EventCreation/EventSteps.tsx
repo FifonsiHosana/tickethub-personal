@@ -2,52 +2,46 @@ import React from "react";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const STEPS = ["Event Details", "Venue", "Tickets", "Publish"];
+const DEFAULT_STEPS = ["Event Details", "Venue", "Tickets", "Publish"];
 
 interface EventStepsProps {
   /** Zero-based index of the active step */
   currentStep?: number;
   /** Called when a step is clicked (e.g. scroll to that section) */
   onStepClick?: (index: number) => void;
+  steps?: string[];
 }
 
 export const EventSteps: React.FC<EventStepsProps> = ({
   currentStep = 0,
   onStepClick,
+  steps = DEFAULT_STEPS,
 }) => {
-  const currentTitle = STEPS[currentStep] || "";
-  const progressPercent = Math.round(((currentStep + 1) / STEPS.length) * 100);
+  const currentTitle = steps[currentStep] || "";
+  const progressPercent = Math.round(((currentStep + 1) / steps.length) * 100);
 
   return (
     <nav
-      aria-label="Event creation steps"
+      aria-label="Event steps"
       className="sticky top-0 z-40 border-b border-border bg-background"
     >
       <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6 sm:py-4">
-        {/* ================= MOBILE VIEW (Compact Summary & Progress Bar) ================= */}
         <div className="block sm:hidden">
           <div className="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <span>
-              {/* Step {currentStep + 1} of {STEPS.length}:{" "} */}
               <span className="font-bold text-foreground">{currentTitle}</span>
             </span>
-            {/* <span>{progressPercent}%</span> */}
           </div>
-
-          {/* Progress Bar */}
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
             <div
               className="h-full bg-primary transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
-
-          {/* Mobile Interactive Step Dots */}
           <div className="mt-3 flex items-center justify-between">
-            {STEPS.map((title, index) => {
+            {steps.map((title, index) => {
               const isActive = index === currentStep;
               const isCompleted = index < currentStep;
-
               return (
                 <button
                   key={title}
@@ -74,15 +68,12 @@ export const EventSteps: React.FC<EventStepsProps> = ({
             })}
           </div>
         </div>
-
-        {/* ================= DESKTOP & TABLET VIEW ================= */}
         <ol className="hidden items-center sm:flex">
-          {STEPS.map((title, index) => {
+          {steps.map((title, index) => {
             const isActive = index === currentStep;
             const isCompleted = index < currentStep;
             const isReached = isActive || isCompleted;
-            const isLast = index === STEPS.length - 1;
-
+            const isLast = index === steps.length - 1;
             return (
               <React.Fragment key={title}>
                 <li className="flex-1">
@@ -102,7 +93,6 @@ export const EventSteps: React.FC<EventStepsProps> = ({
                     >
                       {isCompleted ? <Check className="size-5" /> : index + 1}
                     </span>
-
                     <span className="flex flex-col text-left">
                       <span
                         className={cn(
@@ -115,9 +105,7 @@ export const EventSteps: React.FC<EventStepsProps> = ({
                       <span
                         className={cn(
                           "text-sm font-bold transition-colors whitespace-nowrap",
-                          isReached
-                            ? "text-foreground"
-                            : "text-muted-foreground",
+                          isReached ? "text-foreground" : "text-muted-foreground",
                         )}
                       >
                         {title}
@@ -125,7 +113,6 @@ export const EventSteps: React.FC<EventStepsProps> = ({
                     </span>
                   </button>
                 </li>
-
                 {!isLast && (
                   <div
                     aria-hidden="true"

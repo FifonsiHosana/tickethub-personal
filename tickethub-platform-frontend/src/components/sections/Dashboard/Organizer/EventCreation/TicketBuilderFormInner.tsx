@@ -1,21 +1,7 @@
 import { useState } from "react";
-import { PlusIcon } from "lucide-react";
-import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
 import type { TicketFormValues } from "@/types/organizer/event.schema";
-import {
-  useTicketTypes,
-  useCreateTicketType,
-} from "@/hooks/organizers/useOrganizerEventTickets";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
 export interface TicketBuilderFormProps {
@@ -29,13 +15,8 @@ export function TicketBuilderFormInner({
   onSave,
   onCancelEdit,
 }: TicketBuilderFormProps) {
-  const { data: ticketTypes = [] } = useTicketTypes();
-  const { mutateAsync: createType } = useCreateTicketType();
-  const qc = useQueryClient();
-
-  const [name, setName] = useState(editingTicket?.name ?? "");
-  const [ticketTypeId, setTicketTypeId] = useState<number | null>(
-    editingTicket?.ticketTypeId ?? null,
+  const [ticketTypeName, setTicketTypeName] = useState(
+    editingTicket?.ticketTypeName ?? "",
   );
   const [price, setPrice] = useState(editingTicket?.price ?? 0);
   const [qty, setQty] = useState<number | undefined>(editingTicket?.totalCount);
@@ -46,15 +27,12 @@ export function TicketBuilderFormInner({
   const [salesEndDate, setSalesEndDate] = useState(
     editingTicket?.salesEndDate ?? "",
   );
-  const [showNewType, setShowNewType] = useState(false);
-  const [newTypeName, setNewTypeName] = useState("");
-  const [newTypeDesc, setNewTypeDesc] = useState("");
 
   function handleSave() {
-    if (!name || !ticketTypeId || price <= 0) return;
+    const typeName = ticketTypeName.trim();
+    if (!typeName || price <= 0) return;
     onSave({
-      name,
-      ticketTypeId,
+      ticketTypeName: typeName,
       price,
       totalCount: qty,
       benefits: benefits || undefined,
@@ -65,8 +43,7 @@ export function TicketBuilderFormInner({
   }
 
   function resetForm() {
-    setName("");
-    setTicketTypeId(null);
+    setTicketTypeName("");
     setPrice(0);
     setQty(undefined);
     setBenefits("");
@@ -75,95 +52,18 @@ export function TicketBuilderFormInner({
     if (editingTicket) onCancelEdit();
   }
 
-  async function handleCreateType() {
-    if (!newTypeName) return;
-    const result = await createType({
-      name: newTypeName,
-      description: newTypeDesc || undefined,
-    });
-    qc.invalidateQueries({ queryKey: ["organizer-ticket-types"] });
-    setTicketTypeId(result.id);
-    setShowNewType(false);
-    setNewTypeName("");
-    setNewTypeDesc("");
-    toast.success("Ticket type created");
-  }
-
-  const valid = name.length >= 3 && ticketTypeId !== null && price > 0;
-  const types = ticketTypes as { id: number; name: string }[];
-
-  const selectedTicketType = types.find((t) => t.id === ticketTypeId);
+  const valid = ticketTypeName.trim().length >= 2 && price > 0;
 
   return (
     <div className="space-y-3">
-      <Input
-        placeholder="Ticket name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-
-      <div className="flex gap-2 items-end">
-        <div className="flex w-full">
-          <Select
-            value={ticketTypeId?.toString() ?? ""}
-            onValueChange={(v) => setTicketTypeId(Number(v))}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select type">
-                {selectedTicketType ? selectedTicketType.name : "Select type"}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {types.map((t) => (
-                <SelectItem key={t.id} value={t.id.toString()}>
-                  {t.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          onClick={() => setShowNewType(!showNewType)}
-        >
-          <PlusIcon className="h-4 w-4" />
-        </Button>
+      <div className="space-y-1">
+        <Label>Ticket type</Label>
+        <Input
+          placeholder="Ticket type"
+          value={ticketTypeName}
+          onChange={(e) => setTicketTypeName(e.target.value)}
+        />
       </div>
-
-      {showNewType && (
-        <div className="space-y-2 rounded-md border border-border p-3">
-          <Input
-            placeholder="Type name"
-            value={newTypeName}
-            onChange={(e) => setNewTypeName(e.target.value)}
-          />
-          <Input
-            placeholder="Description (optional)"
-            value={newTypeDesc}
-            onChange={(e) => setNewTypeDesc(e.target.value)}
-          />
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              size="sm"
-              onClick={handleCreateType}
-              disabled={!newTypeName}
-            >
-              Save Type
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              onClick={() => setShowNewType(false)}
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
-      )}
 
       <div className="grid grid-cols-2 gap-3">
         <Input
@@ -186,7 +86,7 @@ export function TicketBuilderFormInner({
       </div>
 
       <Input
-        placeholder="Benefits (optional)"
+        placeholder="Description/Benefits"
         value={benefits}
         onChange={(e) => setBenefits(e.target.value)}
       />

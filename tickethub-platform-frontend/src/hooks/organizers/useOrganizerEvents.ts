@@ -8,6 +8,7 @@ import {
   updateOrganizerEvent,
   deleteOrganizerEvent,
   cancelOrganizerEvent,
+  publishOrganizerEvent,
   getEventVenues,
   createEventVenue,
   createCategory,
@@ -56,11 +57,11 @@ export function useOrganizerEvents(params?: GetOrganizerEventsParams) {
   });
 }
 
-export function useOrganizerEvent(eventId: number) {
+export function useOrganizerEvent(eventIdentifier: string | number) {
   return useQuery({
-    queryKey: ["organizer-event", eventId],
-    queryFn: () => getOrganizerEventById(eventId),
-    enabled: !!eventId,
+    queryKey: ["organizer-event", eventIdentifier],
+    queryFn: () => getOrganizerEventById(eventIdentifier),
+    enabled: !!eventIdentifier,
   });
 }
 
@@ -99,7 +100,7 @@ export function useUpdateOrganizerEvent() {
       eventId,
       payload,
     }: {
-      eventId: number;
+      eventId: string | number;
       payload: UpdateEventPayload;
     }) => updateOrganizerEvent(eventId, payload),
     onSuccess: (_, variables) => {
@@ -109,8 +110,17 @@ export function useUpdateOrganizerEvent() {
       queryClient.invalidateQueries({
         queryKey: ["organizer-event", variables.eventId],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["events"],
+      });
     },
   });
+}
+
+function invalidateEventQueries(queryClient: ReturnType<typeof useQueryClient>) {
+  queryClient.invalidateQueries({ queryKey: ["organizer-events"] });
+  queryClient.invalidateQueries({ queryKey: ["organizer-event"] });
+  queryClient.invalidateQueries({ queryKey: ["events"] });
 }
 
 export function useCancelOrganizerEvent() {
@@ -118,12 +128,18 @@ export function useCancelOrganizerEvent() {
 
   return useMutation({
     mutationFn: (eventId: number) => cancelOrganizerEvent(eventId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["organizer-events"] });
-    },
+    onSuccess: () => invalidateEventQueries(queryClient),
   });
 }
 
+export function usePublishOrganizerEvent() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (eventId: number) => publishOrganizerEvent(eventId),
+    onSuccess: () => invalidateEventQueries(queryClient),
+  });
+}
 export function useDeleteOrganizerEvent() {
   const queryClient = useQueryClient();
 
@@ -136,3 +152,7 @@ export function useDeleteOrganizerEvent() {
     },
   });
 }
+
+
+
+

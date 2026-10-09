@@ -19,6 +19,7 @@ export interface DashboardPaginationParams {
   topSellingPageSize?: number;
   from?: string;
   to?: string;
+  eventId?: number;
 }
 
 /**
@@ -33,17 +34,19 @@ export async function getOrganizerDashboard(
   const topSellingPage = params.topSellingPage ?? 1;
   const topSellingPageSize = params.topSellingPageSize ?? 5;
   const range: DateRange = { from: params.from, to: params.to };
+  const filters = params.eventId ? { eventId: params.eventId } : undefined;
 
   const [statistics, upcomingEvents, recentSales, topSellingEvents] =
     await Promise.all([
-      getOrganizerStatistics(organizerId, range),
-      getUpcomingEvents(organizerId, upcomingPage, upcomingPageSize),
-      getRecentSales(organizerId, 5, range),
+      getOrganizerStatistics(organizerId, range, filters),
+      getUpcomingEvents(organizerId, upcomingPage, upcomingPageSize, filters),
+      getRecentSales(organizerId, 5, range, filters),
       getTopSellingEvents(
         organizerId,
         topSellingPage,
         topSellingPageSize,
         range,
+        filters,
       ),
     ]);
 
@@ -63,6 +66,7 @@ export async function getOrganizerDashboard(
 async function getOrganizerStatistics(
   organizerId: number,
   range?: DateRange,
+  filters?: { eventId?: number | undefined },
 ) {
   const [
     eventCounts,
@@ -72,12 +76,12 @@ async function getOrganizerStatistics(
     totalRevenue,
     conversion,
   ] = await Promise.all([
-    getEventCountsByStatus(organizerId),
-    getTicketsSold(organizerId, range),
-    getTicketsRemaining(organizerId),
-    getCheckInCount(organizerId, range),
-    getTotalRevenue(organizerId, range),
-    getConversionRate(organizerId, range),
+    getEventCountsByStatus(organizerId, filters),
+    getTicketsSold(organizerId, range, filters),
+    getTicketsRemaining(organizerId, filters),
+    getCheckInCount(organizerId, range, filters),
+    getTotalRevenue(organizerId, range, filters),
+    getConversionRate(organizerId, range, filters),
   ]);
 
   return {
@@ -93,3 +97,4 @@ async function getOrganizerStatistics(
 }
 
 export { getRevenueTrend };
+

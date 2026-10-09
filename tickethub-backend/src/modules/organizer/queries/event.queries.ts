@@ -23,7 +23,13 @@ import {
 /**
  * Event counts broken down by status
  */
-export async function getEventCountsByStatus(organizerId: number) {
+export async function getEventCountsByStatus(
+  organizerId: number,
+  options?: { eventId?: number | undefined },
+) {
+  const filters: any[] = [eq(events.organizerId, organizerId)];
+  if (options?.eventId) filters.push(eq(events.id, options.eventId));
+
   const [result] = await db
     .select({
       totalEvents: sql<number>`COUNT(*)`,
@@ -33,7 +39,7 @@ export async function getEventCountsByStatus(organizerId: number) {
       cancelledEvents: sql<number>`SUM(CASE WHEN ${events.status} = 'Cancelled' THEN 1 ELSE 0 END)`,
     })
     .from(events)
-    .where(eq(events.organizerId, organizerId));
+    .where(and(...filters));
 
   return {
     totalEvents: Number(result?.totalEvents ?? 0),
@@ -51,17 +57,18 @@ export async function getUpcomingEvents(
   organizerId: number,
   page = 1,
   pageSize = 5,
+  options?: { eventId?: number | undefined },
 ) {
   const offset = (page - 1) * pageSize;
+  const filters: any[] = [
+    eq(events.organizerId, organizerId),
+    gte(events.dateAndTime, new Date().toISOString()),
+  ];
+  if (options?.eventId) filters.push(eq(events.id, options.eventId));
   const data = await db
     .select()
     .from(events)
-    .where(
-      and(
-        eq(events.organizerId, organizerId),
-        gte(events.dateAndTime, new Date().toISOString()),
-      ),
-    )
+    .where(and(...filters))
     .orderBy(events.dateAndTime)
     .limit(pageSize)
     .offset(offset);
@@ -69,12 +76,7 @@ export async function getUpcomingEvents(
   const [totalResult] = await db
     .select({ total: count() })
     .from(events)
-    .where(
-      and(
-        eq(events.organizerId, organizerId),
-        gte(events.dateAndTime, new Date().toISOString()),
-      ),
-    );
+    .where(and(...filters));
 
   const total = Number(totalResult?.total ?? 0);
 
@@ -97,6 +99,7 @@ export async function getTopSellingEvents(
   page = 1,
   pageSize = 5,
   range?: DateRange,
+  options?: { eventId?: number | undefined },
 ) {
   const offset = (page - 1) * pageSize;
 
@@ -105,6 +108,7 @@ export async function getTopSellingEvents(
       eq(events.organizerId, organizerId),
       eq(ticketOrders.status, 'Completed'),
     ];
+    if (options?.eventId) filters.push(eq(events.id, options.eventId));
     applyDateRange(filters, ticketOrders.createdAt, range);
     return filters;
   };
@@ -162,6 +166,7 @@ export interface EventPerformanceParams {
   search?: string | undefined;
   from?: string | undefined;
   to?: string | undefined;
+  eventId?: number | undefined;
 }
 
 /**
@@ -177,6 +182,9 @@ export async function getEventPerformance(params: EventPerformanceParams) {
 
   if (search) {
     filters.push(like(events.title, `%${search}%`));
+  }
+  if (params.eventId) {
+    filters.push(eq(events.id, params.eventId));
   }
 
   const orderJoins: any[] = [
@@ -264,3 +272,5 @@ export async function getEventPerformance(params: EventPerformanceParams) {
     },
   };
 }
+
+

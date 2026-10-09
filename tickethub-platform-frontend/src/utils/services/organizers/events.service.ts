@@ -3,13 +3,13 @@ import type { Category } from "@/types/event.types";
 
 export interface CreateEventPayload {
   title: string;
-  description?: string;
+  description?: string | null;
   eventVenueId?: number;
   venue?: CreateVenuePayload;
   capacity: number;
   dateAndTime: string;
-  dateAndTimeEnd?: string;
-  termsAndConditions?: string;
+  dateAndTimeEnd?: string | null;
+  termsAndConditions?: string | null;
   categoryIds?: number[];
   media?: {
     imageUrl: string;
@@ -17,7 +17,14 @@ export interface CreateEventPayload {
   }[];
 }
 
-export type UpdateEventPayload = Partial<CreateEventPayload>;
+export type EventTicketMutationPayload = {
+  upsert?: (TicketPayload & { id?: number; isVisible?: boolean })[];
+  deleteIds?: number[];
+};
+
+export type UpdateEventPayload = Partial<CreateEventPayload> & {
+  tickets?: EventTicketMutationPayload;
+};
 
 export interface GetOrganizerEventsParams {
   page?: number;
@@ -40,13 +47,14 @@ export type GetOrganizerEventsResponse = {
 
 export interface OrganizerEventResponse {
   id: number;
+  slug: string | null;
   title: string;
-  description?: string;
+  description?: string | null;
   status: "Draft" | "Published" | "Completed" | "Cancelled";
   approvalStatus: "Pending" | "Approved" | "Rejected";
   capacity: number;
   dateAndTime: string;
-  dateAndTimeEnd?: string;
+  dateAndTimeEnd?: string | null;
   venue?: string | null;
   banner?: string | null;
   createdAt: string;
@@ -72,10 +80,12 @@ export interface OrganizerEventTicketDetail {
   salesStartDate?: string | null;
   salesEndDate?: string | null;
   benefits?: string | null;
+  isVisible?: boolean;
 }
 
 export interface OrganizerEventDetail {
   id: number;
+  slug: string | null;
   title: string;
   description?: string | null;
   status: "Draft" | "Published" | "Completed" | "Cancelled";
@@ -101,9 +111,11 @@ export interface OrganizerEventDetail {
 }
 
 export async function getOrganizerEventById(
-  eventId: number,
+  eventIdentifier: string | number,
 ): Promise<OrganizerEventDetail> {
-  const response = await axiosInstance.get(`/organizer/events/${eventId}`);
+  const response = await axiosInstance.get(
+    `/organizer/events/${eventIdentifier}`,
+  );
   return response.data.data;
 }
 
@@ -113,26 +125,26 @@ export async function createOrganizerEvent(payload: CreateEventPayload) {
 }
 
 export interface TicketPayload {
-  name: string;
+  name?: string;
   ticketTypeId?: number;
   ticketTypeName?: string;
-  ticketTypeDescription?: string;
   price: number;
   totalCount?: number;
   salesStartDate?: string;
   salesEndDate?: string;
   benefits?: string;
+  isVisible?: boolean;
 }
 
 export interface CreateEventWithTicketsPayload {
   title: string;
-  description?: string;
+  description?: string | null;
   eventVenueId?: number;
   venue?: CreateVenuePayload;
   capacity: number;
   dateAndTime: string;
-  dateAndTimeEnd?: string;
-  termsAndConditions?: string;
+  dateAndTimeEnd?: string | null;
+  termsAndConditions?: string | null;
   categoryIds?: number[];
   media?: { imageUrl: string; type: "Banner" | "Gallery" | "Sponsor" }[];
   tickets: TicketPayload[];
@@ -149,11 +161,11 @@ export async function createOrganizerEventWithTickets(
 }
 
 export async function updateOrganizerEvent(
-  eventId: number,
+  eventIdentifier: string | number,
   payload: UpdateEventPayload,
 ) {
   const response = await axiosInstance.patch(
-    `/organizer/events/${eventId}`,
+    `/organizer/events/${eventIdentifier}`,
     payload,
   );
 
@@ -166,10 +178,18 @@ export async function deleteOrganizerEvent(eventId: number) {
 }
 
 export async function cancelOrganizerEvent(eventId: number) {
-  const response = await axiosInstance.patch(`/organizer/events/${eventId}/cancel`);
+  const response = await axiosInstance.patch(
+    `/organizer/events/${eventId}/cancel`,
+  );
   return response.data;
 }
 
+export async function publishOrganizerEvent(eventId: number) {
+  const response = await axiosInstance.patch(
+    `/organizer/events/${eventId}/publish`,
+  );
+  return response.data;
+}
 export async function getEventVenues() {
   const response = await axiosInstance.get("/organizer/event-venues");
 
@@ -178,10 +198,10 @@ export async function getEventVenues() {
 
 export interface CreateVenuePayload {
   venue_name: string;
-  address?: string;
+  address?: string | null;
   city_or_town: string;
   country: string;
-  googleMapLink?: string;
+  googleMapLink?: string | null;
 }
 
 export async function createEventVenue(payload: CreateVenuePayload) {
@@ -194,9 +214,12 @@ export interface CreateCategoryPayload {
 }
 
 export async function createCategory(payload: CreateCategoryPayload) {
-  const response = await axiosInstance.post<{ success: boolean; data: Category }>(
-    "/organizer/categories",
-    payload,
-  );
+  const response = await axiosInstance.post<{
+    success: boolean;
+    data: Category;
+  }>("/organizer/categories", payload);
   return response.data.data;
 }
+
+
+

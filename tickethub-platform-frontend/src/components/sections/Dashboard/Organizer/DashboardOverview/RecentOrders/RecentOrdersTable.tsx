@@ -19,6 +19,7 @@ type Order = OrganizerOrder;
 
 interface Props {
   orders: Order[];
+  hideEventName?: boolean;
 }
 
 function getOrderStatusClass(status: Order["status"]) {
@@ -28,8 +29,14 @@ function getOrderStatusClass(status: Order["status"]) {
   return "bg-amber-500/15 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400";
 }
 
-export default function RecentOrdersTable({ orders }: Props) {
+export default function RecentOrdersTable({ orders, hideEventName = false }: Props) {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  function handleStatusChanged(orderId: number, status: Order["status"]) {
+    setSelectedOrder((current) =>
+      current?.orderId === orderId ? { ...current, status } : current,
+    );
+  }
 
   if (!orders?.length) {
     return (
@@ -42,13 +49,13 @@ export default function RecentOrdersTable({ orders }: Props) {
   return (
     <>
       <div className="w-full min-w-0 rounded-xl border border-border overflow-x-auto bg-card">
-        <Table className="min-w-225">
+        <Table className={hideEventName ? "min-w-180" : "min-w-225"}>
           <TableHeader className="bg-muted/50">
             <TableRow className="border-b border-border">
               <TableHead className="w-50">Name</TableHead>
               <TableHead className="w-32.5">Phone Number</TableHead>
               <TableHead className="w-30">Ticket</TableHead>
-              <TableHead className="w-45">Event Name</TableHead>
+              {!hideEventName && <TableHead className="w-45">Event Name</TableHead>}
               <TableHead className="w-40">Purchase Date</TableHead>
               <TableHead className="w-30">Order Status</TableHead>
               <TableHead className="w-30">Amount</TableHead>
@@ -91,9 +98,11 @@ export default function RecentOrdersTable({ orders }: Props) {
                   <TableCell className="text-sm text-muted-foreground max-w-30">
                     <TruncatedCell value={ticketTypes || "—"} />
                   </TableCell>
-                  <TableCell className="text-sm text-foreground max-w-45">
-                    <TruncatedCell value={eventTitles} />
-                  </TableCell>
+                  {!hideEventName && (
+                    <TableCell className="text-sm text-foreground max-w-45">
+                      <TruncatedCell value={eventTitles} />
+                    </TableCell>
+                  )}
                   <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
                     {order.purchasedAt
                       ? format(
@@ -134,6 +143,7 @@ export default function RecentOrdersTable({ orders }: Props) {
         onOpenChange={(open) => {
           if (!open) setSelectedOrder(null);
         }}
+        onStatusChanged={handleStatusChanged}
       />
     </>
   );

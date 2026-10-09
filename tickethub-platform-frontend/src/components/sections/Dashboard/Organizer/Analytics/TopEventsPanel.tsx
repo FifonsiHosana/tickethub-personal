@@ -9,11 +9,20 @@ import {
 import { useEventPerformance } from "@/hooks/organizers/useOrganizerAnalytics";
 import { Loader2Icon } from "lucide-react";
 
-export const TopEventsPanel = ({ from, to }: { from?: string; to?: string }) => {
+export const TopEventsPanel = ({
+  from,
+  to,
+  eventId,
+}: {
+  from?: string;
+  to?: string;
+  eventId?: number;
+}) => {
   const { data, isLoading } = useEventPerformance({
     pageSize: 100,
     from,
     to,
+    eventId,
   });
 
   const topEvents = useMemo(() => {
@@ -74,3 +83,4 @@ export const TopEventsPanel = ({ from, to }: { from?: string; to?: string }) => 
     </Card>
   );
 };
+

@@ -17,11 +17,17 @@ import { now } from '@/utils/timeDatehelpers.js';
 
 import { linkOrdersByEmail } from '@/modules/attendee/attendee.service.js';
 import { getUserRoleNames } from './services/auth.registration.service.js';
-import { sendVerificationOtp, verifyEmailOtp } from './services/auth.otp.service.js';
+import {
+  sendPhoneLoginOtp,
+  sendVerificationOtp,
+  verifyEmailOtp,
+  verifyPhoneLoginOtp,
+} from './services/auth.otp.service.js';
 import { PasswordResetService } from './services/auth.password-reset.service.js';
 import type { CreateLoginInput, CreateRegisterInput } from './auth.schema.js';
 import { AppError } from '@/middleware/errorHandler.js';
 import type { Roles } from './auth.types.js';
+import { parseAuthIdentity } from './auth.identity.js';
 
 export class AuthService {
   private passwordResetService = new PasswordResetService();
@@ -80,7 +86,7 @@ export class AuthService {
         .update(users)
         .set({
           firstName: payload.firstName,
-          lastName: payload.lastName,
+          lastName: payload.lastName ?? '',
           phoneNumber: payload.phoneNumber,
           passwordHash,
           updatedAt: now(),
@@ -102,7 +108,7 @@ export class AuthService {
         .insert(users)
         .values({
           firstName: payload.firstName,
-          lastName: payload.lastName,
+          lastName: payload.lastName ?? '',
           email: payload.email,
           phoneNumber: payload.phoneNumber,
           passwordHash,
@@ -199,6 +205,55 @@ export class AuthService {
     };
   }
 
+  async requestPhoneLoginOtp(identifier: string) {
+    const identity = parseAuthIdentity(identifier);
+    if (identity.type !== 'phone') {
+      throw new AppError(400, 'Enter a phone number to receive an SMS code.');
+    }
+
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.phoneNumber, identity.value))
+      .limit(1);
+
+    if (!user || !user.isVerified || !user.isActive) {
+      return { message: 'If the account exists, a login code has been sent.' };
+    }
+
+    await sendPhoneLoginOtp(identity.value, user.id);
+    return { message: 'Login code sent successfully.', identifier: identity.value };
+  }
+
+  async verifyPhoneLoginOtp(identifier: string, otp: string) {
+    const identity = parseAuthIdentity(identifier);
+    if (identity.type !== 'phone') {
+      throw new AppError(400, 'Enter a phone number to verify an SMS code.');
+    }
+
+    const verification = await verifyPhoneLoginOtp(identity.value, otp);
+    if (!verification.userId) {
+      throw new AppError(401, 'Invalid verification code.');
+    }
+
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, verification.userId))
+      .limit(1);
+
+    if (!user || !user.isVerified || !user.isActive) {
+      throw new AppError(401, 'Invalid verification code.');
+    }
+
+    const roleNames = await getUserRoleNames(user.id);
+    const token = generateAccessToken({ id: user.id, roles: roleNames });
+
+    await db.update(users).set({ lastLogin: now() }).where(eq(users.id, user.id));
+
+    return { token, user, roles: roleNames };
+  }
+
   async verifyOtp(email: string, otp: string) {
     const verification = await verifyEmailOtp(email, otp);
 
@@ -251,11 +306,33 @@ export class AuthService {
     };
   }
 
-  async forgotPassword(email: string) {
-    return this.passwordResetService.requestPasswordReset(email);
+  async forgotPassword(identifier: string) {
+    return this.passwordResetService.requestPasswordReset(identifier);
   }
 
-  async resetPassword(token: string, password: string) {
-    return this.passwordResetService.resetPassword(token, password);
+  async resetPassword(payload: {
+    token?: string;
+    identifier?: string;
+    otp?: string;
+    password: string;
+  }) {
+    if (payload.token) {
+      return this.passwordResetService.resetPassword(
+        payload.token,
+        payload.password,
+      );
+    }
+
+    if (!payload.identifier || !payload.otp) {
+      throw new AppError(400, 'Reset token or verification code is required.');
+    }
+
+    return this.passwordResetService.resetPasswordWithPhoneOtp(
+      payload.identifier,
+      payload.otp,
+      payload.password,
+    );
   }
 }
+
+

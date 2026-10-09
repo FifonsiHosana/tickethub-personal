@@ -10,7 +10,7 @@ import useSessionStorage from "@/hooks/useSessionStorage";
 export function SignUpWizard() {
   const [step, setStep] = useSessionStorage<number>("signup_step", 0);
   // const [step, setStep] = useState(0);
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [otp, setOtp] = useState("");
 
   function renderStep() {
@@ -19,7 +19,7 @@ export function SignUpWizard() {
         return (
           <SignUpEmailStep
             onNext={(value) => {
-              setEmail(value);
+              setIdentifier(value);
               setStep(1);
             }}
           />
@@ -27,7 +27,7 @@ export function SignUpWizard() {
       case 1:
         return (
           <SignUpOtpStep
-            email={email}
+            identifier={identifier}
             onNext={(code) => {
               setOtp(code);
               setStep(2);
@@ -38,7 +38,7 @@ export function SignUpWizard() {
       case 2:
         return (
           <SignUpProfileStep
-            email={email}
+            identifier={identifier}
             otp={otp}
             onBack={() => setStep(1)}
           />
@@ -84,3 +84,4 @@ export function SignUpWizard() {
     </div>
   );
 }
+

@@ -30,10 +30,7 @@ const profileSchema = z
       .string()
       .trim()
       .min(2, "First name must be at least 2 characters"),
-    lastName: z
-      .string()
-      .trim()
-      .min(2, "Last name must be at least 2 characters"),
+    lastName: z.string().trim().optional(),
     password: passwordSchema,
     confirmPassword: z.string(),
   })
@@ -45,12 +42,12 @@ const profileSchema = z
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
 type Props = {
-  email: string;
+  identifier: string;
   otp: string;
   onBack: () => void;
 };
 
-export function SignUpProfileStep({ email, otp, onBack }: Props) {
+export function SignUpProfileStep({ identifier, otp, onBack }: Props) {
   const navigate = useNavigate();
   const { setAuth } = useAuthStorage();
   const { mutateAsync: complete, isPending } = useCompleteRegister();
@@ -75,11 +72,11 @@ export function SignUpProfileStep({ email, otp, onBack }: Props) {
   const onSubmit = async (data: ProfileFormValues) => {
     try {
       const response = await complete({
-        email,
+        identifier,
         otp,
         password: data.password,
         firstName: data.firstName,
-        lastName: data.lastName,
+        lastName: data.lastName?.trim() || undefined,
         roleName: "organizer",
       });
 
@@ -126,7 +123,7 @@ export function SignUpProfileStep({ email, otp, onBack }: Props) {
               )}
             </Field>
             <Field>
-              <FieldLabel htmlFor="lastName">Last Name</FieldLabel>
+              <FieldLabel htmlFor="lastName">Company Name</FieldLabel>
               <Controller
                 name="lastName"
                 control={control}
@@ -134,7 +131,7 @@ export function SignUpProfileStep({ email, otp, onBack }: Props) {
                   <Input
                     type="text"
                     id="lastName"
-                    placeholder="Doe"
+                    placeholder="TicketHub Events"
                     {...field}
                   />
                 )}
@@ -219,3 +216,4 @@ export function SignUpProfileStep({ email, otp, onBack }: Props) {
     </div>
   );
 }
+

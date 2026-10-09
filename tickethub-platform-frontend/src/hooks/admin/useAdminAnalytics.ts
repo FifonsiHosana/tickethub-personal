@@ -5,7 +5,9 @@ import {
   getUserTrend,
   getEventStats,
   getOrganizerPerformance,
+  getCompletedOrders,
 } from "@/utils/services/admin/analytics.service";
+import type { CompletedOrdersParams } from "@/utils/services/admin/analytics.service";
 
 export function useAdminOverview(from?: string, to?: string) {
   return useQuery({
@@ -39,5 +41,12 @@ export function useOrganizerPerformance() {
   return useQuery({
     queryKey: ["admin-analytics-organizer-perf"],
     queryFn: getOrganizerPerformance,
+  });
+}
+
+export function useCompletedOrders(params: CompletedOrdersParams) {
+  return useQuery({
+    queryKey: ["admin-analytics-completed-orders", params],
+    queryFn: () => getCompletedOrders(params),
   });
 }

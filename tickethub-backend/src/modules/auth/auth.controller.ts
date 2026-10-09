@@ -50,6 +50,29 @@ export class AuthController {
     }
   };
 
+
+  requestPhoneLoginOtp = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const response = await this.authService.requestPhoneLoginOtp(req.body.identifier);
+
+      return res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  verifyPhoneLoginOtp = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const response = await this.authService.verifyPhoneLoginOtp(
+        req.body.identifier,
+        req.body.otp,
+      );
+
+      return res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
   verifyOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const response = await this.authService.verifyOtp(
@@ -121,7 +144,9 @@ export class AuthController {
     next: NextFunction,
   ) => {
     try {
-      const response = await this.authService.forgotPassword(req.body.email);
+      const response = await this.authService.forgotPassword(
+        req.body.identifier ?? req.body.email,
+      );
 
       return res.status(200).json(response);
     } catch (error) {
@@ -135,10 +160,7 @@ export class AuthController {
     next: NextFunction,
   ) => {
     try {
-      const response = await this.authService.resetPassword(
-        req.body.token,
-        req.body.password,
-      );
+      const response = await this.authService.resetPassword(req.body);
 
       return res.status(200).json(response);
     } catch (error) {
@@ -146,3 +168,6 @@ export class AuthController {
     }
   };
 }
+
+
+

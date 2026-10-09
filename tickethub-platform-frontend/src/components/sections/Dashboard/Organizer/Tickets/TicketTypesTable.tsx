@@ -1,10 +1,5 @@
 import { format } from "date-fns";
-import {
-  Loader2Icon,
-  MoreHorizontalIcon,
-  TicketIcon,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Loader2Icon, MoreHorizontalIcon, TicketIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -32,6 +27,10 @@ interface Props {
 
 function formatDate(dateStr: string | null) {
   return dateStr ? format(new Date(dateStr), "MMM d, yyyy") : "—";
+}
+
+function ticketLabel(ticket: TicketResponse, index: number) {
+  return ticket.ticketType ?? ticket.name ?? `Ticket type ${index + 1}`;
 }
 
 export default function TicketTypesTable({
@@ -65,8 +64,7 @@ export default function TicketTypesTable({
       <Table>
         <TableHeader className="bg-muted/50">
           <TableRow>
-            <TableHead>Ticket</TableHead>
-            <TableHead>Type</TableHead>
+            <TableHead>Ticket Type</TableHead>
             <TableHead>Price</TableHead>
             <TableHead>Available</TableHead>
             <TableHead>Sales Window</TableHead>
@@ -74,12 +72,12 @@ export default function TicketTypesTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {tickets.map((t) => (
+          {tickets.map((t, index) => (
             <TableRow key={t.id}>
               <TableCell>
                 <div className="flex flex-col">
                   <span className="font-medium text-sm text-foreground">
-                    {t.name}
+                    {ticketLabel(t, index)}
                   </span>
                   {t.benefits && (
                     <span className="text-xs text-muted-foreground truncate max-w-48">
@@ -88,14 +86,6 @@ export default function TicketTypesTable({
                   )}
                 </div>
               </TableCell>
-              <TableCell className="text-sm">
-                <Badge
-                  variant="secondary"
-                  className="bg-muted text-muted-foreground dark:bg-neutral-500/10 dark:text-neutral-400"
-                >
-                  {t.ticketType ?? "—"}
-                </Badge>
-              </TableCell>
               <TableCell className="text-sm font-medium">
                 GH₵ {Number(t.price).toFixed(2)}
               </TableCell>
@@ -103,16 +93,13 @@ export default function TicketTypesTable({
                 {t.remaining.toLocaleString()} / {t.totalCount.toLocaleString()}
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">
-                {formatDate(t.salesStartDate)} – {formatDate(t.salesEndDate)}
+                {formatDate(t.salesStartDate)} - {formatDate(t.salesEndDate)}
               </TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger
                     render={
-                      <Button
-                        variant="ghost"
-                        className="h-8 w-8 p-0 hover:bg-muted"
-                      >
+                      <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-muted">
                         <span className="sr-only">Open menu</span>
                         <MoreHorizontalIcon className="h-4 w-4 text-muted-foreground" />
                       </Button>
