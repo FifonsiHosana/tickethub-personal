@@ -105,7 +105,6 @@ interface NavMobileOverflowItemProps {
 export function NavMobileOverflowItem({
   item,
   isExpanded,
-  onToggleExpand,
   onClick,
   onSubItemClick,
 }: NavMobileOverflowItemProps) {
