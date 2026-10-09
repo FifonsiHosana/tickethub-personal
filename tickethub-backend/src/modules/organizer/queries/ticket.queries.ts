@@ -88,18 +88,14 @@ export async function getTicketCapacityStats(
     .innerJoin(events, eq(tickets.eventId, events.id))
     .leftJoin(
       sql`(
-        SELECT ${eventTickets.ticketConfigurationId} AS configId,
-               COUNT(${ticketOrderItems.id}) AS sold
-        FROM ${ticketOrderItems}
-        INNER JOIN ${ticketOrders}
-          ON ${ticketOrderItems.orderId} = ${ticketOrders.id}
-        INNER JOIN ${payments}
-          ON ${payments.orderId} = ${ticketOrders.id}
-         AND ${payments.status} = 'Completed'
-        INNER JOIN ${eventTickets}
-          ON ${ticketOrderItems.eventTicketId} = ${eventTickets.id}
-        WHERE ${ticketOrderItems.status} = 'Valid'
-        GROUP BY ${eventTickets.ticketConfigurationId}
+        SELECT et.ticketConfigurationId AS configId,
+               COUNT(toi.id) AS sold
+        FROM ${ticketOrderItems} toi
+        INNER JOIN ${ticketOrders} o ON toi.orderId = o.id
+        INNER JOIN ${payments} p ON p.orderId = o.id AND p.status = 'Completed'
+        INNER JOIN ${eventTickets} et ON toi.eventTicketId = et.id
+        WHERE toi.status = 'Valid'
+        GROUP BY et.ticketConfigurationId
       ) issued`,
       sql`issued.configId = ${ticketConfigurations.id}`,
     )

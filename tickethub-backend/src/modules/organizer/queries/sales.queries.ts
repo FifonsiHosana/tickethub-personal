@@ -2,6 +2,7 @@ import { db } from '@/db/client.js';
 import { and, eq, sql, desc, inArray } from 'drizzle-orm';
 import { applyDateRange, type DateRange } from '@/utils/dateRange.js';
 import { organizerOrderScopeSql } from './order-scope.js';
+import { getTotalRevenue } from './revenue.queries.js';
 
 import {
   payments,
@@ -75,7 +76,6 @@ export async function getSalesSummary(
 
   const [completed] = await db
     .select({
-      totalRevenue: sql<string>`COALESCE(SUM(${payments.subtotal}), 0)`,
       completedOrders: sql<number>`COUNT(DISTINCT ${ticketOrders.id})`,
       successfulPayments: sql<number>`COUNT(${payments.id})`,
     })
@@ -112,8 +112,10 @@ export async function getSalesSummary(
     .innerJoin(events, eq(tickets.eventId, events.id))
     .where(and(...ticketFilters));
 
+  const totalRevenue = await getTotalRevenue(organizerId, range, filters);
+
   return {
-    totalRevenue: Number(completed?.totalRevenue ?? 0),
+    totalRevenue,
     completedOrders: Number(completed?.completedOrders ?? 0),
     ticketsSold: Number(ticketsSoldResult?.count ?? 0),
     successfulPayments: Number(completed?.successfulPayments ?? 0),

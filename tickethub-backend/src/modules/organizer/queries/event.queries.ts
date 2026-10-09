@@ -82,47 +82,36 @@ export async function getUpcomingEvents(
 
 function paymentDateClause(range?: DateRange) {
   const parts: SQL[] = [];
-  if (range?.from) parts.push(sql`${payments.paidAt} >= ${range.from}`);
-  if (range?.to) parts.push(sql`${payments.paidAt} <= ${toUpperBound(range.to)}`);
+  if (range?.from) parts.push(sql`p.paidAt >= ${range.from}`);
+  if (range?.to) parts.push(sql`p.paidAt <= ${toUpperBound(range.to)}`);
   return parts.length ? sql`AND ${sql.join(parts, sql` AND `)}` : sql``;
 }
 
 function paidTicketItemCountForEvent(range?: DateRange) {
   return sql<number>`(
-    SELECT COUNT(${ticketOrderItems.id})
-    FROM ${ticketOrderItems}
-    INNER JOIN ${ticketOrders}
-      ON ${ticketOrderItems.orderId} = ${ticketOrders.id}
-    INNER JOIN ${payments}
-      ON ${payments.orderId} = ${ticketOrders.id}
-     AND ${payments.status} = 'Completed'
-    INNER JOIN ${eventTickets}
-      ON ${ticketOrderItems.eventTicketId} = ${eventTickets.id}
-    INNER JOIN ${tickets}
-      ON ${eventTickets.ticketId} = ${tickets.id}
-    WHERE ${tickets.eventId} = ${events.id}
-      AND ${ticketOrderItems.status} = 'Valid'
+    SELECT COUNT(toi.id)
+    FROM ${ticketOrderItems} toi
+    INNER JOIN ${ticketOrders} o ON toi.orderId = o.id
+    INNER JOIN ${payments} p ON p.orderId = o.id AND p.status = 'Completed'
+    INNER JOIN ${eventTickets} et ON toi.eventTicketId = et.id
+    INNER JOIN ${tickets} t ON et.ticketId = t.id
+    WHERE t.eventId = Events.id
+      AND toi.status = 'Valid'
     ${paymentDateClause(range)}
   )`;
 }
 
 function paidTicketRevenueForEvent(range?: DateRange) {
   return sql<string>`(
-    SELECT COALESCE(SUM(${ticketConfigurations.price}), 0)
-    FROM ${ticketOrderItems}
-    INNER JOIN ${ticketOrders}
-      ON ${ticketOrderItems.orderId} = ${ticketOrders.id}
-    INNER JOIN ${payments}
-      ON ${payments.orderId} = ${ticketOrders.id}
-     AND ${payments.status} = 'Completed'
-    INNER JOIN ${eventTickets}
-      ON ${ticketOrderItems.eventTicketId} = ${eventTickets.id}
-    INNER JOIN ${tickets}
-      ON ${eventTickets.ticketId} = ${tickets.id}
-    INNER JOIN ${ticketConfigurations}
-      ON ${eventTickets.ticketConfigurationId} = ${ticketConfigurations.id}
-    WHERE ${tickets.eventId} = ${events.id}
-      AND ${ticketOrderItems.status} = 'Valid'
+    SELECT COALESCE(SUM(tc.price), 0)
+    FROM ${ticketOrderItems} toi
+    INNER JOIN ${ticketOrders} o ON toi.orderId = o.id
+    INNER JOIN ${payments} p ON p.orderId = o.id AND p.status = 'Completed'
+    INNER JOIN ${eventTickets} et ON toi.eventTicketId = et.id
+    INNER JOIN ${tickets} t ON et.ticketId = t.id
+    INNER JOIN ${ticketConfigurations} tc ON et.ticketConfigurationId = tc.id
+    WHERE t.eventId = Events.id
+      AND toi.status = 'Valid'
     ${paymentDateClause(range)}
   )`;
 }

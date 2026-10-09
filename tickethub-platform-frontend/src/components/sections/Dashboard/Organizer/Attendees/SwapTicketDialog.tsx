@@ -37,6 +37,12 @@ export default function SwapTicketDialog({
   const [reason, setReason] = useState("");
   const { data: tickets = [] } = useEventTickets(eventId);
   const swapMutation = useSwapIssuedTicket();
+  const selectedTicket = tickets.find(
+    (ticket) => String(ticket.eventTicketId) === targetEventTicketId,
+  );
+  const selectedTicketLabel = selectedTicket
+    ? `${selectedTicket.ticketType ?? selectedTicket.name} - GH₵ ${Number(selectedTicket.price).toFixed(2)}`
+    : undefined;
 
   const handleSwap = async () => {
     if (!targetEventTicketId) return;
@@ -59,7 +65,9 @@ export default function SwapTicketDialog({
         <div className="space-y-3">
           <Select value={targetEventTicketId} onValueChange={(value) => setTargetEventTicketId(value ?? "")}>
             <SelectTrigger>
-              <SelectValue placeholder="Select new ticket type" />
+              <SelectValue placeholder="Select new ticket type">
+                {selectedTicketLabel}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {tickets.map((ticket) => (
@@ -67,7 +75,7 @@ export default function SwapTicketDialog({
                   key={ticket.eventTicketId}
                   value={String(ticket.eventTicketId)}
                 >
-                  {ticket.ticketType ?? ticket.name} · GH₵ {Number(ticket.price).toFixed(2)}
+                  {ticket.ticketType ?? ticket.name} - GH₵ {Number(ticket.price).toFixed(2)}
                 </SelectItem>
               ))}
             </SelectContent>

@@ -66,13 +66,20 @@ export default function ScannerDialog({
     const identifier = extractTicketIdentifier(decodedText);
 
     try {
-      const scanResult = await checkInTicket({ ticketIdentifier: identifier, eventId });
+      const scanResult = await checkInTicket({
+        ticketIdentifier: identifier,
+        eventId,
+      });
       setResult(scanResult);
 
       if (scanResult.status === "valid") onScanned();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Check-in failed.";
-      setResult({ status: "invalid", message: msg, ticketIdentifier: identifier });
+      setResult({
+        status: "invalid",
+        message: msg,
+        ticketIdentifier: identifier,
+      });
       logger.error(`${err}`);
     } finally {
       unlockAfterCooldown();
@@ -109,23 +116,32 @@ export default function ScannerDialog({
             />
           )}
           {result && (
-            <div className={`rounded-lg border p-3 text-sm ${statusStyles[result.status]}`}>
+            <div
+              className={`rounded-lg border p-3 text-sm ${statusStyles[result.status]}`}
+            >
               <div className="flex items-center justify-between gap-3">
                 <p className="font-semibold">{statusLabels[result.status]}</p>
-                {result.ticketIdentifier && <p className="font-mono text-xs">{result.ticketIdentifier}</p>}
+                {result.ticketIdentifier && (
+                  <p className="font-mono text-xs">{result.ticketIdentifier}</p>
+                )}
               </div>
               <p className="mt-1 font-medium">{result.message}</p>
               {"attendeeName" in result && (
                 <div className="mt-3 space-y-1 text-xs">
-                  <p><span className="font-semibold">Attendee:</span> {result.attendeeName || "Unnamed attendee"}</p>
-                  <p><span className="font-semibold">Ticket type:</span> {result.ticketType || "Not specified"}</p>
+                  {/* <p><span className="font-semibold">Attendee:</span> {result.attendeeName || "Unnamed attendee"}</p> */}
+                  <p>
+                    <span className="font-semibold">Ticket type:</span>{" "}
+                    {result.ticketType || "Not specified"}
+                  </p>
                 </div>
               )}
             </div>
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => handleOpenChange(false)}>Close</Button>
+          <Button variant="outline" onClick={() => handleOpenChange(false)}>
+            Close
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

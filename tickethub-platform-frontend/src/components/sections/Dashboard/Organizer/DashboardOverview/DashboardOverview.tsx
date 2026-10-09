@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BanknoteIcon, CreditCardIcon, ScanLineIcon, TicketIcon } from "lucide-react";
+import { BanknoteIcon, ScanLineIcon, TicketIcon } from "lucide-react";
 import { useOrganizerDashboardData } from "@/hooks/organizers/useDashboardData";
 import { useDashboardDateRange } from "@/components/shared/date/useDashboardDateRange";
 import { useDashboardEventFilter } from "@/components/shared/date/useDashboardEventFilter";
@@ -25,8 +25,9 @@ export default function DashboardOverview() {
     eventId: eventIdNumber,
   });
 
-
   const stats = dashboard?.statistics;
+  const ticketsSold = (stats?.totalTicketsSold ?? 0).toLocaleString();
+  const ticketsAvailable = (stats?.totalTicketsAvailable ?? 0).toLocaleString();
   const metricCards = [
     {
       title: "Revenue",
@@ -34,24 +35,14 @@ export default function DashboardOverview() {
       icon: BanknoteIcon,
     },
     {
-      title: "Tickets Available",
-      value: (stats?.totalTicketsAvailable ?? 0).toLocaleString(),
-      icon: TicketIcon,
-    },
-    {
-      title: "Tickets Sold",
-      value: (stats?.totalTicketsSold ?? 0).toLocaleString(),
+      title: "Sold / Available",
+      value: `${ticketsSold} / ${ticketsAvailable}`,
       icon: TicketIcon,
     },
     {
       title: "Tickets Remaining",
       value: (stats?.totalTicketsRemaining ?? 0).toLocaleString(),
       icon: TicketIcon,
-    },
-    {
-      title: "Orders",
-      value: (stats?.totalOrders ?? 0).toLocaleString(),
-      icon: CreditCardIcon,
     },
   ];
 
