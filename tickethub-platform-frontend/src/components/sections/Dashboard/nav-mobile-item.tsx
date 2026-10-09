@@ -36,7 +36,7 @@ export function NavMobileItem({
   onSubItemClick,
   longPressHandlers,
 }: NavMobileItemProps) {
-  const navigate = useNavigate();
+  
   const hasSubItems = Boolean(item.items && item.items.length > 0);
 
   const button = (
