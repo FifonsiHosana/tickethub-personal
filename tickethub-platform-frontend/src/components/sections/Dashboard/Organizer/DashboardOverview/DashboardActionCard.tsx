@@ -10,7 +10,6 @@ interface Props {
 
 export default function DashboardActionCard({
   title,
-  count,
   href,
   icon: Icon,
 }: Props) {
