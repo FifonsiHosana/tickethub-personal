@@ -1,5 +1,5 @@
 import { db } from '@/db/client.js';
-import { and, eq, sql, desc, count } from 'drizzle-orm';
+import { and, eq, sql, count } from 'drizzle-orm';
 import { applyDateRange, type DateRange } from '@/utils/dateRange.js';
 
 import {
@@ -9,33 +9,32 @@ import {
   ticketOrderItems,
   ticketOrders,
   ticketConfigurations,
+  payments,
 } from '@/db/schema/index.js';
 
-/**
- * Total tickets sold (completed orders only)
- */
+const completedPayment = eq(payments.status, 'Completed');
+
+type EventFilter = { eventId?: number | undefined };
+
 export async function getTicketsSold(
   organizerId: number,
   range?: DateRange,
-  options?: { eventId?: number | undefined },
+  options?: EventFilter,
 ) {
   const filters: any[] = [
     eq(events.organizerId, organizerId),
-    eq(ticketOrders.status, 'Completed'),
+    completedPayment,
+    eq(ticketOrderItems.status, 'Valid'),
   ];
   if (options?.eventId) filters.push(eq(events.id, options.eventId));
-  applyDateRange(filters, ticketOrders.createdAt, range);
+  applyDateRange(filters, payments.paidAt, range);
 
   const [result] = await db
-    .select({
-      count: sql<number>`COUNT(${ticketOrderItems.id})`,
-    })
+    .select({ count: sql<number>`COUNT(${ticketOrderItems.id})` })
     .from(ticketOrderItems)
     .innerJoin(ticketOrders, eq(ticketOrderItems.orderId, ticketOrders.id))
-    .innerJoin(
-      eventTickets,
-      eq(ticketOrderItems.eventTicketId, eventTickets.id),
-    )
+    .innerJoin(payments, eq(payments.orderId, ticketOrders.id))
+    .innerJoin(eventTickets, eq(ticketOrderItems.eventTicketId, eventTickets.id))
     .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
     .innerJoin(events, eq(tickets.eventId, events.id))
     .where(and(...filters));
@@ -43,32 +42,26 @@ export async function getTicketsSold(
   return Number(result?.count ?? 0);
 }
 
-/**
- * Total completed check-ins for an organizer
- */
 export async function getCheckInCount(
   organizerId: number,
   range?: DateRange,
-  options?: { eventId?: number | undefined },
+  options?: EventFilter,
 ) {
   const filters: any[] = [
     eq(events.organizerId, organizerId),
-    eq(ticketOrders.status, 'Completed'),
+    completedPayment,
     eq(ticketOrderItems.checkedIn, true),
+    eq(ticketOrderItems.status, 'Valid'),
   ];
   if (options?.eventId) filters.push(eq(events.id, options.eventId));
   applyDateRange(filters, ticketOrderItems.checkedInAt, range);
 
   const [result] = await db
-    .select({
-      count: sql<number>`COUNT(${ticketOrderItems.id})`,
-    })
+    .select({ count: sql<number>`COUNT(${ticketOrderItems.id})` })
     .from(ticketOrderItems)
     .innerJoin(ticketOrders, eq(ticketOrderItems.orderId, ticketOrders.id))
-    .innerJoin(
-      eventTickets,
-      eq(ticketOrderItems.eventTicketId, eventTickets.id),
-    )
+    .innerJoin(payments, eq(payments.orderId, ticketOrders.id))
+    .innerJoin(eventTickets, eq(ticketOrderItems.eventTicketId, eventTickets.id))
     .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
     .innerJoin(events, eq(tickets.eventId, events.id))
     .where(and(...filters));
@@ -76,35 +69,57 @@ export async function getCheckInCount(
   return Number(result?.count ?? 0);
 }
 
-/**
- * Total tickets remaining across all event ticket configurations
- */
-export async function getTicketsRemaining(
+export async function getTicketCapacityStats(
   organizerId: number,
-  options?: { eventId?: number | undefined },
+  options?: EventFilter,
 ) {
   const filters: any[] = [eq(events.organizerId, organizerId)];
   if (options?.eventId) filters.push(eq(events.id, options.eventId));
+
   const [result] = await db
     .select({
-      remaining:
-        sql<number>`COALESCE(SUM(${ticketConfigurations.totalRemaining}), 0)`,
+      totalAvailable: sql<number>`COALESCE(SUM(${ticketConfigurations.totalCount}), 0)`,
+      ticketsSold: sql<number>`COALESCE(SUM(issued.sold), 0)`,
+      ticketsRemaining: sql<number>`GREATEST(COALESCE(SUM(${ticketConfigurations.totalCount}), 0) - COALESCE(SUM(issued.sold), 0), 0)`,
     })
     .from(ticketConfigurations)
-    .innerJoin(
-      eventTickets,
-      eq(eventTickets.ticketConfigurationId, ticketConfigurations.id),
-    )
+    .innerJoin(eventTickets, eq(eventTickets.ticketConfigurationId, ticketConfigurations.id))
     .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
     .innerJoin(events, eq(tickets.eventId, events.id))
+    .leftJoin(
+      sql`(
+        SELECT ${eventTickets.ticketConfigurationId} AS configId,
+               COUNT(${ticketOrderItems.id}) AS sold
+        FROM ${ticketOrderItems}
+        INNER JOIN ${ticketOrders}
+          ON ${ticketOrderItems.orderId} = ${ticketOrders.id}
+        INNER JOIN ${payments}
+          ON ${payments.orderId} = ${ticketOrders.id}
+         AND ${payments.status} = 'Completed'
+        INNER JOIN ${eventTickets}
+          ON ${ticketOrderItems.eventTicketId} = ${eventTickets.id}
+        WHERE ${ticketOrderItems.status} = 'Valid'
+        GROUP BY ${eventTickets.ticketConfigurationId}
+      ) issued`,
+      sql`issued.configId = ${ticketConfigurations.id}`,
+    )
     .where(and(...filters));
 
-  return Number(result?.remaining ?? 0);
+  return {
+    totalTicketsAvailable: Number(result?.totalAvailable ?? 0),
+    totalTicketsSold: Number(result?.ticketsSold ?? 0),
+    totalTicketsRemaining: Number(result?.ticketsRemaining ?? 0),
+  };
 }
 
-/**
- * Sales breakdown by ticket type (for charts)
- */
+export async function getTicketsRemaining(
+  organizerId: number,
+  options?: EventFilter,
+) {
+  const stats = await getTicketCapacityStats(organizerId, options);
+  return stats.totalTicketsRemaining;
+}
+
 export async function getTicketSalesBreakdown(
   organizerId: number,
   range?: DateRange,
@@ -112,36 +127,26 @@ export async function getTicketSalesBreakdown(
 ) {
   const filtersList: any[] = [
     eq(events.organizerId, organizerId),
-    eq(ticketOrders.status, 'Completed'),
+    completedPayment,
+    eq(ticketOrderItems.status, 'Valid'),
   ];
 
-  if (filters?.eventId) {
-    filtersList.push(eq(events.id, filters.eventId));
-  }
+  if (filters?.eventId) filtersList.push(eq(events.id, filters.eventId));
+  if (filters?.ticketId) filtersList.push(eq(tickets.id, filters.ticketId));
 
-  if (filters?.ticketId) {
-    filtersList.push(eq(tickets.id, filters.ticketId));
-  }
-
-  applyDateRange(filtersList, ticketOrders.createdAt, range);
+  applyDateRange(filtersList, payments.paidAt, range);
 
   return db
     .select({
       ticketName: tickets.name,
       sold: sql<number>`COUNT(${ticketOrderItems.id})`,
-      revenue:
-        sql<string>`COALESCE(COUNT(${ticketOrderItems.id}) * MAX(${ticketConfigurations.price}), 0)`,
+      revenue: sql<string>`COALESCE(SUM(${ticketConfigurations.price}), 0)`,
     })
     .from(ticketOrderItems)
     .innerJoin(ticketOrders, eq(ticketOrderItems.orderId, ticketOrders.id))
-    .innerJoin(
-      eventTickets,
-      eq(ticketOrderItems.eventTicketId, eventTickets.id),
-    )
-    .innerJoin(
-      ticketConfigurations,
-      eq(eventTickets.ticketConfigurationId, ticketConfigurations.id),
-    )
+    .innerJoin(payments, eq(payments.orderId, ticketOrders.id))
+    .innerJoin(eventTickets, eq(ticketOrderItems.eventTicketId, eventTickets.id))
+    .innerJoin(ticketConfigurations, eq(eventTickets.ticketConfigurationId, ticketConfigurations.id))
     .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
     .innerJoin(events, eq(tickets.eventId, events.id))
     .where(and(...filtersList))
@@ -158,44 +163,58 @@ export interface TicketPerformanceParams {
   eventId?: number | undefined;
 }
 
-/**
- * Per-ticket performance (for analytics table)
- */
+function paidTicketDateSql(from?: string, to?: string) {
+  if (from && to) return sql`AND p.paidAt BETWEEN ${from} AND ${to}`;
+  if (from) return sql`AND p.paidAt >= ${from}`;
+  if (to) return sql`AND p.paidAt <= ${to}`;
+  return sql``;
+}
+
 export async function getTicketPerformance(params: TicketPerformanceParams) {
   const { organizerId, page = 1, pageSize = 10, search, from, to } = params;
   const offset = (page - 1) * pageSize;
-  const filters = [eq(events.organizerId, organizerId)];
-  if (params.eventId) filters.push(eq(events.id, params.eventId));
-  applyDateRange(filters, ticketOrders.createdAt, { from, to });
+  const ticketFilters: any[] = [eq(events.organizerId, organizerId)];
+  if (params.eventId) ticketFilters.push(eq(events.id, params.eventId));
 
   if (search) {
-    filters.push(
-      sql`(${tickets.name} LIKE ${`%${search}%`} OR ${events.title} LIKE ${`%${search}%`})` as any,
+    const pattern = `%${search}%`;
+    ticketFilters.push(
+      sql`(${tickets.name} LIKE ${pattern} OR ${events.title} LIKE ${pattern})` as any,
     );
   }
+
+  const paidDateFilter = paidTicketDateSql(from, to);
 
   const data = await db
     .select({
       ticketId: tickets.id,
       ticketName: tickets.name,
       eventName: events.title,
-      ticketsSold: sql<number>`COUNT(${ticketOrders.id})`,
-      revenue:
-        sql<string>`COALESCE(COUNT(${ticketOrders.id}) * MAX(${ticketConfigurations.price}), 0)`,
+      ticketsSold: sql<number>`(
+        SELECT COUNT(toi.id)
+        FROM ${ticketOrderItems} toi
+        INNER JOIN ${ticketOrders} o ON o.id = toi.orderId
+        INNER JOIN ${payments} p ON p.orderId = o.id AND p.status = 'Completed'
+        INNER JOIN ${eventTickets} et ON et.id = toi.eventTicketId
+        WHERE et.ticketId = ${tickets.id}
+          AND toi.status = 'Valid'
+        ${paidDateFilter}
+      )`,
+      revenue: sql<string>`COALESCE((
+        SELECT SUM(tc.price)
+        FROM ${ticketOrderItems} toi
+        INNER JOIN ${ticketOrders} o ON o.id = toi.orderId
+        INNER JOIN ${payments} p ON p.orderId = o.id AND p.status = 'Completed'
+        INNER JOIN ${eventTickets} et ON et.id = toi.eventTicketId
+        INNER JOIN ${ticketConfigurations} tc ON tc.id = et.ticketConfigurationId
+        WHERE et.ticketId = ${tickets.id}
+          AND toi.status = 'Valid'
+        ${paidDateFilter}
+      ), 0)`,
     })
     .from(tickets)
     .innerJoin(events, eq(tickets.eventId, events.id))
-    .leftJoin(eventTickets, eq(tickets.id, eventTickets.ticketId))
-    .leftJoin(
-      ticketOrderItems,
-      eq(eventTickets.id, ticketOrderItems.eventTicketId),
-    )
-    .leftJoin(
-      ticketConfigurations,
-      eq(eventTickets.ticketConfigurationId, ticketConfigurations.id),
-    )
-    .leftJoin(ticketOrders, and(eq(ticketOrderItems.orderId, ticketOrders.id), eq(ticketOrders.status, 'Completed')))
-    .where(and(...filters))
+    .where(and(...ticketFilters))
     .groupBy(tickets.id)
     .limit(pageSize)
     .offset(offset);
@@ -204,20 +223,18 @@ export async function getTicketPerformance(params: TicketPerformanceParams) {
     .select({ total: count() })
     .from(tickets)
     .innerJoin(events, eq(tickets.eventId, events.id))
-    .where(and(...filters));
+    .where(and(...ticketFilters));
 
   const total = Number(totalResult?.total ?? 0);
 
-  const mapped = data.map((t) => ({
-    ticketId: t.ticketId,
-    ticketName: t.ticketName,
-    eventName: t.eventName,
-    ticketsSold: Number(t.ticketsSold ?? 0),
-    revenue: Number(t.revenue ?? 0),
-  }));
-
   return {
-    data: mapped,
+    data: data.map((t) => ({
+      ticketId: t.ticketId,
+      ticketName: t.ticketName,
+      eventName: t.eventName,
+      ticketsSold: Number(t.ticketsSold ?? 0),
+      revenue: Number(t.revenue ?? 0),
+    })),
     pagination: {
       page,
       pageSize,
@@ -226,5 +243,3 @@ export async function getTicketPerformance(params: TicketPerformanceParams) {
     },
   };
 }
-
-

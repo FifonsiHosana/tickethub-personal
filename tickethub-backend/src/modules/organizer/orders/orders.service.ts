@@ -4,6 +4,7 @@ import {
   payments,
   ticketOrders,
   ticketOrderItems,
+  ticketOrderIntents,
   ticketOrderUserDetails,
   tickets,
   ticketTypes,
@@ -14,6 +15,7 @@ import {
 
 import { and, desc, eq, inArray, like, or, sql } from 'drizzle-orm';
 import { applyDateRange } from '@/utils/dateRange.js';
+import { organizerOrderScopeSql } from '../queries/order-scope.js';
 
 export interface GetOrganizerOrdersOptions {
   organizerId: number;
@@ -55,17 +57,10 @@ function buildFilters({
   to,
   search,
 }: GetOrganizerOrdersOptions) {
-  const filters = [
-    sql`EXISTS (
-      SELECT 1 FROM ${ticketOrderItems} toi
-      INNER JOIN ${eventTickets} et ON et.id = toi.eventTicketId
-      INNER JOIN ${tickets} t ON t.id = et.ticketId
-      INNER JOIN ${events} e ON e.id = t.eventId
-      WHERE toi.orderId = ${ticketOrders.id}
-        AND e.organizerId = ${organizerId}
-        ${eventId ? sql`AND e.id = ${eventId}` : sql``}
-    )`,
-  ];
+  const scope = eventId
+    ? organizerOrderScopeSql({ organizerId, eventId })
+    : organizerOrderScopeSql({ organizerId });
+  const filters = [scope];
 
   if (status) {
     filters.push(eq(ticketOrders.status, status));
@@ -139,6 +134,9 @@ export async function getOrganizerOrders(options: GetOrganizerOrdersOptions) {
 
       amount: sql<string>`COALESCE(
         ${payments.subtotal},
+        (SELECT SUM(intent.quantity * intent.unitPrice)
+           FROM ${ticketOrderIntents} intent
+           WHERE intent.orderId = ${ticketOrders.id}),
         (SELECT SUM(tc.price)
            FROM ${ticketOrderItems} toi2
            INNER JOIN ${eventTickets} et2 ON et2.id = toi2.eventTicketId
@@ -178,7 +176,7 @@ export async function getOrganizerOrders(options: GetOrganizerOrdersOptions) {
 
   const orderIds = orderHeaders.map((order) => order.orderId);
 
-  const eventBreakdown = orderIds.length
+  const issuedBreakdown = orderIds.length
     ? await db
         .select({
           orderId: ticketOrders.id,
@@ -204,9 +202,43 @@ export async function getOrganizerOrders(options: GetOrganizerOrdersOptions) {
         .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
         .innerJoin(ticketTypes, eq(eventTickets.ticketTypeId, ticketTypes.id))
         .innerJoin(events, eq(tickets.eventId, events.id))
+        .where(and(inArray(ticketOrders.id, orderIds), eq(ticketOrderItems.status, 'Valid')))
+        .groupBy(ticketOrders.id, events.id)
+    : [];
+
+  const intentBreakdown = orderIds.length
+    ? await db
+        .select({
+          orderId: ticketOrders.id,
+
+          eventId: events.id,
+
+          eventTitle: events.title,
+
+          ticketType: sql<string>`GROUP_CONCAT(DISTINCT ${ticketTypes.name} SEPARATOR ', ')`,
+
+          totalTickets: sql<number>`SUM(${ticketOrderIntents.quantity})`,
+
+          checkedInCount: sql<number>`0`,
+        })
+        .from(ticketOrderIntents)
+        .innerJoin(ticketOrders, eq(ticketOrderIntents.orderId, ticketOrders.id))
+        .innerJoin(
+          eventTickets,
+          eq(ticketOrderIntents.eventTicketId, eventTickets.id),
+        )
+        .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
+        .innerJoin(ticketTypes, eq(eventTickets.ticketTypeId, ticketTypes.id))
+        .innerJoin(events, eq(tickets.eventId, events.id))
         .where(inArray(ticketOrders.id, orderIds))
         .groupBy(ticketOrders.id, events.id)
     : [];
+
+  const issuedOrderIds = new Set(issuedBreakdown.map((row) => row.orderId));
+  const eventBreakdown = [
+    ...issuedBreakdown,
+    ...intentBreakdown.filter((row) => !issuedOrderIds.has(row.orderId)),
+  ];
 
   const eventsByOrder = new Map<number, OrganizerOrderEventBreakdown[]>();
 

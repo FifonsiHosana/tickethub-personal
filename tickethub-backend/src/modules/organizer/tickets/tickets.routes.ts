@@ -7,15 +7,47 @@ import {
   deleteTicket,
   listTicketTypes,
   createTicketType,
+  previewInvalidTickets,
+  invalidateIssuedTicket,
+  swapIssuedTicket,
 } from './tickets.controller.js';
 
 import { authenticate } from '@/middleware/auth/auth.middleware.js';
 import { authorize } from '@/middleware/auth/role.middleware.js';
 import { validate } from '@/middleware/validate.js';
 
-import { createTicketSchema, updateTicketSchema, createTicketTypeSchema } from './tickets.schema.js';
+import {
+  createTicketSchema,
+  updateTicketSchema,
+  createTicketTypeSchema,
+  invalidateTicketItemSchema,
+  swapTicketItemSchema,
+} from './tickets.schema.js';
 
 const router = Router();
+
+router.get(
+  '/invalid-preview',
+  authenticate,
+  authorize('organizer'),
+  previewInvalidTickets,
+);
+
+router.patch(
+  '/items/:ticketIdentifier/invalidate',
+  authenticate,
+  authorize('organizer'),
+  validate(invalidateTicketItemSchema),
+  invalidateIssuedTicket,
+);
+
+router.patch(
+  '/items/:ticketIdentifier/swap',
+  authenticate,
+  authorize('organizer'),
+  validate(swapTicketItemSchema),
+  swapIssuedTicket,
+);
 
 router.get(
   '/events/:eventId/tickets',

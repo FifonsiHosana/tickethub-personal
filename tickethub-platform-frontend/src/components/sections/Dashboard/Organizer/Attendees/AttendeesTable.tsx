@@ -16,6 +16,7 @@ import { AttendeesTableHeader } from "./AttendeesTableHeader";
 import AttendeesTableActions from "./AttendeesTableActions";
 
 interface Props {
+  eventId: number;
   data: GetAttendeesResponse | undefined;
   isLoading: boolean;
   page: number;
@@ -30,6 +31,7 @@ function formatDateTime(dateStr: string | null) {
 }
 
 export default function AttendeesTable({
+  eventId,
   data,
   isLoading,
   page,
@@ -133,6 +135,7 @@ export default function AttendeesTable({
                       onClick={(e) => e.stopPropagation()}
                     >
                       <AttendeesTableActions
+                        eventId={eventId}
                         isCheckedIn={a.checkedIn}
                         orderId={String(a.orderId)}
                         ticketIdentifier={a.ticketIdentifier}

@@ -98,6 +98,13 @@ export const ticketOrderItems = mysqlTable('TicketOrderItems', {
     onDelete: 'set null',
     onUpdate: 'cascade',
   }),
+  status: varchar({ length: 32 }).default('Valid').notNull(),
+  invalidatedAt: datetime({ mode: 'string', fsp: 3 }),
+  invalidatedBy: int().references(() => users.id, {
+    onDelete: 'set null',
+    onUpdate: 'cascade',
+  }),
+  invalidationReason: varchar({ length: 500 }),
 });
 
 export const ticketOrderUserDetails = mysqlTable('TicketOrderUserDetails', {
@@ -111,4 +118,47 @@ export const ticketOrderUserDetails = mysqlTable('TicketOrderUserDetails', {
   email: varchar({ length: 255 }).notNull(),
   phoneNumber: varchar({ length: 20 }).notNull(),
 });
+export const ticketOrderIntents = mysqlTable('TicketOrderIntents', {
+  id: int().autoincrement().notNull().primaryKey(),
+  orderId: int().references(() => ticketOrders.id, {
+    onDelete: 'cascade',
+    onUpdate: 'cascade',
+  }),
+  eventTicketId: int().references(() => eventTickets.id, {
+    onDelete: 'restrict',
+    onUpdate: 'cascade',
+  }),
+  quantity: int().notNull(),
+  unitPrice: decimal({
+    precision: 10,
+    scale: 2,
+  }).notNull(),
+  createdAt: datetime({ mode: 'string', fsp: 3 })
+    .default(sql`(now())`)
+    .notNull(),
+});
 
+export const ticketItemAdjustments = mysqlTable('TicketItemAdjustments', {
+  id: int().autoincrement().notNull().primaryKey(),
+  ticketOrderItemId: int().references(() => ticketOrderItems.id, {
+    onDelete: 'set null',
+    onUpdate: 'cascade',
+  }),
+  action: varchar({ length: 32 }).notNull(),
+  fromEventTicketId: int().references(() => eventTickets.id, {
+    onDelete: 'set null',
+    onUpdate: 'cascade',
+  }),
+  toEventTicketId: int().references(() => eventTickets.id, {
+    onDelete: 'set null',
+    onUpdate: 'cascade',
+  }),
+  reason: varchar({ length: 500 }),
+  actorId: int().references(() => users.id, {
+    onDelete: 'set null',
+    onUpdate: 'cascade',
+  }),
+  createdAt: datetime({ mode: 'string', fsp: 3 })
+    .default(sql`(now())`)
+    .notNull(),
+});

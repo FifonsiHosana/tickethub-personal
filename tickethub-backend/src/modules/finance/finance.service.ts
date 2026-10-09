@@ -25,6 +25,8 @@ import { sendTicket } from '../ussd-payment/ussd-payment.utils.js';
 import { smsService } from '../sms/sms.service.js';
 import { paymentComplete } from '../ussd-payment/ussd-payment.service.js';
 import { randomBytes } from 'crypto';
+import { finalizeCheckoutV2, isCheckoutV2Webhook } from '@/modules/checkout-v2/checkout-v2.finalize.js';
+import { notifyCheckoutV2 } from '@/modules/checkout-v2/checkout-v2.notifications.js';
 
 // eventually have a settings table, that would have the current provider
 // on the admin dashboard
@@ -347,6 +349,13 @@ export class FinanceService {
       return;
     }
 
+    if (isCheckoutV2Webhook(payload)) {
+      const result = await finalizeCheckoutV2(payload);
+      if ('alreadyProcessed' in result) return;
+      await notifyCheckoutV2(result);
+      return;
+    }
+
     if (!orderId) {
       throw new Error('Missing orderId in Paystack Webhook Metadata');
     }
@@ -371,4 +380,3 @@ export class FinanceService {
     );
   }
 }
-

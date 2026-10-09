@@ -7,6 +7,8 @@ export interface OrderHistoryParams {
 }
 export interface OrderFromReferenceParams {
   reference: string;
+  email?: string;
+  phoneNumber?: string;
 }
 
 export type OrderHistoryTicket = {
@@ -126,12 +128,12 @@ export async function getOrderHistoryDetail(orderId: number): Promise<OrderHisto
   }
 }
 
-export async function getOrderFromReference(reference: string): Promise<OrderFromReferenceOrder> {
-  const response = await axiosInstance.get(`/attendee/order-from-reference`, {
-    params: { reference },
+export async function getOrderFromReference(
+  params: OrderFromReferenceParams,
+): Promise<OrderFromReferenceOrder> {
+  const response = await axiosInstance.get("/attendee/order-from-reference", {
+    params,
   });
 
   return response.data.data;
 }
-
-

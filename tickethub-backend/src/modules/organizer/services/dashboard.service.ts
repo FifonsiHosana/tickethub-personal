@@ -4,7 +4,7 @@ import {
   getRevenueTrend,
   getTicketsSold,
   getCheckInCount,
-  getTicketsRemaining,
+  getTicketCapacityStats,
   getEventCountsByStatus,
   getUpcomingEvents,
   getTopSellingEvents,
@@ -70,24 +70,25 @@ async function getOrganizerStatistics(
 ) {
   const [
     eventCounts,
-    ticketsSold,
-    ticketsRemaining,
+    ticketCapacity,
     checkIns,
     totalRevenue,
     conversion,
   ] = await Promise.all([
+
     getEventCountsByStatus(organizerId, filters),
-    getTicketsSold(organizerId, range, filters),
-    getTicketsRemaining(organizerId, filters),
+    getTicketCapacityStats(organizerId, filters),
     getCheckInCount(organizerId, range, filters),
     getTotalRevenue(organizerId, range, filters),
     getConversionRate(organizerId, range, filters),
+
   ]);
 
   return {
     ...eventCounts,
-    totalTicketsSold: ticketsSold,
-    totalTicketsRemaining: ticketsRemaining,
+    totalTicketsAvailable: ticketCapacity.totalTicketsAvailable,
+    totalTicketsSold: ticketCapacity.totalTicketsSold,
+    totalTicketsRemaining: ticketCapacity.totalTicketsRemaining,
     totalCheckIns: checkIns,
     totalRevenue,
     totalOrders: conversion.totalOrders,

@@ -1,58 +1,64 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   useCheckInTicket,
+  useInvalidateIssuedTicket,
   useResendTicketEmail,
 } from "@/hooks/organizers/useOrganizerEventTickets";
-import { Check, Send, Stamp } from "lucide-react";
+import { Ban, Check, RefreshCw, Send, Stamp } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { useState } from "react";
+import SwapTicketDialog from "./SwapTicketDialog";
 
 type Props = {
+  eventId: number;
   orderId: string;
   ticketIdentifier: string;
   isCheckedIn: boolean;
 };
 
 const AttendeesTableActions = ({
+  eventId,
   ticketIdentifier,
   orderId,
   isCheckedIn,
 }: Props) => {
-  const { mutate: check_user_in_manually } = useCheckInTicket();
-
-  const {
-    mutate: resend_ticket_email,
-    isPending,
-    isSuccess,
-  } = useResendTicketEmail();
-
+  const { mutate: checkInManually } = useCheckInTicket();
+  const invalidateTicket = useInvalidateIssuedTicket();
+  const resendTicket = useResendTicketEmail();
   const [manualCheckInOpen, setManualCheckInOpen] = useState(false);
+  const [invalidateOpen, setInvalidateOpen] = useState(false);
+  const [swapOpen, setSwapOpen] = useState(false);
 
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap justify-end gap-2">
       <Button
-        disabled={isSuccess}
-        onClick={() =>
-          // console.log(orderId)}
-          resend_ticket_email(orderId)
-        }
-        className={"dark:text-white underline cursor-pointer"}
-        size={"xs"}
-        variant={"link"}
+        disabled={resendTicket.isSuccess}
+        onClick={() => resendTicket.mutate(orderId)}
+        className="dark:text-white underline cursor-pointer"
+        size="xs"
+        variant="link"
       >
-        {isPending ? <Spinner /> : isSuccess ? <Check /> : <Send />}
-        {isSuccess ? `Ticket Sent` : `Resend Ticket`}
+        {resendTicket.isPending ? <Spinner /> : resendTicket.isSuccess ? <Check /> : <Send />}
+        {resendTicket.isSuccess ? "Ticket Sent" : "Resend"}
       </Button>
 
       {!isCheckedIn && (
-        <Button
-          onClick={() => setManualCheckInOpen(true)}
-          className={"text-white"}
-          size={"xs"}
-        >
-          <Stamp /> check-in
-        </Button>
+        <>
+          <Button onClick={() => setSwapOpen(true)} size="xs" variant="outline">
+            <RefreshCw /> Swap
+          </Button>
+          <Button onClick={() => setManualCheckInOpen(true)} size="xs">
+            <Stamp /> Check-in
+          </Button>
+          <Button
+            onClick={() => setInvalidateOpen(true)}
+            size="xs"
+            variant="destructive"
+          >
+            <Ban /> Invalidate
+          </Button>
+        </>
       )}
 
       <ConfirmDialog
@@ -68,9 +74,29 @@ const AttendeesTableActions = ({
         confirmText="Manual check-in"
         variant="default"
         onConfirm={() => {
-          check_user_in_manually(ticketIdentifier);
+          checkInManually(ticketIdentifier);
           setManualCheckInOpen(false);
         }}
+      />
+
+      <ConfirmDialog
+        open={invalidateOpen}
+        onOpenChange={setInvalidateOpen}
+        title="Invalidate Ticket"
+        description="This keeps the record but makes the QR code unusable."
+        confirmText="Invalidate"
+        variant="destructive"
+        onConfirm={() => {
+          invalidateTicket.mutate({ ticketIdentifier });
+          setInvalidateOpen(false);
+        }}
+      />
+
+      <SwapTicketDialog
+        eventId={eventId}
+        ticketIdentifier={ticketIdentifier}
+        open={swapOpen}
+        onOpenChange={setSwapOpen}
       />
     </div>
   );

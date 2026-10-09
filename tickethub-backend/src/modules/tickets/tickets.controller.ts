@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 
 import ticketsService from './tickets.service.js';
+import { assertCanAccessEvent } from '@/modules/events/event-access.service.js';
 
 class TicketsController {
   async purchaseTickets(req: Request, res: Response, next: NextFunction) {
@@ -97,6 +98,12 @@ class TicketsController {
         : typeof rawGroupIds === 'string'
           ? rawGroupIds.split(',').filter(Boolean).map(Number)
           : [];
+
+      await assertCanAccessEvent({
+        eventId,
+        userId: req.user.id,
+        roles: req.user.roles,
+      });
 
       const phoneNumbers = await ticketsService.getAttendeePhoneNumbersByEvent(
         eventId,

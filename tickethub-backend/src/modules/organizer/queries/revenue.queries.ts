@@ -1,5 +1,5 @@
 import { db } from '@/db/client.js';
-import { and, eq, sql, inArray } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { applyDateRange, type DateRange } from '@/utils/dateRange.js';
 
 import {
@@ -7,119 +7,76 @@ import {
   ticketOrders,
   ticketOrderItems,
   eventTickets,
+  ticketConfigurations,
   tickets,
   events,
 } from '@/db/schema/index.js';
 
 export type { DateRange };
 
-/**
- * Total completed revenue for an organizer
- */
 export async function getTotalRevenue(
   organizerId: number,
   range?: DateRange,
-  filters?: { eventId?: number | undefined },
+  filters?: { eventId?: number | undefined; ticketId?: number | undefined },
 ) {
-  const scopes = [eq(events.organizerId, organizerId)];
-  if (filters?.eventId) {
-    scopes.push(eq(events.id, filters.eventId));
-  }
-
-  const paymentFilters: any[] = [
+  const queryFilters: any[] = [
+    eq(events.organizerId, organizerId),
     eq(payments.status, 'Completed'),
-    inArray(
-      ticketOrders.id,
-      db
-        .select({ id: ticketOrders.id })
-        .from(ticketOrders)
-        .innerJoin(
-          ticketOrderItems,
-          eq(ticketOrderItems.orderId, ticketOrders.id),
-        )
-        .innerJoin(
-          eventTickets,
-          eq(ticketOrderItems.eventTicketId, eventTickets.id),
-        )
-        .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
-        .innerJoin(events, eq(tickets.eventId, events.id))
-        .where(and(...scopes)),
-    ),
+    eq(ticketOrderItems.status, 'Valid'),
   ];
-  applyDateRange(paymentFilters, payments.paidAt, range);
+
+  if (filters?.eventId) queryFilters.push(eq(events.id, filters.eventId));
+  if (filters?.ticketId) queryFilters.push(eq(tickets.id, filters.ticketId));
+
+  applyDateRange(queryFilters, payments.paidAt, range);
 
   const [result] = await db
     .select({
-      totalRevenue: sql<string>`COALESCE(SUM(${payments.subtotal}), 0)`,
+      totalRevenue: sql<string>`COALESCE(SUM(${ticketConfigurations.price}), 0)`,
     })
-    .from(payments)
-    .innerJoin(ticketOrders, eq(payments.orderId, ticketOrders.id))
-    .where(and(...paymentFilters));
+    .from(ticketOrderItems)
+    .innerJoin(ticketOrders, eq(ticketOrderItems.orderId, ticketOrders.id))
+    .innerJoin(payments, eq(payments.orderId, ticketOrders.id))
+    .innerJoin(eventTickets, eq(ticketOrderItems.eventTicketId, eventTickets.id))
+    .innerJoin(ticketConfigurations, eq(eventTickets.ticketConfigurationId, ticketConfigurations.id))
+    .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
+    .innerJoin(events, eq(tickets.eventId, events.id))
+    .where(and(...queryFilters));
 
   return Number(result?.totalRevenue ?? 0);
 }
 
-/**
- * Daily revenue trend within an optional date range.
- *
- * `ticketsSold` is computed via a correlated subquery (instead of a join) so
- * the payment row count is never inflated and SUM(subtotal) stays correct.
- */
 export async function getRevenueTrend(
   organizerId: number,
   range?: DateRange,
   filters?: { eventId?: number | undefined; ticketId?: number | undefined },
 ) {
-  const scopes = [eq(events.organizerId, organizerId)];
-
-  if (filters?.eventId) {
-    scopes.push(eq(events.id, filters.eventId));
-  }
-
-  const dateFilters: any[] = [
+  const queryFilters: any[] = [
+    eq(events.organizerId, organizerId),
     eq(payments.status, 'Completed'),
-    inArray(
-      ticketOrders.id,
-      db
-        .select({ id: ticketOrders.id })
-        .from(ticketOrders)
-        .innerJoin(
-          ticketOrderItems,
-          eq(ticketOrderItems.orderId, ticketOrders.id),
-        )
-        .innerJoin(
-          eventTickets,
-          eq(ticketOrderItems.eventTicketId, eventTickets.id),
-        )
-        .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
-        .innerJoin(events, eq(tickets.eventId, events.id))
-        .where(and(...scopes)),
-    ),
+    eq(ticketOrderItems.status, 'Valid'),
   ];
 
-  applyDateRange(dateFilters, payments.paidAt, range);
+  if (filters?.eventId) queryFilters.push(eq(events.id, filters.eventId));
+  if (filters?.ticketId) queryFilters.push(eq(tickets.id, filters.ticketId));
+
+  applyDateRange(queryFilters, payments.paidAt, range);
 
   return db
     .select({
       date: sql<string>`DATE(${payments.paidAt})`,
-      revenue: sql<string>`SUM(${payments.subtotal})`,
-      transactions: sql<number>`COUNT(${payments.id})`,
-      ticketsSold: sql<number>`COALESCE(SUM(
-        (SELECT COUNT(${ticketOrderItems.id})
-           FROM ${ticketOrderItems}
-           INNER JOIN ${eventTickets} et2 ON et2.id = ${ticketOrderItems.eventTicketId}
-           INNER JOIN ${tickets} t2 ON t2.id = et2.ticketId
-           INNER JOIN ${events} e2 ON e2.id = t2.eventId
-           WHERE ${ticketOrderItems.orderId} = ${ticketOrders.id}
-             AND e2.organizerId = ${organizerId}
-             ${filters?.eventId ? sql`AND e2.id = ${filters.eventId}` : sql``}
-             ${filters?.ticketId ? sql`AND t2.id = ${filters.ticketId}` : sql``})
-      ), 0)`,
+      revenue: sql<string>`COALESCE(SUM(${ticketConfigurations.price}), 0)`,
+      transactions: sql<number>`COUNT(DISTINCT ${payments.id})`,
+      ticketsSold: sql<number>`COUNT(${ticketOrderItems.id})`,
     })
-    .from(payments)
-    .innerJoin(ticketOrders, eq(payments.orderId, ticketOrders.id))
-    .where(and(...dateFilters))
+    .from(ticketOrderItems)
+    .innerJoin(ticketOrders, eq(ticketOrderItems.orderId, ticketOrders.id))
+    .innerJoin(payments, eq(payments.orderId, ticketOrders.id))
+    .innerJoin(eventTickets, eq(ticketOrderItems.eventTicketId, eventTickets.id))
+    .innerJoin(ticketConfigurations, eq(eventTickets.ticketConfigurationId, ticketConfigurations.id))
+    .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
+    .innerJoin(events, eq(tickets.eventId, events.id))
+    .where(and(...queryFilters))
     .groupBy(sql`DATE(${payments.paidAt})`)
     .orderBy(sql`DATE(${payments.paidAt})`);
 }
-

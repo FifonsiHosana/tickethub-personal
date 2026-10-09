@@ -12,12 +12,14 @@ import {
   category,
   categorizedEvents,
   platformSettings,
+  ticketOrderItems,
+  payments,
 } from '@/db/schema/index.js';
 import { AppError } from '@/middleware/errorHandler.js';
 import { normalizeGoogleMapLink } from '@/utils/googleMapLink.js';
 import { now } from '@/utils/timeDatehelpers.js';
 
-import { and, eq, like, desc, count, inArray } from 'drizzle-orm';
+import { and, eq, like, desc, count, inArray, sql } from 'drizzle-orm';
 
 import { formatDateForMySQL } from '@/utils/timeDatehelpers.js';
 import logger from '@/utils/logger/index.js';
@@ -237,8 +239,22 @@ export async function getOrganizerEventById(
       ticketTypeId: eventTickets.ticketTypeId,
       price: ticketConfigurations.price,
       totalCount: ticketConfigurations.totalCount,
-      totalSold: ticketConfigurations.totalSold,
-      remaining: ticketConfigurations.totalRemaining,
+      totalSold: sql<number>`(
+        SELECT COUNT(toi.id)
+        FROM TicketOrderItems toi
+        INNER JOIN Payments p
+          ON p.orderId = toi.orderId
+         AND p.status = 'Completed'
+        WHERE toi.status = 'Valid' AND toi.eventTicketId = ${eventTickets.id}
+      )`,
+      remaining: sql<number>`GREATEST(${ticketConfigurations.totalCount} - (
+        SELECT COUNT(toi.id)
+        FROM TicketOrderItems toi
+        INNER JOIN Payments p
+          ON p.orderId = toi.orderId
+         AND p.status = 'Completed'
+        WHERE toi.status = 'Valid' AND toi.eventTicketId = ${eventTickets.id}
+      ), 0)`,
       salesStartDate: ticketConfigurations.salesStartDate,
       salesEndDate: ticketConfigurations.salesEndDate,
       benefits: ticketConfigurations.benefits,

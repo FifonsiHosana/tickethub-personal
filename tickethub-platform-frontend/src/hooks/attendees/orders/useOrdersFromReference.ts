@@ -6,8 +6,8 @@ import { useQuery } from "@tanstack/react-query";
 
 export function useOrdersFromReference(params?: OrderFromReferenceParams) {
   return useQuery({
-    queryKey: ["attendee-order-from-reference", params?.reference],
-    queryFn: () => getOrderFromReference(params?.reference as string),
+    queryKey: ["attendee-order-from-reference", params?.reference, params?.email],
+    queryFn: () => getOrderFromReference(params as OrderFromReferenceParams),
     enabled: !!params?.reference,
     placeholderData: (previousData) => previousData,
     refetchInterval: (query) => {

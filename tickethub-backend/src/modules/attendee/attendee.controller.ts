@@ -50,10 +50,25 @@ export async function getAttendeeOrderFromReference(
   next: NextFunction,
 ) {
   try {
-    const result = await getOrderFromReference(req.query.reference as string);
-    res.status(200).json({ success: true, data: result });
+    const reference = req.query.reference as string;
+    const email = typeof req.query.email === 'string' ? req.query.email : undefined;
+    const phoneNumber =
+      typeof req.query.phoneNumber === 'string'
+        ? req.query.phoneNumber
+        : undefined;
+
+    const requester: { userId?: number; email?: string; phoneNumber?: string } = {};
+    if (req.user?.id) requester.userId = req.user.id;
+    if (email) requester.email = email;
+    if (phoneNumber) requester.phoneNumber = phoneNumber;
+
+    const result = await getOrderFromReference(reference, requester);
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
   } catch (error) {
     next(error);
   }
 }
-

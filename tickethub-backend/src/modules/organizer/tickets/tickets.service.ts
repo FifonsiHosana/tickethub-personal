@@ -5,9 +5,11 @@ import {
   ticketConfigurations,
   eventTickets,
   events,
+  ticketOrderItems,
+  payments,
 } from '@/db/schema/index.js';
 import { AppError } from '@/middleware/errorHandler.js';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import type {
   CreateTicketType,
   UpdateTicketType,
@@ -74,14 +76,29 @@ export async function getOrganizerEventTickets(
   return db
     .select({
       id: tickets.id,
+      eventTicketId: eventTickets.id,
       name: tickets.name,
       ticketType: ticketTypes.name,
       ticketTypeId: eventTickets.ticketTypeId,
       description: ticketTypes.description,
       price: ticketConfigurations.price,
       totalCount: ticketConfigurations.totalCount,
-      totalSold: ticketConfigurations.totalSold,
-      remaining: ticketConfigurations.totalRemaining,
+      totalSold: sql<number>`(
+        SELECT COUNT(toi.id)
+        FROM TicketOrderItems toi
+        INNER JOIN Payments p
+          ON p.orderId = toi.orderId
+         AND p.status = 'Completed'
+        WHERE toi.status = 'Valid' AND toi.eventTicketId = ${eventTickets.id}
+      )`,
+      remaining: sql<number>`GREATEST(${ticketConfigurations.totalCount} - (
+        SELECT COUNT(toi.id)
+        FROM TicketOrderItems toi
+        INNER JOIN Payments p
+          ON p.orderId = toi.orderId
+         AND p.status = 'Completed'
+        WHERE toi.status = 'Valid' AND toi.eventTicketId = ${eventTickets.id}
+      ), 0)`,
       salesStartDate: ticketConfigurations.salesStartDate,
       salesEndDate: ticketConfigurations.salesEndDate,
       benefits: ticketConfigurations.benefits,
@@ -270,14 +287,16 @@ export async function updateOrganizerTicket(
   }
 
   if (data.totalCount !== undefined) {
-    const [config] = await db
-      .select()
-      .from(ticketConfigurations)
-      .where(eq(ticketConfigurations.id, ticketConfigurationId));
+    const [sold] = await db
+      .select({ count: sql<number>`COUNT(${ticketOrderItems.id})` })
+      .from(ticketOrderItems)
+      .innerJoin(payments, and(eq(payments.orderId, ticketOrderItems.orderId), eq(payments.status, 'Completed')))
+      .innerJoin(eventTickets, eq(ticketOrderItems.eventTicketId, eventTickets.id))
+      .where(and(eq(eventTickets.ticketConfigurationId, ticketConfigurationId), eq(ticketOrderItems.status, 'Valid')));
 
-    const totalSold = Number(config?.totalSold ?? 0);
+    const totalSold = Number(sold?.count ?? 0);
     updateValues.totalCount = data.totalCount;
-    updateValues.totalRemaining = data.totalCount - totalSold;
+    updateValues.totalRemaining = Math.max(data.totalCount - totalSold, 0);
   }
 
   if (data.salesStartDate !== undefined) {
@@ -348,12 +367,14 @@ export async function deleteOrganizerTicket(
 
   const ticketConfigurationId = Number(mapping.ticketConfigurationId);
 
-  const [configuration] = await db
-    .select()
-    .from(ticketConfigurations)
-    .where(eq(ticketConfigurations.id, ticketConfigurationId));
+  const [sold] = await db
+    .select({ count: sql<number>`COUNT(${ticketOrderItems.id})` })
+    .from(ticketOrderItems)
+    .innerJoin(payments, and(eq(payments.orderId, ticketOrderItems.orderId), eq(payments.status, 'Completed')))
+    .innerJoin(eventTickets, eq(ticketOrderItems.eventTicketId, eventTickets.id))
+    .where(and(eq(eventTickets.ticketConfigurationId, ticketConfigurationId), eq(ticketOrderItems.status, 'Valid')));
 
-  if (Number(configuration?.totalSold ?? 0) > 0) {
+  if (Number(sold?.count ?? 0) > 0) {
     throw new AppError(
       500,
       'Ticket cannot be deleted after sales have started',

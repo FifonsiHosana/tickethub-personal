@@ -8,6 +8,7 @@ import { eq, count, desc } from 'drizzle-orm';
 import { AppError } from '@/middleware/errorHandler.js';
 import { now } from '@/utils/timeDatehelpers.js';
 import { getSetting, callPaystackTransfer, createPaystackRecipient } from './payouts.utils.js';
+import { getOrganizerAvailablePayoutAmount } from './payouts.balance.js';
 
 export class PayoutsService {
   async getDetails(organizerId: number) {

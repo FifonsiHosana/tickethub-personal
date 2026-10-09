@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from 'express';
 import { FinanceService } from './finance.service.js';
 import type { purchaseTicketPaymentInput } from './finance.schema.js';
 import { AppError } from '@/middleware/errorHandler.js';
-import { verifyPaystackSignature } from './finance.utils.js';
+import { parsePaystackPayload, verifyPaystackSignature } from './finance.utils.js';
 import payoutsService from '@/modules/admin/payouts/payouts.service.js';
 
 export class FinanceController {
@@ -69,11 +69,12 @@ export class FinanceController {
         throw new AppError(401, 'You are unauthorized');
       }
 
-      const event = req.body.event;
+      const payload = parsePaystackPayload(req.body);
+      const event = payload.event;
       if (event === 'transfer.success' || event === 'transfer.failed') {
-        await payoutsService.handleTransferWebhook(req.body);
+        await payoutsService.handleTransferWebhook(payload);
       } else {
-        await this.financeService.handlePaystackWebhook(req.body);
+        await this.financeService.handlePaystackWebhook(payload);
       }
 
       res.json({ received: true });

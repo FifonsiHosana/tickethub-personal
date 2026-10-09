@@ -11,6 +11,8 @@ import {
   type UpdateTicketPayload,
   type CreateTicketTypePayload,
   resendTicketEmail,
+  invalidateIssuedTicket,
+  swapIssuedTicket,
 } from "@/utils/services/organizers/tickets.service";
 import { toast } from "sonner";
 
@@ -109,3 +111,30 @@ export function useResendTicketEmail() {
   });
 }
 
+
+export function useInvalidateIssuedTicket() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ ticketIdentifier, reason }: { ticketIdentifier: string; reason?: string }) =>
+      invalidateIssuedTicket(ticketIdentifier, reason),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["organizer-event-attendees"] });
+      qc.invalidateQueries({ queryKey: ["organizer-tickets"] });
+      toast.success("Ticket invalidated");
+    },
+  });
+}
+
+export function useSwapIssuedTicket() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: swapIssuedTicket,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["organizer-event-attendees"] });
+      qc.invalidateQueries({ queryKey: ["organizer-tickets"] });
+      toast.success("Ticket swapped");
+    },
+  });
+}

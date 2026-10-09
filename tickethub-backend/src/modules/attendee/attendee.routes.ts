@@ -10,7 +10,7 @@ import {
   orderHistoryDetailParamsSchema,
   orderHistoryQuerySchema,
 } from './attendee.schema.js';
-import { authenticate } from '@/middleware/auth/auth.middleware.js';
+import { authenticate, optionalAuthenticate } from '@/middleware/auth/auth.middleware.js';
 
 const router = Router();
 
@@ -30,6 +30,7 @@ router.get(
 
 router.get(
   '/order-from-reference',
+  optionalAuthenticate,
   validateQuery(orderFromReferenceQuerySchema),
   getAttendeeOrderFromReference,
 );

@@ -1,4 +1,4 @@
-import { type Executor } from '@/db/client.js';
+import { db, type Executor } from '@/db/client.js';
 import { and, eq, inArray, isNull } from 'drizzle-orm';
 import {
   ticketOrders,
@@ -8,7 +8,7 @@ import {
   ticketTypes,
   payments,
 } from '@/db/schema/index.js';
-import { db } from '@/db/client.js';
+import { AppError } from '@/middleware/errorHandler.js';
 
 export async function linkOrdersByEmail(
   tx: Executor,
@@ -32,8 +32,10 @@ export async function linkOrdersByEmail(
     .where(and(inArray(ticketOrders.id, orderIds), isNull(ticketOrders.userId)));
 }
 
-export async function getOrderFromReference(reference: string) {
-  console.log('REFERENCE RECEIVED:', reference);
+export async function getOrderFromReference(
+  reference: string,
+  requester?: { userId?: number; email?: string; phoneNumber?: string },
+) {
   const rows = await db
     .select({
       orderId: ticketOrders.id,
@@ -47,6 +49,8 @@ export async function getOrderFromReference(reference: string) {
       amount: payments.amount,
       currency: payments.currency,
       provider: payments.provider,
+      paymentStatus: payments.status,
+      orderUserId: ticketOrders.userId,
       ticketOrderItemId: ticketOrderItems.id,
       ticketIdentifier: ticketOrderItems.ticketIdentifier,
       qrCodeUrl: ticketOrderItems.qrCodeUrl,
@@ -58,15 +62,40 @@ export async function getOrderFromReference(reference: string) {
     .from(ticketOrders)
     .innerJoin(
       payments,
-      and(eq(payments.orderId, ticketOrders.id), eq(payments.reference, reference)),
+      and(
+        eq(payments.orderId, ticketOrders.id),
+        eq(payments.reference, reference),
+        eq(payments.status, 'Completed'),
+      ),
     )
-    .innerJoin(ticketOrderUserDetails, eq(ticketOrders.id, ticketOrderUserDetails.orderId))
-    .innerJoin(ticketOrderItems, eq(ticketOrders.id, ticketOrderItems.orderId))
+    .innerJoin(
+      ticketOrderUserDetails,
+      eq(ticketOrders.id, ticketOrderUserDetails.orderId),
+    )
+    .innerJoin(
+      ticketOrderItems,
+      and(
+        eq(ticketOrders.id, ticketOrderItems.orderId),
+        eq(ticketOrderItems.status, 'Valid'),
+      ),
+    )
     .leftJoin(eventTickets, eq(ticketOrderItems.eventTicketId, eventTickets.id))
     .leftJoin(ticketTypes, eq(eventTickets.ticketTypeId, ticketTypes.id));
 
   if (!rows.length) return null;
+
   const first = rows[0];
+  const emailMatches =
+    requester?.email &&
+    first?.customerEmail?.toLowerCase() === requester.email.toLowerCase();
+  const phoneMatches =
+    requester?.phoneNumber && first?.customerPhone === requester.phoneNumber;
+  const userMatches =
+    requester?.userId && first?.orderUserId === requester.userId;
+
+  if (!emailMatches && !phoneMatches && !userMatches) {
+    throw new AppError(403, 'This order reference does not belong to you.');
+  }
 
   return {
     orderId: first?.orderId,

@@ -178,6 +178,7 @@ class TicketsService {
         qrCodeUrl: ticketOrderItems.qrCodeUrl,
         checkedIn: ticketOrderItems.checkedIn,
         checkedInAt: ticketOrderItems.checkedInAt,
+        status: ticketOrderItems.status,
         ticketName: ticketTypes.name,
         ticketType: ticketTypes.name,
         price: ticketConfigurations.price,
@@ -187,6 +188,7 @@ class TicketsService {
         venueCity: eventsVenues.city_or_town,
         venueCountry: eventsVenues.country,
         orderStatus: ticketOrders.status,
+        paymentStatus: payments.status,
         purchaserFirstName: ticketOrderUserDetails.firstName,
         purchaserLastName: ticketOrderUserDetails.lastName,
         purchaserEmail: ticketOrderUserDetails.email,
@@ -209,6 +211,10 @@ class TicketsService {
         ticketConfigurations,
         eq(eventTickets.ticketConfigurationId, ticketConfigurations.id),
       )
+      .leftJoin(
+        payments,
+        and(eq(payments.orderId, ticketOrders.id), eq(payments.status, 'Completed')),
+      )
       .where(eq(ticketOrderItems.ticketIdentifier, identifier))
       .limit(1);
 
@@ -222,6 +228,9 @@ class TicketsService {
         checkedIn: ticketOrderItems.checkedIn,
         checkedInAt: ticketOrderItems.checkedInAt,
         ticketIdentifier: ticketOrderItems.ticketIdentifier,
+        status: ticketOrderItems.status,
+        invalidationReason: ticketOrderItems.invalidationReason,
+        paymentStatus: payments.status,
         firstName: ticketOrderUserDetails.firstName,
         lastName: ticketOrderUserDetails.lastName,
         ticketType: ticketTypes.name,
@@ -230,6 +239,10 @@ class TicketsService {
       })
       .from(ticketOrderItems)
       .innerJoin(ticketOrders, eq(ticketOrderItems.orderId, ticketOrders.id))
+      .leftJoin(
+        payments,
+        and(eq(payments.orderId, ticketOrders.id), eq(payments.status, 'Completed')),
+      )
       .innerJoin(
         ticketOrderUserDetails,
         eq(ticketOrders.id, ticketOrderUserDetails.orderId),
@@ -246,6 +259,14 @@ class TicketsService {
 
     if (!ticket) {
       throw new AppError(404, 'Ticket not found.');
+    }
+
+    if (ticket.status !== 'Valid') {
+      throw new AppError(400, 'This ticket is invalid.');
+    }
+
+    if (!ticket.paymentStatus) {
+      throw new AppError(400, 'This ticket is invalid.');
     }
 
     if (ticket.organizerId !== checkedInBy) {
@@ -653,4 +674,3 @@ class TicketsService {
 }
 
 export default new TicketsService();
-

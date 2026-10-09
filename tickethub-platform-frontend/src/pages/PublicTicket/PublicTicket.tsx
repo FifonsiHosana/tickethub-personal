@@ -22,8 +22,7 @@ export default function PublicTicket() {
     );
   }
 
-  const ticketUrl = ticket.qrCodeUrl;
-
+  const isInvalid = ticket.status !== "Valid" || !ticket.paymentStatus;
   const dateStr = format(new Date(ticket.eventDate), "EEE, MMM d, yyyy");
   const timeStr = format(new Date(ticket.eventDate), "h:mm a");
 
@@ -31,13 +30,11 @@ export default function PublicTicket() {
     <div className="min-h-screen bg-neutral-50 flex items-center justify-center py-24 px-6">
       <div className="w-full max-w-lg">
         <div className="bg-white rounded-3xl shadow-lg border border-neutral-200 overflow-hidden">
-          {/* Ticket header */}
           <div className="bg-primary p-6 text-white text-center">
             <h1 className="text-2xl font-bold">{ticket.eventName}</h1>
             <p className="text-sm mt-1">{ticket.ticketType}</p>
           </div>
 
-          {/* Ticket body */}
           <div className="p-6 space-y-2 w-full">
             <div className="grid grid-cols-2 gap-2 md:gap-y-2 md:gap-x-6 text-sm w-full">
               <div>
@@ -70,44 +67,36 @@ export default function PublicTicket() {
               </div>
             </div>
 
-            {/* QR Code */}
             <div className="flex justify-center py-2">
-              {ticketUrl.startsWith("data:") ? (
-                <img src={ticketUrl} alt="QR Code" className="w-40 h-40" />
+              {ticket.qrCodeUrl.startsWith("data:") ? (
+                <img src={ticket.qrCodeUrl} alt="QR Code" className="h-40 w-40" />
               ) : (
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(ticketUrl)}`}
-                  alt="QR Code"
-                  className="w-40 h-40"
-                />
+                <div className="rounded-xl border border-dashed border-neutral-300 px-5 py-4 text-center">
+                  <p className="text-xs uppercase text-neutral-400">Ticket Code</p>
+                  <p className="mt-2 break-all font-mono text-sm text-neutral-800">
+                    {ticket.ticketIdentifier}
+                  </p>
+                </div>
               )}
             </div>
 
             <div className="text-center">
-              <p className="text-xs text-neutral-400 font-mono">
-                {ticket.ticketIdentifier}
-              </p>
-            </div>
-
-            {/* Status */}
-            <div className="text-center">
-              {ticket.checkedIn ? (
+              {isInvalid ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium">
+                  This ticket is invalid
+                </span>
+              ) : ticket.checkedIn ? (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-primary rounded-full text-sm font-medium">
                   Checked In
                 </span>
-              ) : ticket.orderStatus === "Completed" ? (
+              ) : (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-100 text-green-700 rounded-full text-sm font-medium">
                   Valid Ticket
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm font-medium">
-                  Payment Pending
                 </span>
               )}
             </div>
           </div>
 
-          {/* Purchaser info */}
           <div className="bg-neutral-50 px-6 py-4 border-t border-neutral-200">
             <p className="text-xs text-neutral-400 uppercase tracking-wider">
               Purchaser
@@ -120,7 +109,7 @@ export default function PublicTicket() {
         </div>
 
         <p className="text-center text-xs text-neutral-400 mt-6">
-          Present this ticket at the venue for check-in.
+          {isInvalid ? "This ticket is invalid." : "Present this ticket at the venue for check-in."}
         </p>
       </div>
     </div>

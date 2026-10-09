@@ -2,9 +2,12 @@ import { useSearchParams, useNavigate, Link } from "react-router";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
+import {
+  getSessionItem,
+  GUEST_CHECKOUT_EMAIL_KEY,
+} from "@/utils/storage/sessionStorage";
 import { ArrowRight, Loader2Icon, Ticket } from "lucide-react";
 import { useOrdersFromReference } from "@/hooks/attendees/orders/useOrdersFromReference";
-// import { getSessionItem, GUEST_CHECKOUT_EMAIL_KEY } from "@/utils/storage/sessionStorage";
 
 export default function SuccessPage() {
   const [searchParams] = useSearchParams();
@@ -12,6 +15,7 @@ export default function SuccessPage() {
   // const { token } = useAuthStorage();
 
   const paystackRef = searchParams.get("reference");
+  const guestEmail = getSessionItem(GUEST_CHECKOUT_EMAIL_KEY) ?? undefined;
 
   useEffect(() => {
     if (!paystackRef) {
@@ -21,12 +25,10 @@ export default function SuccessPage() {
 
   const { data: orders } = useOrdersFromReference({
     reference: paystackRef as string,
+    email: guestEmail,
   });
 
-  console.log("orders", orders);
-  console.log("paystackRef", paystackRef);
 
-  // const guestEmail = getSessionItem(GUEST_CHECKOUT_EMAIL_KEY);
   // const ticketsTarget = token ? "/ticket-order-history" : "/login";
   // : `/account/setup-password?email=${encodeURIComponent(guestEmail ?? "")}`;
 

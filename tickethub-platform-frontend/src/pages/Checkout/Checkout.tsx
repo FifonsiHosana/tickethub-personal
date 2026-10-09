@@ -3,8 +3,7 @@ import { CheckoutForm } from "@/components/sections/Checkout/CheckoutForm";
 // import { OrderSummary } from "@/components/sections/Checkout/OrderSummary";
 import { PricingSummary } from "@/components/sections/Checkout/PricingSummary";
 import { useTicketCartStore } from "@/stores/tickets.store";
-import { usePurchaseTickets } from "@/hooks/attendees/tickets/useTickets";
-import { usePayTicket } from "@/hooks/attendees/tickets/usePayTickets";
+import { useInitiateCheckoutV2 } from "@/hooks/attendees/tickets/useCheckoutV2";
 import { useCheckout } from "@/hooks/useCheckout";
 import { useProcessingFeePercentage } from "@/hooks/useSettings";
 import { computeTotalWithFee } from "@/utils/checkout/checkout.utils";
@@ -17,8 +16,7 @@ export const Checkout: React.FC = () => {
   const navigate = useNavigate();
   const { isMobile } = useIsMobile();
   const { totalTicketAmount, totalTicketQuantity } = useTicketCartStore();
-  const purchaseMutation = usePurchaseTickets();
-  const initiatePaymentFunction = usePayTicket();
+  const checkoutMutation = useInitiateCheckoutV2();
   const processingFeePercentage = useProcessingFeePercentage();
   const { feeAmount } = computeTotalWithFee(
     totalTicketAmount,
@@ -27,11 +25,10 @@ export const Checkout: React.FC = () => {
   const totalFeeAmount = (feeAmount * totalTicketQuantity) as number;
 
   const { handleTicketOrderPurchase } = useCheckout({
-    createTicketPurchaseOrder: purchaseMutation.mutateAsync,
-    initiatePaymentForPurchaseOrder: initiatePaymentFunction.mutateAsync,
+    initiateCheckout: checkoutMutation.mutateAsync,
   });
 
-  if (purchaseMutation.isPending || initiatePaymentFunction.isPending)
+  if (checkoutMutation.isPending)
     return <Loader loading={true} fullScreen={true} />;
 
   return (
@@ -87,7 +84,7 @@ export const Checkout: React.FC = () => {
               subtotal={totalTicketAmount}
               feeAmount={totalFeeAmount}
               isProcessing={
-                purchaseMutation.isPending || initiatePaymentFunction.isPending
+                checkoutMutation.isPending
               }
             />
           </div>

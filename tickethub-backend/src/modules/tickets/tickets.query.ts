@@ -70,7 +70,7 @@ export async function getOrderForResend(orderId: number) {
       eq(ticketConfigurations.id, eventTickets.ticketConfigurationId),
     )
     .leftJoin(eventsVenues, eq(eventsVenues.id, events.eventVenueId))
-    .where(eq(ticketOrderItems.orderId, orderId));
+    .where(and(eq(ticketOrderItems.orderId, orderId), eq(ticketOrderItems.status, 'Valid')));
 
   if (orderItems.length === 0) {
     throw new AppError(409, 'This order has no tickets to resend.');

@@ -32,6 +32,7 @@ async function getSalesReportData(options: SalesReportOptions) {
     eq(events.organizerId, options.organizerId),
 
     eq(payments.status, 'Completed'),
+    eq(ticketOrderItems.status, 'Valid'),
   ];
 
   if (options.eventId) {

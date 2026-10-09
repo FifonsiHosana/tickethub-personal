@@ -9,6 +9,7 @@ import {
   boolean,
   timestamp,
   serial,
+  uniqueIndex,
 } from 'drizzle-orm/mysql-core';
 import { sql } from 'drizzle-orm';
 import { users } from './auth.js';
@@ -49,8 +50,7 @@ export const creditWallet = mysqlTable('CreditWallet', {
       onDelete: 'cascade',
       onUpdate: 'cascade',
     })
-    .notNull()
-    .unique(),
+    .notNull(),
   totalCredit: decimal({
     precision: 10,
     scale: 2,
@@ -77,7 +77,9 @@ export const creditWallet = mysqlTable('CreditWallet', {
   updatedAt: datetime({ mode: 'string', fsp: 3 })
     .default(sql`(now())`)
     .notNull(),
-});
+}, (table) => [
+  uniqueIndex('userId_unique').on(table.userId),
+]);
 
 export const creditTransactions = mysqlTable('credit_transactions', {
   id: serial('id').primaryKey(),

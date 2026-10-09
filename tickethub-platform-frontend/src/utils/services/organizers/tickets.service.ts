@@ -22,6 +22,7 @@ export type UpdateTicketPayload = {
 
 export type TicketResponse = {
   id: number;
+  eventTicketId: number;
   name: string;
   ticketType: string | null;
   ticketTypeId: number | null;
@@ -37,6 +38,7 @@ export type TicketResponse = {
 
 export type TicketTypeResponse = {
   id: number;
+  eventTicketId: number;
   name: string;
   description: string | null;
 };
@@ -167,5 +169,35 @@ export async function changeTicketStatus(
   const response = await axiosInstance.post<
     ApiResponse<ChangeTicketStatusResponse>
   >("/tickets/status", payload);
+  return response.data.data;
+}
+
+export type TicketActionResponse = {
+  message: string;
+};
+
+export async function invalidateIssuedTicket(
+  ticketIdentifier: string,
+  reason?: string,
+): Promise<TicketActionResponse> {
+  const response = await axiosInstance.patch<ApiResponse<TicketActionResponse>>(
+    `/organizer/tickets/items/${ticketIdentifier}/invalidate`,
+    { reason },
+  );
+  return response.data.data;
+}
+
+export async function swapIssuedTicket(payload: {
+  ticketIdentifier: string;
+  targetEventTicketId: number;
+  reason?: string;
+}): Promise<TicketActionResponse> {
+  const response = await axiosInstance.patch<ApiResponse<TicketActionResponse>>(
+    `/organizer/tickets/items/${payload.ticketIdentifier}/swap`,
+    {
+      targetEventTicketId: payload.targetEventTicketId,
+      reason: payload.reason,
+    },
+  );
   return response.data.data;
 }

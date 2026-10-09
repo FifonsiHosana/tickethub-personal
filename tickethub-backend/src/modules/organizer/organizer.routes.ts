@@ -144,7 +144,7 @@ router.get(
 );
 
 router.get('/event-venues', getAllVenues);
-router.post('/event-venues', createVenue);
+router.post('/event-venues', authenticate, authorize('organizer'), createVenue);
 
 router.get(
   '/events/:eventId/staff',

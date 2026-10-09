@@ -227,7 +227,7 @@ export async function getOrganizerSales(
         .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
         .innerJoin(ticketTypes, eq(eventTickets.ticketTypeId, ticketTypes.id))
         .innerJoin(events, eq(tickets.eventId, events.id))
-        .where(inArray(ticketOrders.id, orderIds))
+        .where(and(inArray(ticketOrders.id, orderIds), eq(ticketOrderItems.status, 'Valid')))
         .groupBy(ticketOrders.id, events.id)
     : [];
 
@@ -327,7 +327,7 @@ export async function getSaleById(organizerId: number, orderId: number) {
       eq(ticketOrders.id, ticketOrderUserDetails.orderId),
     )
 
-    .innerJoin(ticketOrderItems, eq(ticketOrders.id, ticketOrderItems.orderId))
+    .innerJoin(ticketOrderItems, and(eq(ticketOrders.id, ticketOrderItems.orderId), eq(ticketOrderItems.status, 'Valid')))
 
     .innerJoin(
       eventTickets,
@@ -388,7 +388,7 @@ export async function getEventSales(organizerId: number, eventId: number) {
       eq(ticketOrders.id, ticketOrderUserDetails.orderId),
     )
 
-    .innerJoin(ticketOrderItems, eq(ticketOrders.id, ticketOrderItems.orderId))
+    .innerJoin(ticketOrderItems, and(eq(ticketOrders.id, ticketOrderItems.orderId), eq(ticketOrderItems.status, 'Valid')))
 
     .innerJoin(
       eventTickets,

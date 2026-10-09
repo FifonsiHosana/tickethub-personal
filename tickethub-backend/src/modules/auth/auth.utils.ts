@@ -18,7 +18,7 @@ export function generateOTP(length = 6) {
   let otp = '';
 
   for (let i = 0; i < length; i++) {
-    otp += digits[Math.floor(Math.random() * digits.length)];
+    otp += digits[crypto.randomInt(0, digits.length)];
   }
 
   return otp;

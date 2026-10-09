@@ -29,6 +29,7 @@ import {
   assignStaffToEvent,
 } from './services/staff.service.js';
 import logger from '@/utils/logger/index.js';
+import { assertCanAccessEvent } from '@/modules/events/event-access.service.js';
 
 /**
  * GET /organizer/dashboard
@@ -248,7 +249,13 @@ export async function eventAttendees(
     const eventId = Number(req.params.eventId);
     const page = Number(req.query.page) || 1;
     const pageSize = Number(req.query.pageSize) || 10;
-    const search = String(req.query.search);
+    const search = typeof req.query.search === 'string' ? req.query.search : '';
+
+    await assertCanAccessEvent({
+      eventId,
+      userId: req.user.id,
+      roles: req.user.roles,
+    });
 
     const result = await getEventAttendees({ eventId, page, pageSize, search });
 
@@ -357,6 +364,11 @@ export async function listEventStaff(
 ) {
   try {
     const eventId = Number(req.params.eventId);
+    await assertCanAccessEvent({
+      eventId,
+      userId: req.user.id,
+      roles: req.user.roles,
+    });
     const result = await getEventStaff(eventId);
 
     res.status(200).json({ success: true, data: result });
@@ -451,12 +463,5 @@ export async function updatePayoutDetails(
     next(err);
   }
 }
-
-
-
-
-
-
-
 
 

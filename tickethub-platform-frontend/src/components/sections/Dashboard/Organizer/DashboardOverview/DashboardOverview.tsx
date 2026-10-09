@@ -35,14 +35,24 @@ export default function DashboardOverview() {
       icon: BanknoteIcon,
     },
     {
+      title: "Tickets Available",
+      value: (stats?.totalTicketsAvailable ?? 0).toLocaleString(),
+      icon: TicketIcon,
+    },
+    {
+      title: "Tickets Sold",
+      value: (stats?.totalTicketsSold ?? 0).toLocaleString(),
+      icon: TicketIcon,
+    },
+    {
+      title: "Tickets Remaining",
+      value: (stats?.totalTicketsRemaining ?? 0).toLocaleString(),
+      icon: TicketIcon,
+    },
+    {
       title: "Orders",
       value: (stats?.totalOrders ?? 0).toLocaleString(),
       icon: CreditCardIcon,
-    },
-    {
-      title: "Sold / Remaining",
-      value: `${(stats?.totalTicketsSold ?? 0).toLocaleString()} / ${(stats?.totalTicketsRemaining ?? 0).toLocaleString()}`,
-      icon: TicketIcon,
     },
   ];
 

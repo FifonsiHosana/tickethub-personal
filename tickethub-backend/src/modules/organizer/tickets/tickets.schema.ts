@@ -33,3 +33,15 @@ export const updateTicketSchema = z.object({
 
 export type UpdateTicketType = z.infer<typeof updateTicketSchema>;
 
+export const invalidateTicketItemSchema = z.object({
+  reason: z.string().trim().max(500).optional(),
+});
+
+export type InvalidateTicketItemType = z.infer<typeof invalidateTicketItemSchema>;
+
+export const swapTicketItemSchema = z.object({
+  targetEventTicketId: z.coerce.number().int().positive(),
+  reason: z.string().trim().max(500).optional(),
+});
+
+export type SwapTicketItemType = z.infer<typeof swapTicketItemSchema>;

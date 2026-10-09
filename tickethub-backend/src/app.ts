@@ -3,7 +3,7 @@ import express, { type Response } from 'express';
 import morgan from 'morgan';
 import logger from '@/utils/logger/index.js';
 import { morganStream } from '@/utils/logger/stream.js';
-import cors from 'cors';
+import cors, { type CorsOptions } from 'cors';
 import { errorHandler, notFoundHandler } from '@/middleware/errorHandler.js';
 import { globalApiRateLimit } from '@/middleware/rateLimit.js';
 
@@ -11,6 +11,7 @@ import authRoutes from '@/modules/auth/auth.routes.js';
 import eventsRoutes from '@/modules/events/events.routes.js';
 import ticketsRoutes from '@/modules/tickets/tickets.routes.js';
 import financeRoutes from '@/modules/finance/finance.routes.js';
+import checkoutV2Routes from '@/modules/checkout-v2/checkout-v2.routes.js';
 import organizerRoutes from '@/modules/organizer/organizer.routes.js';
 import attendeeRoutes from '@/modules/attendee/attendee.routes.js';
 import adminRoutes from '@/modules/admin/admin.routes.js';
@@ -26,16 +27,45 @@ const app = express();
 const trustProxy = process.env.TRUST_PROXY ?? 'loopback';
 app.set('trust proxy', trustProxy);
 
-app.use(express.json());
-// favicon and public stuff latter
+const webhookRawBody = express.raw({ type: 'application/json' });
+app.use('/api/finance/webhook/paystack', webhookRawBody);
+app.use('/api/organizer/credit/webhook/paystack', webhookRawBody);
+app.use(express.json({ limit: '1mb' }));
 
-// HTTP request logging
 const morganFormat = process.env.NODE_ENV === 'production' ? 'combined' : 'dev';
 
 app.use(morgan(morganFormat, { stream: morganStream }));
 
-// CORS configuration would set it up better later
-app.use(cors());
+const allowedOrigins = new Set(
+  [
+    process.env.FRONTEND_URL,
+    process.env.VITE_DEV_CLIENT_SELF_URL,
+    process.env.VITE_PROD_CLIENT_SELF_URL,
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+  ].filter((origin): origin is string => Boolean(origin)),
+);
+
+const corsOptions: CorsOptions = {
+  credentials: true,
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.has(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error('Not allowed by CORS'));
+  },
+};
+
+app.use((_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  next();
+});
+app.use(cors(corsOptions));
 app.use('/api', globalApiRateLimit);
 
 app.get('/', (_, res: Response) => {
@@ -43,11 +73,11 @@ app.get('/', (_, res: Response) => {
   res.json({ message: 'Alaja Bla!' });
 });
 
-// routes
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventsRoutes);
 app.use('/api/tickets', ticketsRoutes);
 app.use('/api/finance', financeRoutes);
+app.use('/api/v2/checkout', checkoutV2Routes);
 app.use('/api/organizer', organizerRoutes);
 app.use('/api/attendee', attendeeRoutes);
 app.use('/api/admin', adminRoutes);
@@ -58,10 +88,7 @@ app.use('/api/organizer/credit', creditRoutes);
 app.use('/api/ussd', ussdRoutes);
 app.use('/api/payweb', ussdPaymentRoutes);
 
-// error handling)
-
 app.use(notFoundHandler);
 app.use(errorHandler);
 
 export default app;
-

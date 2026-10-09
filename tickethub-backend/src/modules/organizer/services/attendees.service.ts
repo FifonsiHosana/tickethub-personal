@@ -1,6 +1,7 @@
 import { db } from '@/db/client.js';
 import { and, eq, desc, count, like, or, sql } from 'drizzle-orm';
 import {
+  payments,
   tickets,
   ticketOrders,
   ticketOrderItems,
@@ -59,6 +60,10 @@ export async function getEventAttendees(params: GetAttendeesParams) {
     .from(ticketOrderItems)
     .innerJoin(ticketOrders, eq(ticketOrderItems.orderId, ticketOrders.id))
     .innerJoin(
+      payments,
+      and(eq(payments.orderId, ticketOrders.id), eq(payments.status, 'Completed')),
+    )
+    .innerJoin(
       ticketOrderUserDetails,
       eq(ticketOrders.id, ticketOrderUserDetails.orderId),
     )
@@ -75,7 +80,7 @@ export async function getEventAttendees(params: GetAttendeesParams) {
     .where(
       and(
         eq(tickets.eventId, eventId),
-        eq(ticketOrders.status, 'Completed'),
+        eq(ticketOrderItems.status, 'Valid'),
         ...filters,
       ),
     )
@@ -88,12 +93,16 @@ export async function getEventAttendees(params: GetAttendeesParams) {
     .from(ticketOrderItems)
     .innerJoin(ticketOrders, eq(ticketOrderItems.orderId, ticketOrders.id))
     .innerJoin(
+      payments,
+      and(eq(payments.orderId, ticketOrders.id), eq(payments.status, 'Completed')),
+    )
+    .innerJoin(
       eventTickets,
       eq(ticketOrderItems.eventTicketId, eventTickets.id),
     )
     .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
     .where(
-      and(eq(tickets.eventId, eventId), eq(ticketOrders.status, 'Completed')),
+      and(eq(tickets.eventId, eventId), eq(ticketOrderItems.status, 'Valid')),
     );
 
   return {

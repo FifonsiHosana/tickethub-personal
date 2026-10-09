@@ -33,6 +33,8 @@ export interface TicketDetailResponse {
   qrCodeUrl: string;
   checkedIn: boolean;
   checkedInAt: string | null;
+  status: string;
+  paymentStatus: string | null;
   ticketName: string;
   ticketType: string;
   price: string;

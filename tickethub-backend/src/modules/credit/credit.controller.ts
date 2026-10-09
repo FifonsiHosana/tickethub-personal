@@ -6,10 +6,13 @@ import { db } from '@/db/client.js';
 import { creditWallet, creditTransactions } from '@/db/schema/index.js';
 import { AppError } from '@/middleware/errorHandler.js';
 import { formatDateForMySQL } from '@/utils/timeDatehelpers.js';
-import { verifyPaystackSignature } from '@/modules/finance/finance.utils.js';
+import { parsePaystackPayload, verifyPaystackSignature } from '@/modules/finance/finance.utils.js';
 
 const PAYSTACK_INIT_URL = 'https://api.paystack.co/transaction/initialize';
 const PAYSTACK_VERIFY_URL = 'https://api.paystack.co/transaction/verify';
+const CREDIT_PRICE_GHS = Number(process.env.SMS_CREDIT_PRICE_GHS ?? 0.5);
+const MIN_CREDIT_PURCHASE = 100;
+const MAX_CREDIT_PURCHASE = 50000;
 
 type InitiateCreditPurchaseInput = {
   credits: number;
@@ -66,15 +69,20 @@ export class CreditController {
       const userEmail = req.user?.email;
       if (!userId) throw new AppError(401, 'User not authenticated');
 
-      const { credits, amount, currency = 'GHS', email, planName } = req.body;
+      const { credits, currency = 'GHS', email, planName } = req.body;
       const parsedCredits = Number(credits);
-      const parsedAmount = Number(amount);
+      const derivedAmount = parsedCredits * CREDIT_PRICE_GHS;
+      const amountInPesewas = Math.round(derivedAmount * 100);
 
-      if (!Number.isFinite(parsedCredits) || parsedCredits <= 0) {
+      if (
+        !Number.isInteger(parsedCredits) ||
+        parsedCredits < MIN_CREDIT_PURCHASE ||
+        parsedCredits > MAX_CREDIT_PURCHASE
+      ) {
         throw new AppError(400, 'Please choose a valid number of credits');
       }
-      if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-        throw new AppError(400, 'Please choose a valid amount');
+      if (!Number.isFinite(derivedAmount) || derivedAmount <= 0) {
+        throw new AppError(400, 'Credit pricing is not configured correctly');
       }
 
       const reference = `sms-credit-${userId}-${Date.now()}`;
@@ -102,12 +110,13 @@ export class CreditController {
         PAYSTACK_INIT_URL,
         {
           email: customerEmail,
-          amount: Math.round(parsedAmount),
+          amount: amountInPesewas,
           reference,
           currency,
           metadata: {
             userId,
             credits: parsedCredits,
+            expectedAmount: amountInPesewas,
             planName: planName || 'sms-credits',
             purpose: 'sms-credit-purchase',
           },
@@ -144,17 +153,29 @@ export class CreditController {
         return res.status(401).json({ success: false, message: 'Invalid Paystack signature' });
       }
 
+      const payload = parsePaystackPayload(req.body);
+
       res.status(200).json({ success: true, message: 'Webhook received' });
 
-      if (req.body?.event !== 'charge.success') return;
+      if (payload?.event !== 'charge.success') return;
 
-      const metadata = req.body?.data?.metadata ?? {};
+      const metadata = payload?.data?.metadata ?? {};
       const userId = Number(metadata.userId);
       const credits = Number(metadata.credits);
-      const reference = String(req.body?.data?.reference ?? '');
+      const reference = String(payload?.data?.reference ?? '');
+      const paidAmount = Number(payload?.data?.amount ?? 0);
+      const expectedAmount = Number(metadata.expectedAmount ?? 0);
 
       if (!userId || !Number.isFinite(credits) || credits <= 0 || !reference) {
         console.warn('[webhook] Missing or invalid credit purchase metadata', { userId, credits, reference });
+        return;
+      }
+      if (!expectedAmount || paidAmount !== expectedAmount) {
+        console.warn('[webhook] Credit payment amount mismatch', {
+          paidAmount,
+          expectedAmount,
+          reference,
+        });
         return;
       }
 
@@ -187,6 +208,8 @@ export class CreditController {
       const metadata = txData?.metadata ?? {};
       const metaUserId = Number(metadata.userId);
       const credits = Number(metadata.credits);
+      const expectedAmount = Number(metadata.expectedAmount ?? 0);
+      const paidAmount = Number(txData?.amount ?? 0);
 
       if (metaUserId !== userId) {
         throw new AppError(403, 'Reference does not belong to this account');
@@ -194,6 +217,9 @@ export class CreditController {
 
       if (!Number.isFinite(credits) || credits <= 0) {
         throw new AppError(400, 'Invalid credit amount in transaction metadata');
+      }
+      if (!expectedAmount || paidAmount !== expectedAmount) {
+        throw new AppError(400, 'Paid amount does not match credit purchase');
       }
 
       await this.applyPurchasedCredits(userId, credits, reference);

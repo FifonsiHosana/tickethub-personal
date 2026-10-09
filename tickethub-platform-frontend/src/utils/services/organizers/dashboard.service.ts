@@ -14,6 +14,7 @@ export type DashboardDataResponse = {
     draftEvents: number;
     completedEvents: number;
     cancelledEvents: number;
+    totalTicketsAvailable: number;
     totalTicketsSold: number;
     totalTicketsRemaining: number;
     totalCheckIns: number;

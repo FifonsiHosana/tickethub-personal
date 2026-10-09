@@ -77,6 +77,7 @@ export default function Attendees() {
         {eventIdNumber && (
           <div className="min-w-0 overflow-x-auto">
             <AttendeesTable
+              eventId={eventIdNumber}
               data={data}
               isLoading={isLoading}
               page={page}
@@ -88,6 +89,7 @@ export default function Attendees() {
               }}
             />
           </div>
+        )}
         )}
 
         <ScannerDialog

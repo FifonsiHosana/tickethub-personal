@@ -14,6 +14,7 @@ import config from '@/config/config.js';
 import { AppError } from '@/middleware/errorHandler.js';
 import { now } from '@/utils/timeDatehelpers.js';
 import logger from '@/utils/logger/index.js';
+import { assertOrganizerOwnsEvent } from '@/modules/events/event-access.service.js';
 
 export async function getEventStaff(eventId: number) {
   const data = await db
@@ -143,6 +144,7 @@ export async function generateStaffInviteLink(
   eventId: number,
   organizerId: number,
 ) {
+  await assertOrganizerOwnsEvent(eventId, organizerId);
   const token = generateStaffInviteToken(organizerId, eventId);
   const inviteUrl = `${config.appUrl}/signup?token=${token}`;
 

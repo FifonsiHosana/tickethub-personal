@@ -11,5 +11,7 @@ export const orderHistoryDetailParamsSchema = z.object({
 });
 
 export const orderFromReferenceQuerySchema = z.object({
-  reference: z.string(),
+  reference: z.string().min(1),
+  email: z.email().transform((email) => email.toLowerCase()).optional(),
+  phoneNumber: z.string().trim().min(1).optional(),
 });

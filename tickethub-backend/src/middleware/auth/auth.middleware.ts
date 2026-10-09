@@ -1,40 +1,73 @@
 import type { Request, Response, NextFunction } from 'express';
 
 import jwt from 'jsonwebtoken';
+import { eq } from 'drizzle-orm';
 import config from '@/config/config.js';
+import { db } from '@/db/client.js';
+import { roles, userRoles, users } from '@/db/schema/index.js';
 
 interface JwtPayload {
   id: number;
-  role?: string;
-  roles?: string[];
 }
 
-export function authenticate(req: Request, res: Response, next: NextFunction) {
-  try {
-    const authHeader = req.headers.authorization;
+async function loadActiveUser(userId: number) {
+  const [user] = await db
+    .select({ id: users.id, email: users.email, isActive: users.isActive })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
 
-    if (!authHeader) {
+  if (!user?.isActive) return null;
+
+  const userRoleRows = await db
+    .select({ name: roles.name })
+    .from(userRoles)
+    .innerJoin(roles, eq(userRoles.roleId, roles.id))
+    .where(eq(userRoles.userId, user.id));
+
+  return {
+    id: user.id,
+    email: user.email,
+    roles: userRoleRows.map((role) => role.name),
+  };
+}
+
+function getBearerToken(req: Request) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return null;
+
+  const [bearer, token] = authHeader.split(' ');
+  if (bearer !== 'Bearer' || !token) return null;
+
+  return token;
+}
+
+export async function authenticate(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const token = getBearerToken(req);
+
+    if (!token) {
       return res.status(401).json({
         success: false,
         message: 'Authentication required',
       });
     }
 
-    const [bearer, token] = authHeader.split(' ');
+    const decoded = jwt.verify(token, config.auth.jwt_secret) as JwtPayload;
+    const user = await loadActiveUser(decoded.id);
 
-    if (bearer !== 'Bearer' || !token) {
+    if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid authorization format',
+        message: 'Invalid or expired token',
       });
     }
 
-    const decoded = jwt.verify(token, config.auth.jwt_secret) as JwtPayload;
-
-    req.user = {
-      id: decoded.id,
-      roles: decoded.roles ?? (decoded.role ? [decoded.role] : []),
-    };
+    req.user = user;
 
     next();
   } catch (error) {
@@ -46,35 +79,23 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
 }
 
 /**
- * Like `authenticate`, but never rejects.
- *
- * Sets `req.user` when a valid Bearer token is present, and continues as a
- * guest (no `req.user`) when the header is missing or the token is invalid.
- * Used on public routes that want to optionally attribute requests to a
- * signed-in user without requiring auth (e.g. ticket purchases).
+ * Sets `req.user` when a valid Bearer token belongs to an active user, and
+ * continues as a guest when the header is missing or invalid.
  */
-export function optionalAuthenticate(
+export async function optionalAuthenticate(
   req: Request,
   _res: Response,
   next: NextFunction,
 ) {
   try {
-    const authHeader = req.headers.authorization;
+    const token = getBearerToken(req);
+    if (!token) return next();
 
-    if (authHeader) {
-      const [bearer, token] = authHeader.split(' ');
-
-      if (bearer === 'Bearer' && token) {
-        const decoded = jwt.verify(token, config.auth.jwt_secret) as JwtPayload;
-
-        req.user = {
-          id: decoded.id,
-          roles: decoded.roles ?? (decoded.role ? [decoded.role] : []),
-        };
-      }
-    }
+    const decoded = jwt.verify(token, config.auth.jwt_secret) as JwtPayload;
+    const user = await loadActiveUser(decoded.id);
+    if (user) req.user = user;
   } catch (error) {
-    // Invalid or expired token — treat as guest
+    // Invalid or expired token: continue as a guest.
   }
 
   next();
