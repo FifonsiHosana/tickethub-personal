@@ -48,6 +48,7 @@ class TicketsController {
       const result = await ticketsService.checkInTicket(
         req.body.ticketIdentifier,
         req.user.id,
+        req.body.eventId,
       );
 
       return res.status(200).json({

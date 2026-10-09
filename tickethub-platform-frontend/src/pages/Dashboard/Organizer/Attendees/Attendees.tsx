@@ -91,11 +91,14 @@ export default function Attendees() {
           </div>
         )}
 
-        <ScannerDialog
-          open={scannerOpen}
-          onOpenChange={setScannerOpen}
-          onScanned={handleScanned}
-        />
+        {eventIdNumber && (
+          <ScannerDialog
+            eventId={eventIdNumber}
+            open={scannerOpen}
+            onOpenChange={setScannerOpen}
+            onScanned={handleScanned}
+          />
+        )}
       </div>
     </div>
   );

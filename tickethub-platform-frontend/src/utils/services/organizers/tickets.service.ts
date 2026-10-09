@@ -129,12 +129,13 @@ export async function createTicketType(
   return response.data.data;
 }
 
-export async function checkInTicket(
-  ticketIdentifier: string,
-): Promise<CheckInTicketResponse> {
+export async function checkInTicket(payload: {
+  ticketIdentifier: string;
+  eventId?: number;
+}): Promise<CheckInTicketResponse> {
   const response = await axiosInstance.post<ApiResponse<CheckInTicketResponse>>(
     "/tickets/check-in",
-    { ticketIdentifier },
+    payload,
   );
   return response.data.data;
 }

@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from "react";
 import { Html5Qrcode, Html5QrcodeScannerState } from "html5-qrcode";
 import { logger } from "@/utils/logger";
 
@@ -20,30 +20,44 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
 ) {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const startPromiseRef = useRef<Promise<void> | null>(null);
+  const onDecodeRef = useRef(onDecode);
+  const onErrorRef = useRef(onError);
 
-  const qrboxFunction = (vw: number, vh: number) => {
-    const size = Math.max(Math.floor(Math.min(vw, vh) * 0.8), MIN_QRBOX_SIZE);
-    return { width: size, height: size };
-  };
+  useEffect(() => {
+    onDecodeRef.current = onDecode;
+    onErrorRef.current = onError;
+  }, [onDecode, onError]);
 
-  const startScanning = (node: HTMLDivElement) => {
+  const startScanning = useCallback((node: HTMLDivElement) => {
+    if (scannerRef.current) return;
+
     const scanner = new Html5Qrcode(node.id);
     scannerRef.current = scanner;
 
     startPromiseRef.current = scanner
       .start(
         { facingMode: "environment" },
-        { fps: 20, qrbox: qrboxFunction },
-        onDecode,
+        {
+          fps: 20,
+          qrbox: (vw, vh) => {
+            const size = Math.max(
+              Math.floor(Math.min(vw, vh) * 0.8),
+              MIN_QRBOX_SIZE,
+            );
+            return { width: size, height: size };
+          },
+        },
+        (decodedText) => onDecodeRef.current(decodedText),
         () => {},
       )
       .catch((err) => {
         logger.error(`Scanner failed to start: ${err}`);
-        onError?.("Camera access denied or unavailable.");
+        onErrorRef.current?.("Camera access denied or unavailable.");
+        scannerRef.current = null;
       }) as Promise<void>;
-  };
+  }, []);
 
-  const stopScanning = async () => {
+  const stopScanning = useCallback(async () => {
     const scanner = scannerRef.current;
     scannerRef.current = null;
     if (!scanner) return;
@@ -61,17 +75,14 @@ const Scanner = forwardRef<ScannerHandle, ScannerProps>(function Scanner(
     } catch (err) {
       logger.error(`Error stopping scanner: ${err}`);
     }
-  };
+  }, []);
 
-  useImperativeHandle(ref, () => ({ stop: stopScanning }));
+  useImperativeHandle(ref, () => ({ stop: stopScanning }), [stopScanning]);
 
-  const setContainerNode = (node: HTMLDivElement | null) => {
-    if (node) {
-      startScanning(node);
-    } else {
-      stopScanning();
-    }
-  };
+  const setContainerNode = useCallback((node: HTMLDivElement | null) => {
+    if (node) startScanning(node);
+    else stopScanning();
+  }, [startScanning, stopScanning]);
 
   return (
     <div

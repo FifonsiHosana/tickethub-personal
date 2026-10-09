@@ -19,10 +19,13 @@ type ScanResult =
   | null;
 
 interface Props {
+  eventId: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onScanned: () => void;
 }
+
+const SCAN_COOLDOWN_MS = 1800;
 
 const statusLabels = {
   valid: "Valid",
@@ -37,32 +40,42 @@ const statusStyles = {
 } as const;
 
 export default function ScannerDialog({
+  eventId,
   open,
   onOpenChange,
   onScanned,
 }: Props) {
   const scannerHandleRef = useRef<ScannerHandle>(null);
+  const scanLockedRef = useRef(false);
+  const unlockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { mutateAsync: checkInTicket } = useCheckInTicket();
   const [result, setResult] = useState<ScanResult>(null);
 
+  const unlockAfterCooldown = () => {
+    if (unlockTimerRef.current) clearTimeout(unlockTimerRef.current);
+    unlockTimerRef.current = setTimeout(() => {
+      scanLockedRef.current = false;
+      unlockTimerRef.current = null;
+    }, SCAN_COOLDOWN_MS);
+  };
+
   const handleDecode = async (decodedText: string) => {
+    if (scanLockedRef.current) return;
+    scanLockedRef.current = true;
+
     const identifier = extractTicketIdentifier(decodedText);
 
     try {
-      const scanResult = await checkInTicket(identifier);
+      const scanResult = await checkInTicket({ ticketIdentifier: identifier, eventId });
       setResult(scanResult);
 
-      if (scanResult.status === "valid") {
-        onScanned();
-      }
+      if (scanResult.status === "valid") onScanned();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Check-in failed.";
-      setResult({
-        status: "invalid",
-        message: msg,
-        ticketIdentifier: identifier,
-      });
+      setResult({ status: "invalid", message: msg, ticketIdentifier: identifier });
       logger.error(`${err}`);
+    } finally {
+      unlockAfterCooldown();
     }
   };
 
@@ -73,6 +86,9 @@ export default function ScannerDialog({
   const handleOpenChange = async (nextOpen: boolean) => {
     if (!nextOpen) {
       setResult(null);
+      scanLockedRef.current = false;
+      if (unlockTimerRef.current) clearTimeout(unlockTimerRef.current);
+      unlockTimerRef.current = null;
       await scannerHandleRef.current?.stop();
     }
     onOpenChange(nextOpen);
@@ -93,35 +109,23 @@ export default function ScannerDialog({
             />
           )}
           {result && (
-            <div
-              className={`rounded-lg border p-3 text-sm ${statusStyles[result.status]}`}
-            >
+            <div className={`rounded-lg border p-3 text-sm ${statusStyles[result.status]}`}>
               <div className="flex items-center justify-between gap-3">
                 <p className="font-semibold">{statusLabels[result.status]}</p>
-                {result.ticketIdentifier && (
-                  <p className="font-mono text-xs">{result.ticketIdentifier}</p>
-                )}
+                {result.ticketIdentifier && <p className="font-mono text-xs">{result.ticketIdentifier}</p>}
               </div>
               <p className="mt-1 font-medium">{result.message}</p>
               {"attendeeName" in result && (
                 <div className="mt-3 space-y-1 text-xs">
-                  <p>
-                    <span className="font-semibold">Attendee:</span>{" "}
-                    {result.attendeeName || "Unnamed attendee"}
-                  </p>
-                  <p>
-                    <span className="font-semibold">Ticket type:</span>{" "}
-                    {result.ticketType || "Not specified"}
-                  </p>
+                  <p><span className="font-semibold">Attendee:</span> {result.attendeeName || "Unnamed attendee"}</p>
+                  <p><span className="font-semibold">Ticket type:</span> {result.ticketType || "Not specified"}</p>
                 </div>
               )}
             </div>
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => handleOpenChange(false)}>
-            Close
-          </Button>
+          <Button variant="outline" onClick={() => handleOpenChange(false)}>Close</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -47,7 +47,7 @@ export function EventAttendeesTab({ eventId }: Props) {
           }}
         />
       </div>
-      <ScannerDialog open={scannerOpen} onOpenChange={setScannerOpen} onScanned={handleScanned} />
+      <ScannerDialog eventId={eventId} open={scannerOpen} onOpenChange={setScannerOpen} onScanned={handleScanned} />
     </div>
   );
 }

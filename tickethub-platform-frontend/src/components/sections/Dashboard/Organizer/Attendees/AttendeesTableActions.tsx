@@ -74,7 +74,7 @@ const AttendeesTableActions = ({
         confirmText="Manual check-in"
         variant="default"
         onConfirm={() => {
-          checkInManually(ticketIdentifier);
+          checkInManually({ ticketIdentifier, eventId });
           setManualCheckInOpen(false);
         }}
       />

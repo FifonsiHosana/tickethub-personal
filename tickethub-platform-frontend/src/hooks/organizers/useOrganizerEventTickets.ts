@@ -89,7 +89,7 @@ export function useCheckInTicket() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: (ticketIdentifier: string) => checkInTicket(ticketIdentifier),
+    mutationFn: (payload: { ticketIdentifier: string; eventId?: number }) => checkInTicket(payload),
     onSuccess: (result) => {
       if (result.status === "valid") {
         qc.invalidateQueries({ queryKey: ["organizer-event-attendees"] });

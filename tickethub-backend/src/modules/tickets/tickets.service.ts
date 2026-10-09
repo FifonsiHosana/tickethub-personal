@@ -204,7 +204,7 @@ class TicketsService {
     };
   }
 
-  async checkInTicket(ticketIdentifier: string, checkedInBy: number) {
+  async checkInTicket(ticketIdentifier: string, checkedInBy: number, eventId?: number) {
     const [ticket] = await db
       .select({
         id: ticketOrderItems.id,
@@ -242,6 +242,10 @@ class TicketsService {
 
     if (!ticket) {
       throw new AppError(404, 'Ticket not found.');
+    }
+
+    if (eventId && ticket.eventId !== eventId) {
+      throw new AppError(400, 'This ticket does not belong to the selected event.');
     }
 
     if (ticket.status !== 'Valid') {

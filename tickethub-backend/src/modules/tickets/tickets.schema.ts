@@ -19,6 +19,7 @@ export const purchaseTicketSchema = z.object({
 
 export const checkInTicketSchema = z.object({
   ticketIdentifier: z.string().min(5).max(500),
+  eventId: z.number().int().positive().optional(),
 });
 
 export const resendMailSchema = z.object({
