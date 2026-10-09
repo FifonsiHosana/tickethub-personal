@@ -7,7 +7,8 @@ export function useOrganizerDashboardData(params?: DashboardParams) {
     queryKey: ["organizer-dashboard", params],
     queryFn: () => getOrganizerDashboardData(params),
     placeholderData: (previousData) => previousData, // no flicker on refetch
-    refetchInterval: 3_000, // every 5s
+    staleTime: 30_000,
+    refetchInterval: 15_000,
     refetchIntervalInBackground: false, // pause when tab is hidden
     refetchOnWindowFocus: true, // instant refresh when they return
     refetchOnReconnect: true,

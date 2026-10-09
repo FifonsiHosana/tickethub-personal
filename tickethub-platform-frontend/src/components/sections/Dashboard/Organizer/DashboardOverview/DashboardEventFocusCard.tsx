@@ -9,13 +9,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useDashboardEventFilter } from "@/components/shared/date/useDashboardEventFilter";
 import { useOrganizerEvents } from "@/hooks/organizers/useOrganizerEvents";
 
 export default function DashboardEventFocusCard() {
   const { eventId, setEventId } = useDashboardEventFilter();
-  const { data, isLoading } = useOrganizerEvents({ pageSize: 100 });
+  const { data } = useOrganizerEvents({ pageSize: 100 });
   const events = data?.data ?? [];
   const selectedEvent = events.find((event) => String(event.id) === eventId);
   const selectedLabel = selectedEvent?.title ?? "All events";
@@ -32,9 +31,6 @@ export default function DashboardEventFocusCard() {
         <CalendarRangeIcon className="h-4 w-4 shrink-0 text-primary" />
       </CardHeader>
       <CardContent className="flex min-w-0 flex-col gap-2 sm:flex-row">
-        {isLoading ? (
-          <Skeleton className="h-10 flex-1 rounded-lg" />
-        ) : (
           <Select
             value={eventId || "all"}
             onValueChange={(value) => {
@@ -59,7 +55,6 @@ export default function DashboardEventFocusCard() {
               ))}
             </SelectContent>
           </Select>
-        )}
         <Button
           size="icon-lg"
           className="shrink-0 rounded-xl"

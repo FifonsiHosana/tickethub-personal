@@ -31,6 +31,7 @@ export interface TicketDetailResponse {
   id: number;
   ticketIdentifier: string;
   qrCodeUrl: string;
+  qrCodeImageUrl: string;
   checkedIn: boolean;
   checkedInAt: string | null;
   status: string;

@@ -54,6 +54,7 @@ export function useOrganizerEvents(params?: GetOrganizerEventsParams) {
     queryKey: ["organizer-events", params],
     queryFn: () => getOrganizerEvents(params),
     placeholderData: (previousData) => previousData,
+    staleTime: 60_000,
   });
 }
 

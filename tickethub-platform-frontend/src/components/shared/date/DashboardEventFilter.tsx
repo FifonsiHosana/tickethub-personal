@@ -7,7 +7,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useOrganizerEvents } from "@/hooks/organizers/useOrganizerEvents";
 import { useDashboardEventFilter } from "./useDashboardEventFilter";
 
@@ -22,13 +21,10 @@ const FILTER_PATHS = new Set([
 export function DashboardEventFilter() {
   const { pathname } = useLocation();
   const { eventId, setEventId } = useDashboardEventFilter();
-  const { data, isLoading } = useOrganizerEvents({ pageSize: 100 });
+  const { data } = useOrganizerEvents({ pageSize: 100 });
 
   if (!FILTER_PATHS.has(pathname)) return null;
 
-  if (isLoading) {
-    return <Skeleton className="h-9 w-48 rounded-xl sm:w-64" />;
-  }
 
   const events = data?.data ?? [];
   const selectedValue = eventId || "all";

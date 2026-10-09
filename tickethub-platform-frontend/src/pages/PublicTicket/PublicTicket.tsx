@@ -67,17 +67,11 @@ export default function PublicTicket() {
               </div>
             </div>
 
-            <div className="flex justify-center py-2">
-              {ticket.qrCodeUrl.startsWith("data:") ? (
-                <img src={ticket.qrCodeUrl} alt="QR Code" className="h-40 w-40" />
-              ) : (
-                <div className="rounded-xl border border-dashed border-neutral-300 px-5 py-4 text-center">
-                  <p className="text-xs uppercase text-neutral-400">Ticket Code</p>
-                  <p className="mt-2 break-all font-mono text-sm text-neutral-800">
-                    {ticket.ticketIdentifier}
-                  </p>
-                </div>
-              )}
+            <div className="flex flex-col items-center justify-center gap-2 py-2">
+              <img src={ticket.qrCodeImageUrl} alt="QR Code" className="h-44 w-44" />
+              <p className="break-all font-mono text-xs text-neutral-500">
+                {ticket.ticketIdentifier}
+              </p>
             </div>
 
             <div className="text-center">

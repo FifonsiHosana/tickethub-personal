@@ -17,37 +17,15 @@ import {
 import { eq, and, inArray, sql, asc, desc } from 'drizzle-orm';
 import { AppError } from '@/middleware/errorHandler.js';
 import type { PurchaseTicketType } from './tickets.schema.js';
-import { generateTicketIdentifier } from './tickets.utils.js';
+import { generateQrCodeDataUrl, generateTicketIdentifier } from './tickets.utils.js';
 import config from '@/config/config.js';
 import { buildPurchaseConfirmationEmail } from '../emails/templates/ticketPurchase.template.js';
-import { getOrderForResend, type ResendTicketItem } from './tickets.query.js';
+import { getOrderForResend } from './tickets.query.js';
 import { sendMail } from '../emails/emails.service.js';
 import { randomBytes } from 'crypto';
-import { sendTicket } from '../ussd-payment/ussd-payment.utils.js';
+import { sendTicketSmsMessages } from './ticket-sms.service.js';
 import { computeOrderBreakdown } from '../finance/finance.pricing.js';
 import { now } from '@/utils/timeDatehelpers.js';
-
-function buildResendTicketSms(params: {
-  attendeeName: string;
-  orderId: number;
-  tickets: ResendTicketItem[];
-}) {
-  const ticketLines = params.tickets
-    .map(
-      (ticket, index) =>
-        `${index + 1}. ${ticket.eventName}\n` +
-        `Ticket: ${ticket.ticketName}\n` +
-        `Type: ${ticket.ticketType}\n` +
-        `Code: ${ticket.ticketIdentifier}\n` +
-        `Link: ${ticket.qrCodeUrl}`,
-    )
-    .join('\n\n');
-
-  return (
-    `Hi ${params.attendeeName || 'there'}, your TicketHub tickets for order #${params.orderId}:\n\n` +
-    ticketLines
-  );
-}
 
 class TicketsService {
   async purchaseTickets(payload: PurchaseTicketType, userId: number | null) {
@@ -218,7 +196,12 @@ class TicketsService {
       .where(eq(ticketOrderItems.ticketIdentifier, identifier))
       .limit(1);
 
-    return ticket ?? null;
+    if (!ticket) return null;
+
+    return {
+      ...ticket,
+      qrCodeImageUrl: await generateQrCodeDataUrl(ticket.ticketIdentifier),
+    };
   }
 
   async checkInTicket(ticketIdentifier: string, checkedInBy: number) {
@@ -358,14 +341,10 @@ class TicketsService {
     };
 
     const sendSms = () =>
-      sendTicket(
-        customerPhoneNumber,
-        buildResendTicketSms({
-          attendeeName,
-          orderId: id,
-          tickets: orderItems,
-        }),
-      );
+      sendTicketSmsMessages(customerPhoneNumber, orderItems, {
+        attendeeName,
+        orderId: id,
+      });
 
     const [emailResult, smsResult] = await Promise.allSettled([
       sendEmail(),
@@ -621,8 +600,6 @@ class TicketsService {
     // 6. Notify AFTER the transaction commits, so a failed email/SMS
     //    never rolls back tickets that were legitimately created.
     const { attendee, tickets: finalTickets, total } = result;
-    const first = finalTickets[0]!;
-
     const sendEmail = async () => {
       const { html, attachments } = await buildPurchaseConfirmationEmail({
         orderId,
@@ -643,14 +620,7 @@ class TicketsService {
     };
 
     const sendSms = () =>
-      sendTicket(
-        attendee.phoneNumber,
-        `${first.eventName}\n\n` +
-          `Ticket ID: ${first.ticketIdentifier}\n` +
-          `Ticket Type: ${first.ticketType || first.ticketName}\n` +
-          `Quantity: ${finalTickets.length}\n\n` +
-          `View Tickets: ${first.qrCodeUrl}`,
-      );
+      sendTicketSmsMessages(attendee.phoneNumber, finalTickets, { orderId });
 
     // No `await` inside the array: both run in parallel, and one failing
     // can't stop the other.

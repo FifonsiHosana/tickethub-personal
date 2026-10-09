@@ -15,7 +15,7 @@ export default function DashboardOverview() {
   const { range } = useDashboardDateRange();
   const { eventIdNumber } = useDashboardEventFilter();
 
-  const { data: dashboard, isLoading } = useOrganizerDashboardData({
+  const { data: dashboard } = useOrganizerDashboardData({
     upcomingPage,
     upcomingPageSize,
     topSellingPage,
@@ -25,7 +25,6 @@ export default function DashboardOverview() {
     eventId: eventIdNumber,
   });
 
-  if (isLoading) return <DashboardSkeleton />;
 
   const stats = dashboard?.statistics;
   const metricCards = [
@@ -85,19 +84,6 @@ export default function DashboardOverview() {
           topSellingPageSize={topSellingPageSize}
           setTopSellingPageSize={setTopSellingPageSize}
         />
-      </div>
-    </div>
-  );
-}
-
-function DashboardSkeleton() {
-  return (
-    <div className="flex-1 space-y-4 p-1">
-      <div className="h-8 w-48 animate-pulse rounded bg-muted" />
-      <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-16 animate-pulse rounded-lg bg-muted" />
-        ))}
       </div>
     </div>
   );

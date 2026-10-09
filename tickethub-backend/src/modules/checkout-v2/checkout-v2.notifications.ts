@@ -1,6 +1,6 @@
 import { sendMail } from '@/modules/emails/emails.service.js';
 import { buildPurchaseConfirmationEmail } from '@/modules/emails/templates/ticketPurchase.template.js';
-import { sendTicket } from '@/modules/ussd-payment/ussd-payment.utils.js';
+import { sendTicketSmsMessages } from '@/modules/tickets/ticket-sms.service.js';
 
 interface IssuedTicket {
   ticketIdentifier: string;
@@ -21,7 +21,6 @@ export async function notifyCheckoutV2(params: {
 }) {
   if (!params.attendee || params.tickets.length === 0) return;
 
-  const first = params.tickets[0]!;
   const { html, attachments } = await buildPurchaseConfirmationEmail({
     orderId: params.orderId,
     total: params.total,
@@ -39,11 +38,8 @@ export async function notifyCheckoutV2(params: {
       undefined,
       attachments,
     ),
-    sendTicket(
-      params.attendee.phoneNumber,
-      `${first.eventName}\n\nTicket ID: ${first.ticketIdentifier}\n` +
-        `Ticket Type: ${first.ticketType || first.ticketName}\n` +
-        `Quantity: ${params.tickets.length}\n\nView Tickets: ${first.qrCodeUrl}`,
-    ),
+    sendTicketSmsMessages(params.attendee.phoneNumber, params.tickets, {
+      orderId: params.orderId,
+    }),
   ]);
 }

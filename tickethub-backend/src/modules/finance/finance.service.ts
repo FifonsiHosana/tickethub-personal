@@ -21,8 +21,7 @@ import type { purchaseTicketPaymentInput } from './finance.schema.js';
 import { now } from '@/utils/timeDatehelpers.js';
 import { buildPurchaseConfirmationEmail } from '../emails/templates/ticketPurchase.template.js';
 import { computeOrderBreakdown } from './finance.pricing.js';
-import { sendTicket } from '../ussd-payment/ussd-payment.utils.js';
-import { smsService } from '../sms/sms.service.js';
+import { sendTicketSmsMessages } from '../tickets/ticket-sms.service.js';
 import { paymentComplete } from '../ussd-payment/ussd-payment.service.js';
 import { randomBytes } from 'crypto';
 import { finalizeCheckoutV2, isCheckoutV2Webhook } from '@/modules/checkout-v2/checkout-v2.finalize.js';
@@ -281,35 +280,12 @@ export class FinanceService {
           accountCreated,
           email: customerEmail,
         });
-      const ticketLines = orderItems
-        .map(
-          (t, i) =>
-            `${i + 1}. ${t.ticketName}\n` +
-            `ID: ${t.ticketIdentifier}\n` +
-            `View: ${t.qrCodeUrl}`,
-        )
-        .join('\n\n');
-
-      await sendTicket(
+      await sendTicketSmsMessages(
         order.TicketOrderUserDetails.phoneNumber,
-        `${orderItems[0]?.eventName}\n\n` +
-          `Quantity: ${orderItems.length}\n\n` +
-          ticketLines,
+        orderItems,
+        { orderId },
       );
 
-      // await sendTicket(
-      //   order.TicketOrderUserDetails.phoneNumber,
-      //   `${orderItems[0]?.eventName}\n\n
-      //    Ticket ID: ${orderItems[0]?.ticketIdentifier}\n
-      //    Ticket Type: ${orderItems[0]?.ticketName}\n
-      //    Quantity: ${orderItems.length}\n\n${orderItems.map(()=>{<p></>}
-      //    View Tickets: ${orderItems[0]?.qrCodeUrl}} `,
-      // );
-      // await smsService.sendSms({
-      //   userId: order.TicketOrderUserDetails.id,
-      //   message: `Your TicketHub Tickets\nTicket code: ${orderItems[0]?.ticketIdentifier}\nAmount Paid: ${amountToString} ${currency}`,
-      //   recipients: [order.TicketOrderUserDetails.phoneNumber],
-      // });
       await sendMail(
         customerEmail,
         'Your TicketHub Tickets',
