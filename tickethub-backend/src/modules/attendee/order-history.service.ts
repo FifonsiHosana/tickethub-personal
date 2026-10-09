@@ -16,7 +16,7 @@ export type OrderHistoryPeriod = 'upcoming' | 'past';
 export interface OrderHistoryParams { userId: number; page?: number; pageSize?: number; period?: OrderHistoryPeriod }
 
 const latestPaymentId = sql`(SELECT p.id FROM ${payments} p WHERE p.orderId = ${ticketOrders.id} ORDER BY (p.status = 'Completed') DESC, p.id DESC LIMIT 1)`;
-const upcomingOrderExists = sql`EXISTS (SELECT 1 FROM TicketOrderItems toi INNER JOIN EventTickets et ON toi.eventTicketId = et.id INNER JOIN Tickets t ON et.ticketId = t.id INNER JOIN Events e ON t.eventId = e.id WHERE toi.orderId = ${ticketOrders.id} AND e.dateAndTime >= CURRENT_DATE())`;
+const upcomingOrderExists = sql`EXISTS (SELECT 1 FROM TicketOrderItems toi INNER JOIN EventTickets et ON toi.eventTicketId = et.id INNER JOIN Tickets t ON et.ticketId = t.id INNER JOIN Events e ON t.eventId = e.id WHERE toi.orderId = ${ticketOrders.id} AND toi.status = 'Valid' AND e.dateAndTime >= CURRENT_DATE())`;
 
 function orderFilters(userId: number, period?: OrderHistoryPeriod): SQL[] {
   const filters: SQL[] = [eq(ticketOrders.userId, userId), eq(ticketOrders.status, 'Completed')];
@@ -107,7 +107,7 @@ async function getEventsByOrder(orderIds: number[]) {
     .innerJoin(tickets, eq(eventTickets.ticketId, tickets.id))
     .innerJoin(ticketTypes, eq(eventTickets.ticketTypeId, ticketTypes.id))
     .innerJoin(events, eq(tickets.eventId, events.id))
-    .where(inArray(ticketOrderItems.orderId, orderIds))
+    .where(and(inArray(ticketOrderItems.orderId, orderIds), eq(ticketOrderItems.status, 'Valid')))
     .orderBy(events.dateAndTime, ticketOrderItems.id);
   for (const row of rows) addTicketRow(eventsByOrder, row);
   return eventsByOrder;

@@ -220,6 +220,8 @@ export async function getOrganizerOrders(options: GetOrganizerOrdersOptions) {
           totalTickets: sql<number>`SUM(${ticketOrderIntents.quantity})`,
 
           checkedInCount: sql<number>`0`,
+
+          ticketIdentifiersCsv: sql<string>`NULL`,
         })
         .from(ticketOrderIntents)
         .innerJoin(ticketOrders, eq(ticketOrderIntents.orderId, ticketOrders.id))

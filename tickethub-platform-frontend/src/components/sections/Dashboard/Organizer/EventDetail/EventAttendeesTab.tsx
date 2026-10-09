@@ -35,6 +35,7 @@ export function EventAttendeesTab({ eventId }: Props) {
       </div>
       <div className="min-w-0 overflow-x-auto">
         <AttendeesTable
+          eventId={eventId}
           data={data}
           isLoading={isLoading}
           page={page}

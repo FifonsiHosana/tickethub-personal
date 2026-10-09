@@ -90,7 +90,6 @@ export default function Attendees() {
             />
           </div>
         )}
-        )}
 
         <ScannerDialog
           open={scannerOpen}
